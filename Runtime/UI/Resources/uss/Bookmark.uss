@@ -1,0 +1,4 @@
+.bookmark-button {
+    position: absolute;
+    left: 0;
+}

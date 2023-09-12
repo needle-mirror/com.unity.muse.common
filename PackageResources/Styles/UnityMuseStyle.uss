@@ -1,0 +1,100 @@
+.appui--medium {
+    --appui-font-sizes-100: 13px;
+}
+
+.appui-actionbutton__label {
+    font-size: var(--appui-font-sizes-100);
+}
+
+.appui-link {
+    font-size: var(--appui-font-sizes-100);
+}
+
+.appui-button--quiet:disabled,
+.appui-button--quiet.unity-disabled {
+    background-color: rgba(0, 0, 0, 0);
+    border-color: rgba(0, 0, 0, 0);
+}
+
+/* Unity Editor Overrides */
+.unity-editor {
+    --appui-alias-control-cursor-move: move-arrow;
+    --appui-alias-control-cursor-nwseresize: resize-up-left;
+    --appui-alias-control-cursor-neswresize: resize-up-right;
+    --appui-alias-control-cursor-nsresize: resize-vertical;
+    --appui-alias-control-cursor-ewresize: resize-horizontal;
+    --appui-alias-control-cursor-col-resize: split-resize-left-right;
+    --appui-alias-control-cursor-row-resize: split-resize-up-down;
+    --appui-alias-control-cursor-text: text;
+    --appui-alias-control-cursor-pointer: link;
+    --appui-alias-control-cursor-default: arrow;
+    --appui-alias-control-cursor-disabled: arrow;
+}
+
+.unity-text-field__input * {
+    cursor: var(--appui-alias-control-cursor-text);
+}
+
+.appui-grid-view__item {
+    padding: var(--appui-sizing-25);
+}
+
+.unity-scroller--vertical {
+    background-color: rgba(0,0,0,0);
+    margin: var(--appui-sizing-60) 0;
+}
+
+.unity-scroller--vertical .unity-base-slider__dragger {
+    width: var(--appui-sizing-100);
+    margin: 0 var(--appui-sizing-60) 0 var(--appui-sizing-25);
+    border-radius: var(--appui-sizing-50);
+}
+
+.unity-scroller--horizontal .unity-base-slider__dragger {
+    height: var(--appui-sizing-100);
+    margin: var(--appui-sizing-25) 0 var(--appui-sizing-60) 0;
+    border-radius: var(--appui-sizing-50);
+    min-height: auto;
+}
+
+.unity-scroller .unity-base-slider__dragger,
+.unity-scroller .unity-base-slider__dragger:enabled {
+    background-color: var(--appui-primary-600);
+}
+
+.unity-scroller .unity-base-slider__dragger:hover,
+.unity-scroller .unity-base-slider__dragger:hover:enabled {
+    background-color: var(--appui-primary-800);
+}
+
+.bottom-gap {
+    margin-bottom: var(--appui-spacing-125);
+}
+
+.row {
+    flex-direction: row;
+    align-self: stretch;
+}
+
+.muse-spacer {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+/* testing an image in the canvas */
+.muse-current-image {
+    top: 100px;
+    left: 400px;
+    width: 200px;
+    height: 200px;
+    background-color: red;
+}
+
+.appui-inputlabel--horizontal > .appui-inputlabel__label {
+    padding-right: var(--appui-alias-control-gap-md);
+}
+
+.appui-inputlabel--horizontal > .appui-inputlabel__label {
+    padding-right: var(--appui-alias-control-gap-md);
+    flex-basis: initial;
+}

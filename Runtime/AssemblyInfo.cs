@@ -1,0 +1,10 @@
+using System.Runtime.CompilerServices;
+[assembly: InternalsVisibleTo("Unity.Muse.Texture")]
+[assembly: InternalsVisibleTo("Unity.Muse.Sprite")]
+[assembly: InternalsVisibleTo("Unity.Muse.StyleTrainer")]
+[assembly: InternalsVisibleTo("Unity.Muse.Common.Tests")]
+[assembly: InternalsVisibleTo("Unity.Muse.Common.Editor")]
+[assembly: InternalsVisibleTo("Unity.Muse.Common.Editor.Tests")]
+[assembly: InternalsVisibleTo("Unity.Muse.Texture.Editor")]
+[assembly: InternalsVisibleTo("Unity.Muse.Sprite.Editor")]
+[assembly: InternalsVisibleTo("Unity.Muse.Texture.Editor")]

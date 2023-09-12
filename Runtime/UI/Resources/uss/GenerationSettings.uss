@@ -1,0 +1,40 @@
+GenerationSettings {
+    min-width: 400px;
+    margin: var(--appui-alias-control-gap-md);
+
+    --appui-font-sizes-body-md: var(--appui-font-sizes-100);
+}
+
+.titlebar {
+    margin-bottom: 0;
+}
+
+.title {
+    color: var(--appui-foregrounds-200);
+    -unity-font-style: bold;
+}
+
+.row {
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.row.operator-settings {
+    align-items: flex-start;
+    margin-top: var(--appui-alias-control-gap-md);
+}
+
+.row #content {
+    flex-grow: 1;
+}
+
+.row #label {
+    color: var(--appui-foregrounds-25);
+    min-width: 150px;
+    max-width: 150px;
+}
+
+.row Image {
+    max-width: 100px;
+    max-height: 100px;
+}

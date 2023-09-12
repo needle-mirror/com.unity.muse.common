@@ -1,0 +1,16 @@
+.genai-loader-gradient {
+    flex-grow: 1;
+    align-items: center;
+    justify-content: center;
+}
+
+.genai-loader-state-loading {
+}
+
+.genai-loader-state-none {
+   display: none;
+}
+.genai-loader-gradient-element{
+    flex-grow: 1;
+    -unity-background-scale-mode: scale-to-fit;
+}

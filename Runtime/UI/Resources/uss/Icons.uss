@@ -1,0 +1,11 @@
+.appui-icon--eraser--regular {
+    --unity-image: url("./Icons/d_Eraser_32.png");
+}
+
+.appui-icon--star-filled--regular {
+    --unity-image: url("./Icons/StarFilled.png");
+}
+
+.appui-icon--download-simple--regular {
+    --unity-image: url("./Icons/DownloadSimple.png");
+}

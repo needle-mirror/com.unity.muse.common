@@ -1,0 +1,30 @@
+{
+    "name": "Unity.Muse.Common.Editor",
+    "rootNamespace": "Unity.Muse.Common.Editor",
+    "references": [
+        "GUID:e0205eb74dc764cf6ab9891355857e49",
+        "GUID:2f101f87087d58f4ba92ca00188e763d"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.render-pipelines.universal",
+            "expression": "[1,17]",
+            "define": "URP_PIPELINE_ENABLED"
+        },
+        {
+            "name": "com.unity.render-pipelines.high-definition",
+            "expression": "[1,17]",
+            "define": "HDRP_PIPELINE_ENABLED"
+        }
+    ],
+    "noEngineReferences": false
+}
