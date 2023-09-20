@@ -32,6 +32,7 @@ namespace Unity.Muse.Common
         /// <param name="model">Model used.</param>
         public virtual void StartGenerate(Model model) { }
         public abstract void Generate(Model model);
+        public abstract void RetryGenerate(Model model);
         public abstract ArtifactView CreateView();
         public virtual ArtifactView CreateCanvasView()
         {
@@ -40,7 +41,8 @@ namespace Unity.Muse.Common
             return view;
         }
 
-        public Action OnGenerationDone;
+        public delegate void ArtifactGenerationDelegate(Artifact artifact, string errorMessage);
+        public ArtifactGenerationDelegate OnGenerationDone;
         public List<IOperator> GetOperators()
         {
             return m_Operators;

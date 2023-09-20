@@ -54,8 +54,12 @@ namespace Unity.Muse.Common
             var UI = new ExVisualElement { passMask = ExVisualElement.Passes.Clear | ExVisualElement.Passes.OutsetShadows };
             UI.AddToClassList("muse-node");
             UI.name = "prompt-node";
-            var text = new Text();
-            text.text = Label;
+            var text = new Text
+            {
+                text = Label,
+                pickingMode = PickingMode.Position,
+                tooltip = TextContent.operatorPromptTooltip
+            };
             text.AddToClassList("muse-node__title");
             text.AddToClassList("bottom-gap");
             UI.Add(text);
@@ -63,7 +67,7 @@ namespace Unity.Muse.Common
             m_PromptField = new TextArea()
             {
                 name = "prompt-inputfield",
-                placeholder = "Enter prompt here...",
+                placeholder = TextContent.promptPlaceholder
             };
 
             m_LastKeyReturn = false;
@@ -176,6 +180,8 @@ namespace Unity.Muse.Common
             m_OperatorData.enabled = enable;
         }
 
+        public bool Hidden { get; set; }
+
         /// <summary>
         /// Clones the operator.
         /// </summary>
@@ -218,9 +224,11 @@ namespace Unity.Muse.Common
         /// <returns> UI for the operator. Set to Null if the operator should not be displayed in the settings view. Disable the returned VisualElement if you want it to be displayed but not usable.</returns>
         public VisualElement GetSettingsView()
         {
-            var view = new Text { text = GetPrompt() };
-            if (string.IsNullOrEmpty(view.text))
-                view.SetEnabled(false);
+            var text = GetPrompt();
+            if (string.IsNullOrEmpty(text))
+                return null;
+
+            var view = new Text { text = text };
             return view;
         }
     }

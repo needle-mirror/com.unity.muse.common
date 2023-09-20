@@ -13,6 +13,10 @@ namespace Unity.Muse.Common
         public string Label { get; }
         public bool Enabled();
         public void Enable(bool enable);
+        /// <summary>
+        /// Whether the operator should be hidden from the UI.
+        /// </summary>
+        public bool Hidden { get; set; }
         public VisualElement GetCanvasView();
         public VisualElement GetOperatorView(Model model);
         /// <summary>

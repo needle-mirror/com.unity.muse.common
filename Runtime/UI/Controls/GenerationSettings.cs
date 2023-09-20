@@ -34,7 +34,7 @@ namespace Unity.Muse.Common
             foreach (var op in artifact.GetOperators())
             {
                 var view = op.GetSettingsView();
-                if (view is null)
+                if (view is null || !op.Enabled())
                     continue;
 
                 operatorContainer.Add(CreateView(op.Label, view, () => Use(op)));
@@ -68,7 +68,6 @@ namespace Unity.Muse.Common
         void Use(IOperator op)
         {
             m_CurrentModel.UpdateOperators(op.Clone());
-            m_CurrentModel.SetActiveTool(null);
             m_Dismiss?.Invoke();
         }
 

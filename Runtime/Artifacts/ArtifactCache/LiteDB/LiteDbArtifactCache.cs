@@ -97,7 +97,7 @@ namespace Unity.Muse.Common.Cache
                 {
                     case "png":
                     {
-                        var texture = new Texture2D(2, 2);
+                        var texture = TextureUtils.Create();
                         texture.LoadImage(dbObject.RawData);
 
                         return texture;
@@ -138,7 +138,14 @@ namespace Unity.Muse.Common.Cache
             {
                 foreach (var artifact in artifacts)
                 {
+                    if(artifact == null)
+                        continue;
+
                     var dbArtifact = collection.FindOne(x => x.Guid == artifact.Guid);
+
+                    if(dbArtifact == null)
+                        continue;
+
                     collection.Delete(dbArtifact.Id);
                 }
 

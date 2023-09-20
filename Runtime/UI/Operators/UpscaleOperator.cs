@@ -94,6 +94,8 @@ namespace Unity.Muse.Common
             m_OperatorData.enabled = enable;
         }
 
+        public bool Hidden { get; set; }
+
         public void SetParentGuid(string guid)
         {
             m_OperatorData.settings[0] = guid;

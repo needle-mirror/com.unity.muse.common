@@ -25,7 +25,7 @@ namespace Unity.Muse.Common
         {
             var b64String = m_OperatorData.settings[0];
             var bytes = Convert.FromBase64String(b64String);
-            var maskTexture = new Texture2D(2, 2);
+            var maskTexture = TextureUtils.Create();
             maskTexture.LoadImage(bytes);
             return maskTexture;
         }
@@ -84,9 +84,7 @@ namespace Unity.Muse.Common
             {
                 if (m_OperatorData.settings[0] != "")
                 {
-                    var mask = new Texture2D(2, 2);
-                    mask.LoadImage(Convert.FromBase64String( m_OperatorData.settings[0]));
-                    image.image = mask;
+                    image.image = GetMask();
                     imageText.text = "";
                 }
             };
@@ -101,13 +99,8 @@ namespace Unity.Muse.Common
             image.name = "muse-reference-image-field";
 
             if (m_OperatorData.settings[0] != "")
-            {
-                var b64String = m_OperatorData.settings[0];
-                var bytes = Convert.FromBase64String(b64String);
-                var mask = new Texture2D(2, 2);
-                mask.LoadImage(bytes);
-                image.image = mask;
-            }
+                image.image = GetMask();
+
             image.AddToClassList("bottom-gap");
 
             return image;
@@ -148,6 +141,8 @@ namespace Unity.Muse.Common
         {
             m_OperatorData.enabled = enable;
         }
+
+        public bool Hidden { get; set; }
 
         public IOperator Clone()
         {
@@ -194,6 +189,8 @@ namespace Unity.Muse.Common
         /// <returns> UI for the operator. Set to Null if the operator should not be displayed in the settings view. Disable the returned VisualElement if you want it to be displayed but not usable.</returns>
         public VisualElement GetSettingsView()
         {
+            if (string.IsNullOrEmpty(m_OperatorData.settings[0]))
+                return null;
             return GetImageUI();
         }
     }

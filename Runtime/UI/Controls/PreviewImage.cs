@@ -1,4 +1,5 @@
 using System;
+using Unity.AppUI.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -9,10 +10,28 @@ namespace Unity.Muse.Common
         Artifact m_CurrentArtifact;
         public event Action<Artifact> OnSelected;
         public event Action OnLoadedPreview;
+        public event Action OnDelete;
 
         public PreviewImage()
         {
             RegisterCallback<PointerDownEvent>(OnPointerDown);
+            GenericLoader.OnRetry += OnRetry;
+            GenericLoader.OnDelete += OnDeleteClicked;
+        }
+
+        private void OnRetry()
+        {
+            if (!m_CurrentArtifact.IsValid())
+            {
+                m_CurrentArtifact.RetryGenerate(this.GetContext<Model>());
+            }
+            
+            SetAsset(m_CurrentArtifact);
+        }
+
+        private void OnDeleteClicked()
+        {
+            OnDelete?.Invoke();
         }
 
         public void SetAsset(Artifact artifact)
@@ -27,14 +46,31 @@ namespace Unity.Muse.Common
             else
             {
                 OnLoading();
-                artifact.OnGenerationDone += () => SetAsset(artifact);
+                artifact.OnGenerationDone += OnArtifactGenerationDone;
             }
+        }
+
+        void OnArtifactGenerationDone(Artifact artifact, string error)
+        {
+            if (string.IsNullOrEmpty(error))
+            {
+                SetAsset(artifact);
+                return;
+            }
+            
+            OnError("Generation failed.");
         }
 
         void OnArtifactReceived(Texture2D artifactInstance, byte[] rawData, string errorMessage)
         {
-            OnLoaded(artifactInstance);
-            OnLoadedPreview?.Invoke();
+            if (string.IsNullOrEmpty(errorMessage))
+            {
+                OnLoaded(artifactInstance);
+                OnLoadedPreview?.Invoke(); 
+                return;
+            }
+            
+            OnError("Failed to retrieve artifact.");
         }
 
         void OnPointerDown(PointerDownEvent evt)

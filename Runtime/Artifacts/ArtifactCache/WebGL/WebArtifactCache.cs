@@ -99,7 +99,7 @@ namespace Unity.Muse.Common
                 {
                     case "png":
                     {
-                        var texture = new Texture2D(2, 2);
+                        var texture = TextureUtils.Create();
                         texture.LoadImage(dbObject.RawData);
 
                         return texture;

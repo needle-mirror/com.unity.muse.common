@@ -5,6 +5,18 @@ namespace Unity.Muse.Common
 {
     public static class TextureUtils
     {
+        /// <summary>
+        /// Creates a texture that will remain in memory even after a scene is unloaded.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static Texture2D Create(object context = null)
+        {
+            var texture = new Texture2D(2, 2);
+            ObjectUtils.Retain(texture, context);
+            return texture;
+        }
+
         public static void SafeDestroy(this RenderTexture texture)
         {
             if(texture == null)

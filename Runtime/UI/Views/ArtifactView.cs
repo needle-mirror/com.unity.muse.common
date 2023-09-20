@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.AppUI.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -78,12 +79,17 @@ namespace Unity.Muse.Common
                 return;
             CurrentModel.DeselectAll();
             CurrentModel.ArtifactSelected(Artifact);
+            var actionContext = new ActionContext(new List<ArtifactView> {this});
+            
+            var availableActions = GetAvailableActions(actionContext);
+            if(!availableActions.Any())
+                return;
+            
             var menuBuilder = MenuBuilder.Build(menuAnchor).SetPlacement(PopoverPlacement.BottomEnd);
             menuBuilder.dismissed += (_,_) => MenuDismissed();
-            var actionContext = new ActionContext(new List<ArtifactView> {this});
             var actionIds = new List<int>();
-
-            foreach (var availableAction in GetAvailableActions(actionContext))
+            
+            foreach (var availableAction in availableActions)
             {
                 if (actionIds.Contains(availableAction.id)) continue;
                 actionIds.Add(availableAction.id);

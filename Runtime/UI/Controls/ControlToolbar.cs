@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.AppUI.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -41,20 +43,44 @@ namespace Unity.Muse.Common
             if (!m_Initialized)
                 Init();
 
+            m_Model.OnActiveToolChanged += OnActiveToolChanged;
             m_Model.OnArtifactSelected += OnArtifactSelected;
             m_Model.OnRefineArtifact += OnArtifactSelected;
             m_Model.OnFinishRefineArtifact += OnFinishRefineArtifact;
+            m_Model.OnOperatorUpdated += OnOperatorUpdated;
             m_Model.OnDispose += Unbind;
+            m_Model.OnUpdateToolState += UpdateView;
 
+            UpdateView();
+        }
+
+        void OnOperatorUpdated(IEnumerable<IOperator> arg1, bool arg2)
+        {
+            RefreshTools();
+        }
+
+        void Unbind()
+        {
+            if(m_Model == null) return;
+
+            m_Model.OnActiveToolChanged -= OnActiveToolChanged;
+            m_Model.OnArtifactSelected -= OnArtifactSelected;
+            m_Model.OnRefineArtifact -= OnArtifactSelected;
+            m_Model.OnFinishRefineArtifact -= OnFinishRefineArtifact;
+            m_Model.OnOperatorUpdated -= OnOperatorUpdated;
+            m_Model.OnDispose -= Unbind;
+            m_Model.OnUpdateToolState -= UpdateView;
+        }
+
+        void OnActiveToolChanged(ICanvasTool obj)
+        {
             UpdateView();
         }
 
         void OnArtifactSelected(Artifact artifact)
         {
             if (artifact is null)
-            {
                 CleanToolbar();
-            }
 
             UpdateView();
         }
@@ -92,16 +118,14 @@ namespace Unity.Muse.Common
                         UpdateView();
                         return;
                     }
+
                     tool.ActivateOperators();
-                    m_Model?.SetActiveTool(tool);
-                    m_Settings ??= tool.GetSettings();
-                    if(m_Settings !=null)
-                        Add(m_Settings);
+                    m_Model.SetActiveTool(tool);
+                    RefreshTools();
                     UpdateView();
-
                 };
-                m_ActionButtons ??= new Dictionary<ICanvasTool, ActionButton>();
 
+                m_ActionButtons ??= new();
                 m_ActionButtons.Add(tool, button);
                 m_ActionGroup.Add(button);
             }
@@ -134,23 +158,31 @@ namespace Unity.Muse.Common
             }
         }
 
-        void Unbind()
-        {
-            if(m_Model == null) return;
-
-            m_Model.OnArtifactSelected -= OnArtifactSelected;
-            m_Model.OnRefineArtifact -= OnArtifactSelected;
-            m_Model.OnFinishRefineArtifact -= OnFinishRefineArtifact;
-            m_Model.OnDispose -= Unbind;
-        }
-
-
         public void UpdateView()
         {
             foreach (var kvp in m_ActionButtons)
             {
                 kvp.Value.EnableInClassList(Styles.hiddenUssClassName, !kvp.Key.EvaluateEnableState(m_Model?.SelectedArtifact));
                 kvp.Value.selected = m_Model?.ActiveTool == kvp.Key;
+            }
+        }
+
+        void RefreshTools()
+        {
+            if (m_Tools is null || !m_Initialized)
+                return;
+
+            foreach (var tool in m_Tools)
+            {
+                var settings = tool.GetSettings();
+                if (settings != null && settings != m_Settings)
+                {
+                    if (Contains(m_Settings))
+                        Remove(m_Settings);
+
+                    m_Settings = settings;
+                    Add(m_Settings);
+                }
             }
         }
     }

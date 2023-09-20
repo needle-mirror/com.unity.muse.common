@@ -12,7 +12,7 @@ namespace Unity.Muse.Common
 
         internal readonly GenericLoader GenericLoader;
         readonly Chip m_ResolutionChip;
-        
+
         internal GenericLoader.State LoadingState => GenericLoader.LoadingState;
 
         protected LoadableImage(bool autoLoading = true)
@@ -60,7 +60,7 @@ namespace Unity.Muse.Common
 
         public void OnError(string error)
         {
-            Debug.LogError($"Could not load image: {error}");
+            GenericLoader.SetState(GenericLoader.State.Error, error);
         }
 
         protected void OnLoading()

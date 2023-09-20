@@ -18,6 +18,7 @@ namespace Unity.Muse.Common.Editor
         }
 
         private MainUI _MainUI;
+        IPanel m_Panel;
 
         public Model CurrentModel;
         public Model DiscardModel;
@@ -39,7 +40,7 @@ namespace Unity.Muse.Common.Editor
             m_SaveShortcut = new MuseShortcut("Save Changes", SaveChanges, KeyCode.S, KeyModifier.Action, source: rootVisualElement);
             MuseShortcuts.AddShortcut(m_SaveShortcut);
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
-            titleContent = new GUIContent(defaultWindowTitle, IconHelper.windowIcon);
+            UpdateTitle();
         }
 
         void OnDisable()
@@ -58,6 +59,7 @@ namespace Unity.Muse.Common.Editor
             if (CurrentModel == null)
                 Close();
 
+            m_Panel = rootVisualElement.panel;
             DiscardModel = Instantiate(CurrentModel);
 
             CurrentModel.OnEditorDragStart += EditorDragStart;
@@ -104,12 +106,19 @@ namespace Unity.Muse.Common.Editor
 
             EditorUtility.SetDirty(CurrentModel);
             ArtifactCache.Dispose();
+            ReleaseTextures();
 
             CurrentModel.OnEditorDragStart -= EditorDragStart;
             CurrentModel.OnEditorMultiDragStart -= EditorMultiDragStart;
             CurrentModel.OnExportArtifact -= OnExportArtifact;
             CurrentModel.OnMultiExport -= OnMultiExport;
             CurrentModel.OnModified -= OnModelDataModified;
+        }
+
+        void ReleaseTextures()
+        {
+            ObjectUtils.Release(m_Panel);
+            m_Panel = null;
         }
 
         static void EditorDragStart(string type, IList<Artifact> artifacts)
@@ -263,6 +272,7 @@ namespace Unity.Muse.Common.Editor
             m_AssetPath = destinationPath;
 
             UpdateTitle();
+            SaveChanges();
         }
 
         void UpdateTitle()

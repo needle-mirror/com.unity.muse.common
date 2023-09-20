@@ -35,6 +35,7 @@ namespace Unity.Muse.Common
         public event Action<IEnumerable<Artifact>, Vector3> OnItemsDropped;
         public event Action<Artifact> OnArtifactSelected;
         public event Action<ICanvasTool> OnActiveToolChanged;
+        public event Action OnUpdateToolState;
         public event Action<Texture2D> OnMaskPaintDone;
         public event Action<string> OnCurrentPromptChanged;
         public event Action<IEnumerable<IOperator>, bool> OnOperatorUpdated;
@@ -163,7 +164,7 @@ namespace Unity.Muse.Common
         /// </summary>
         /// <param name="operators">Operators to update.</param>
         /// <param name="set">Set or update the operators</param>
-        public void UpdateOperators(IEnumerable<IOperator> operators, bool set = false)
+        public void UpdateOperators(IEnumerable<IOperator> operators, bool set)
         {
             if (set)
             {
@@ -199,8 +200,36 @@ namespace Unity.Muse.Common
         /// <param name="operators">Operators to remove.</param>
         public void RemoveOperators(params IOperator[] operators)
         {
-            m_Operators = m_Operators.Where(op => !operators.Contains(op)).ToList();
-            OnOperatorRemoved?.Invoke(operators);
+            var removed = m_Operators.RemoveAll(operators.Contains);
+            if (removed > 0)
+                OnOperatorRemoved?.Invoke(operators);
+        }
+
+        internal T AddOperator<T>() where T: class, IOperator
+        {
+            var op = modeDefaultOperators.GetOperator<T>();
+            UpdateOperators(op);
+            return op;
+        }
+
+        internal void SetOperatorEnable<T>(bool enabled) where T: class, IOperator
+        {
+            var op = m_Operators.GetOperator<T>();
+            if (op != null)
+            {
+                op.Enable(enabled);
+                UpdateOperators(op);
+            }
+        }
+
+        internal void SetOperatorVisibility<T>(bool visible) where T: class, IOperator
+        {
+            var op = m_Operators.GetOperator<T>();
+            if (op != null)
+            {
+                op.Hidden = !visible;
+                UpdateOperators(op);
+            }
         }
 
         /// <summary>
@@ -246,6 +275,9 @@ namespace Unity.Muse.Common
         /// <param name="artifacts">Artifacts to remove from model.</param>
         public void RemoveAssets(params Artifact[] artifacts)
         {
+            if (artifacts.Length == 0)
+                return;
+
             List<Artifact> removeFromCache = new();
             Artifact selected = null;
             Artifact setAsThumbnail = null;
@@ -461,6 +493,10 @@ namespace Unity.Muse.Common
         /// <param name="indexToReplace">Index in the generations list to be replaced.</param>
         void SetAsThumbnailInternal(Artifact artifact, int indexToReplace)
         {
+            BookmarkManager bookmarkManager = GetData<BookmarkManager>();
+            if (bookmarkManager != null && bookmarkManager.IsBookmarked(refinedArtifact))
+                bookmarkManager.Bookmark(artifact, true);
+
             // Swap with the previous parent
             artifact.history = refinedArtifact.history.ToList();
             refinedArtifact.history.Clear();
@@ -478,6 +514,11 @@ namespace Unity.Muse.Common
 
             SetAsThumbnailInternal(artifact, indexToReplace.Value);
             RefineArtifact(artifact);
+        }
+
+        internal bool IsThumbnail(Artifact artifact)
+        {
+            return assetsData.Contains(artifact);
         }
 
         /// <summary>
@@ -508,6 +549,14 @@ namespace Unity.Muse.Common
         internal void ForbiddenAccess()
         {
             OnForbiddenAccess?.Invoke();
+        }
+        
+        /// <summary>
+        /// Force updating the available tools state
+        /// </summary>
+        public void UpdateToolState()
+        {
+            OnUpdateToolState?.Invoke();
         }
     }
 }

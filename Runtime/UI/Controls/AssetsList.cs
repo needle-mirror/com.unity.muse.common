@@ -59,6 +59,8 @@ namespace Unity.Muse.Common
 
         Dictionary<Artifact, ArtifactView> m_ViewCache;
 
+        IEnumerable<int> m_PreviousSelectedIndices;
+
         public AssetsList()
         {
             this.ApplyTemplate("uxml/AssetsList");
@@ -178,6 +180,7 @@ namespace Unity.Muse.Common
             passMask = Passes.Clear | Passes.OutsetShadows;
             content = this.Q<VisualElement>(classes: ussClassName);
             m_ContextMenuAnchor = this.Q<VisualElement>(contextMenuAnchorUssClassName);
+            m_PreviousSelectedIndices = new List<int>();
             m_GridView = this.Q<GridView>(gridviewUssClassName);
             m_GridView.makeItem = MakeItemView;
             m_GridView.bindItem = BindGridItem;
@@ -207,7 +210,7 @@ namespace Unity.Muse.Common
             m_ExportButton = this.Q<Button>(className: exportButtonUssClassName);
             m_ExportButton.clicked += () =>
                 PerformAction(null, (int)Actions.Save, new List<object>(m_GridView.selectedItems.Where(selected => GetView((Artifact)selected).Preview != null)));
-            m_ExportButton.tooltip = TextContent.assetListExportButtonTooltip;
+            m_ExportButton.tooltip = TextContent.saveTooltip;
 
             m_BookmarkFilterButton = this.Q<ActionButton>(className:bookmarkFilterButtonUssClassName);
             m_BookmarkFilterButton.accent = true;
@@ -333,6 +336,12 @@ namespace Unity.Muse.Common
             if (m_CurrentModel == null)
                 return;
 
+            //Don't unselect items in refine mode
+            if (m_CurrentModel.isRefineMode && !selectedItems.Any())
+            {
+                m_GridView.SetSelection(m_PreviousSelectedIndices.ElementAt(0));
+            }
+
             Artifact selectedArtifact = null;
             foreach (var selectedItem in selectedItems)
             {
@@ -343,6 +352,8 @@ namespace Unity.Muse.Common
             m_CurrentModel.ArtifactSelected(selectedArtifact);
 
             UpdateExportButton();
+
+            m_PreviousSelectedIndices = new List<int>(m_GridView.selectedIndices);
         }
 
         readonly List<VisualElement> m_ClonedElements = new();
@@ -372,11 +383,14 @@ namespace Unity.Muse.Common
                 return;
 
             var artifacts = new List<Artifact>();
-
-            foreach (var item in selection)
+            foreach (var item in m_GridView.selectedIndices)
             {
-                var artifactView = GetView((Artifact)item);
-                artifacts.Add(artifactView.Artifact);
+                var artifact = m_FilteredItemsList[item];
+                artifacts.Add(artifact);
+
+                var artifactView = GetView(artifact);
+                if(artifactView == null)
+                    continue;
 
                 var clonedElement = new Image
                 {
@@ -420,13 +434,21 @@ namespace Unity.Muse.Common
             {
                 if (Application.isEditor)
                 {
-                    switch (m_ClonedElements.Count)
+                    switch (m_CurrentModel.DraggedArtifacts.Count)
                     {
                         case 1:
-                            ((ArtifactView) m_ClonedElements[0].userData).DragEditor();
+                            var artifactView = GetArtifactView(m_CurrentModel.DraggedArtifacts[0]);
+                            artifactView.UpdateView();
+                            artifactView.DragEditor();
                             break;
                         case > 1:
-                            m_CurrentModel.EditorStartMultiDrag(GetArtifacts(m_ClonedElements));
+                            var draggedElements = m_CurrentModel.DraggedArtifacts.Select(a =>
+                            {
+                                var view = GetArtifactView(a);
+                                view.UpdateView();
+                                return view;
+                            }).ToList();
+                            m_CurrentModel.EditorStartMultiDrag(GetArtifacts(draggedElements));
                             break;
                     }
                 }
@@ -434,15 +456,12 @@ namespace Unity.Muse.Common
             }
         }
 
-        static IList<(string name, IList<Artifact> artifacts)> GetArtifacts(List<VisualElement> clonedElements)
+        static IList<(string name, IList<Artifact> artifacts)> GetArtifacts(List<ArtifactView> artifactViews)
         {
             var result = new List<(string name, IList<Artifact> artifacts)>();
 
-            foreach (var clonedElement in clonedElements)
-            {
-                var artifactView = (ArtifactView)clonedElement.userData;
+            foreach (var artifactView in artifactViews)
                 result.Add(artifactView.GetArtifactsAndType());
-            }
 
             return result;
         }
@@ -509,17 +528,34 @@ namespace Unity.Muse.Common
 
             AddActionsToMenu(selection, menuBuilder);
 
-            menuBuilder.Show();
+            if (menuBuilder.currentMenu.childCount == 0)
+            {
+                menuBuilder.Dismiss();
+            }
+            else
+            {
+                menuBuilder.Show();
+            }
         }
 
         void AddActionsToMenu(IList<object> selection, MenuBuilder menuBuilder)
         {
-            var views = selection.Cast<Artifact>().Select(GetView).ToList();
+            var views = selection.Cast<Artifact>().Select(artifact =>
+            {
+                var view = GetArtifactView(artifact);
+                view.ProvideContext(m_CurrentModel);
+                view.UpdateView();
+                return view;
+            }).ToList();
             var context = new ActionContext(views);
             var actionIds = new List<int>();
             foreach (var view in views)
             {
-                foreach (var availableAction in view.GetAvailableActions(context))
+                var availableActions = view.GetAvailableActions(context);
+                if(!availableActions.Any())
+                    continue;
+
+                foreach (var availableAction in availableActions)
                 {
                     if (!actionIds.Contains(availableAction.id))
                     {
@@ -550,12 +586,12 @@ namespace Unity.Muse.Common
                     {
                         case 1:
                         {
-                            var artifactView = GetView((Artifact)selection[0]);
+                            var artifactView = GetArtifactView((Artifact)selection[0]);
                             artifactView.PerformAction(actionId, context, evt);
                             break;
                         }
                         case > 1:
-                            m_CurrentModel.MultiExport(views);
+                            m_CurrentModel.MultiExport(selection.Select(s => GetArtifactView((Artifact)s)).ToList());
                             break;
                     }
                     break;
@@ -565,7 +601,7 @@ namespace Unity.Muse.Common
                 default:
                     foreach (var selectedItem in selection)
                     {
-                        var artifactView = GetView((Artifact)selectedItem);
+                        var artifactView = GetArtifactView((Artifact)selectedItem);
                         artifactView.PerformAction(actionId, context, evt);
                     }
                     break;
@@ -575,6 +611,9 @@ namespace Unity.Muse.Common
 
         void DeleteSelected()
         {
+            if (!m_GridView.selectedItems.Any())
+                return;
+
             if (Preferences.Session.deleteWithoutWarning)
                 DoDeleteSelected();
             else
@@ -592,7 +631,7 @@ namespace Unity.Muse.Common
                     DoDeleteSelected();
                 });
                 dialog.SetCancelAction(0, TextContent.cancel);
-                var modal = Modal.Build(this, dialog);
+                var modal = Modal.Build(m_GridView.scrollView.contentContainer, dialog);
                 modal.Show();
             }
         }
@@ -708,6 +747,7 @@ namespace Unity.Muse.Common
                 return view;
 
             var result = artifact.CreateView();
+            ObjectUtils.Retain(result.Preview, panel);
             m_ViewCache.Add(artifact, result);
             return result;
         }
@@ -718,7 +758,14 @@ namespace Unity.Muse.Common
             if (artifacts != null)
             {
                 foreach (var artifact in artifacts)
+                {
+                    //if we have an invalid artifact, we retry to generate it
+                    if (!artifact.IsValid())
+                    {
+                        artifact.RetryGenerate(m_CurrentModel);
+                    }
                     m_ItemsList.Add(artifact);
+                }
             }
 
             m_ItemsList.Reverse();

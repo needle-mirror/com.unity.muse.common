@@ -10,14 +10,16 @@ namespace Unity.Muse.Common
         const string k_StyleSheetPath = "uss/GradientLoaderStyle";
 
         const string k_GradientLoaderClass = "genai-loader-gradient";
-        const string k_LoadingStateClass = "genai-loader-state-loading";
-        const string k_NoneStateClass = "genai-loader-state-none";
+        const string k_HiddenStateClass = "genai-loader-state-none";
 
         readonly AppUI.UI.CircularProgress m_Progress;
         readonly AppUI.UI.Text m_ProgressLabel;
-        
+        readonly ErrorView m_ErrorView;
+
         internal State LoadingState { get; private set; }
-        internal event Action<State> OnLoadingStateChanged; 
+        internal event Action<State> OnLoadingStateChanged;
+        internal event Action OnRetry;
+        internal event Action OnDelete;
 
         public new class UxmlFactory : UxmlFactory<GenericLoader, UxmlTraits>
         {
@@ -45,9 +47,25 @@ namespace Unity.Muse.Common
 
             Add(m_Progress);
 
+            m_ErrorView = new ErrorView();
+            Add(m_ErrorView);
+
+            m_ErrorView.OnDelete += OnDeleteClicked;
+            m_ErrorView.OnRetry += OnRetryClicked;
+
             InitializeStyle();
 
             SetState(state);
+        }
+
+        private void OnRetryClicked()
+        {
+            OnRetry?.Invoke();
+        }
+
+        private void OnDeleteClicked()
+        {
+            OnDelete?.Invoke();
         }
 
 
@@ -61,27 +79,18 @@ namespace Unity.Muse.Common
             AddToClassList(k_GradientLoaderClass);
         }
 
-        public void SetState(State state)
+        public void SetState(State state, string errorMessage = null)
         {
-            RemoveFromClassList(k_NoneStateClass);
-            RemoveFromClassList(k_LoadingStateClass);
+            m_ErrorView.SetError(errorMessage);
 
-            switch (state)
-            {
-                case State.None:
-                    AddToClassList(k_NoneStateClass);
-                    break;
-                case State.Loading:
-                    AddToClassList(k_LoadingStateClass);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(state), state, null);
-            }
-            
+            EnableInClassList(k_HiddenStateClass, state == State.None);
+            m_Progress.EnableInClassList(k_HiddenStateClass, state != State.Loading);
+            m_ErrorView.EnableInClassList(k_HiddenStateClass, state != State.Error);
+
             var preChangedState = LoadingState;
-            
+
             LoadingState = state;
-            
+
             if (preChangedState != state)
                 OnLoadingStateChanged?.Invoke(state);
         }
@@ -91,14 +100,15 @@ namespace Unity.Muse.Common
             progress /= 100f;
             m_Progress.value = progress;
 
-            if(m_ProgressLabel != null)
+            if (m_ProgressLabel != null)
                 m_ProgressLabel.text = $"{Mathf.RoundToInt(progress * 100f)}%";
         }
 
         public enum State
         {
             None,
-            Loading
+            Loading,
+            Error
         }
     }
 }

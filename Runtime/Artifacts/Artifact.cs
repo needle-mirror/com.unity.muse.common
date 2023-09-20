@@ -50,6 +50,12 @@ namespace Unity.Muse.Common
 
             void HandleReceiveArtifactData(object data, string msg)
             {
+                if (!string.IsNullOrEmpty(msg))
+                {
+                    onReceived?.Invoke(default, Array.Empty<byte>(), msg);
+                    return;
+                }
+                
                 var deserializedArtifact = CreateFromData((byte[])data, true);
                 onReceived(deserializedArtifact, (byte[])data, msg);
             }

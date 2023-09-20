@@ -24,7 +24,7 @@ namespace Unity.Muse.Common
 
         [SerializeField]
         OperatorData m_OperatorData;
-        
+
         internal CooldownManipulator<PointerDownEvent> m_GenerateButtonCooldown;
 
         public GenerateOperator()
@@ -106,6 +106,8 @@ namespace Unity.Muse.Common
             m_OperatorData.enabled = enable;
         }
 
+        public bool Hidden { get; set; }
+
         public IOperator Clone()
         {
             var result = new GenerateOperator();
@@ -157,7 +159,7 @@ namespace Unity.Muse.Common
                 Add(dropdown);
 #endif
 
-                var imageCountSlider = new TouchSliderInt();
+                var imageCountSlider = new TouchSliderInt { tooltip = TextContent.operatorGenerateNumberTooltip };
                 imageCountSlider.name = "image-count-slider";
                 imageCountSlider.AddToClassList("bottom-gap");
                 imageCountSlider.label = "Images";
@@ -173,10 +175,10 @@ namespace Unity.Muse.Common
                 m_CurrentGenerateButton = new Button();
                 m_CurrentGenerateButton.name = "generate-button";
                 m_CurrentGenerateButton.title = "Generate";
-                
+
                 var m_GenerateButtonCooldown = new CooldownManipulator<PointerDownEvent>(true, NodesList.GenerateCooldownTime);
                 m_CurrentGenerateButton.AddManipulator(m_GenerateButtonCooldown);
-                
+
                 model.OnGenerateButtonClicked += m_GenerateButtonCooldown.ForceCooldown;
 
                 m_CurrentGenerateButton.AddToClassList("muse-node__button");

@@ -96,7 +96,7 @@ namespace Unity.Muse.Common
         {
             SetModel(null);
         }
-        
+
         void OnPointerLeave(PointerLeaveEvent evt)
         {
             if (m_VerticalScrollerDragContainer.HasPointerCapture(evt.pointerId))
@@ -174,7 +174,7 @@ namespace Unity.Muse.Common
 
             op.RegisterToEvents(m_CurrentModel);
 
-            if (!op.Enabled())
+            if (!op.Enabled() || op.Hidden)
                 return;
             if (insertAtIndex == -1)
                 insertAtIndex = m_Container.childCount;         // Insert at the end by default
@@ -223,8 +223,6 @@ namespace Unity.Muse.Common
 
             m_LastGenerateTime = currentTime;
 
-            m_CurrentModel.SetActiveTool(null);
-
             var referenceOp = m_Operators.GetOperator<ReferenceOperator>();
             var isVariation = referenceOp != null && referenceOp.Enabled();
             var generateOperator = m_Operators.GetOperator<GenerateOperator>();
@@ -235,6 +233,7 @@ namespace Unity.Muse.Common
 
             var modeType = ModesFactory.GetModeKeyFromIndex(m_CurrentMode);
             var groupArtifact = ArtifactFactory.CreateArtifact(modeType);
+            groupArtifact.SetOperators(m_Operators);
             groupArtifact.StartGenerate(m_CurrentModel);
 
             for (var i = 0; i < generateOperator?.GetCount(); i++)

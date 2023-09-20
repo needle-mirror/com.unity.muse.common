@@ -154,7 +154,7 @@ namespace Unity.Muse.Common
             assetsList.OnResized += AssetListResized;
             nodesList.OnResized += NodeListResized;
 
-            m_CloseButton = new() {name = "close", icon = "caret-left", label = "Generations"};
+            m_CloseButton = new() { name = "close", icon = "caret-left", label = "Generations", tooltip = TextContent.backButtonTooltip };
             m_CloseButton.clicked += OnCloseRefining;
             nodesList.Add(m_CloseButton);
 

@@ -90,6 +90,7 @@ namespace Unity.Muse.Common
             if (m_CurrentModel == null || !m_CurrentModel.isRefineMode)
                 return;
 
+            OnActiveToolChanged(m_CurrentModel.ActiveTool);
             OnCanvasRefineArtifact(artifact);
         }
 

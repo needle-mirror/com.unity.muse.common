@@ -31,9 +31,11 @@ namespace Unity.Muse.Common
 
         const string k_MaterialPaintResourcePath = "PaintingMaterial";
         const string k_MaterialExportResourcePath = "MaskExportMaterial";
+        const string k_MaterialImportResourcePath = "MaskImportMaterial";
 
         static Material s_PaintingMaterial;
         static Material s_ExportMaterial;
+        static Material s_ImportMaterial;
 
         static readonly int k_RadiusShaderProperty = Shader.PropertyToID("_Radius");
         static readonly int k_PaintPosXShaderProperty = Shader.PropertyToID("_PaintPosX");
@@ -41,6 +43,7 @@ namespace Unity.Muse.Common
         static readonly int k_IsErasingShaderProperty = Shader.PropertyToID("_IsErasing");
         static readonly int k_SeamlessShaderProperty = Shader.PropertyToID("_IsSeamless");
         static readonly int k_WrapAroundShaderProperty = Shader.PropertyToID("_WrapAround");
+        static readonly int k_MainTex = Shader.PropertyToID("_MainTex");
 
         Image m_MaskImage;
         RenderTexture m_MaskTexture;
@@ -146,6 +149,23 @@ namespace Unity.Muse.Common
             RenderTexture.ReleaseTemporary(temporary);
 
             RenderTexture.active = restoreRT;
+        }
+
+        public void SetMaskTexture(Texture texture)
+        {
+            if (s_ImportMaterial is null)
+            {
+                var materialType = Resources.Load<Material>(k_MaterialImportResourcePath);
+                s_ImportMaterial = new Material(materialType);
+            }
+
+            s_ImportMaterial.SetTexture(k_MainTex, texture);
+
+            var activeRT = RenderTexture.active;
+            RenderTexture.active = m_MaskTexture;
+            GL.Clear(true, true, new Color(1f, 1f, 1f, 0f));
+            Graphics.Blit(texture, m_MaskTexture, s_ImportMaterial);
+            RenderTexture.active = activeRT;
         }
 
         static Vector2 ConvertCoordinateFromPixelToUVSpace(Vector2 coordinate, Vector2 textureSize)

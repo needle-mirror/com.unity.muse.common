@@ -5,7 +5,7 @@ namespace Unity.Muse.Common
 {
     public class PaintingManipulator : Manipulator
     {
-        PaintingElement m_PaintingElement;
+        public PaintingElement paintingElement { get; private set; }
         Model m_Model;
         public bool Seamless { get; private set; }
         public bool WrapAround { get; private set; }
@@ -18,30 +18,30 @@ namespace Unity.Muse.Common
 
         public void SetRadius(float radius)
         {
-            if(m_PaintingElement != null)
-                m_PaintingElement.PaintRadius = radius;
+            if(paintingElement != null)
+                paintingElement.PaintRadius = radius;
         }
 
         public float GetRadius()
         {
-            return m_PaintingElement?.PaintRadius ?? 5.0f;
+            return paintingElement?.PaintRadius ?? 5.0f;
         }
 
         public void SetEraserMode(bool erase)
         {
-            if(m_PaintingElement != null)
-                m_PaintingElement.EraseMode = erase;
+            if(paintingElement != null)
+                paintingElement.EraseMode = erase;
         }
 
         public void ClearPainting()
         {
-            if(m_PaintingElement != null)
-                m_PaintingElement.ClearPainting();
+            if(paintingElement != null)
+                paintingElement.ClearPainting();
         }
         public void SetMaskSeamless(bool value)
         {
             Seamless = value;
-            m_PaintingElement?.SetMaskSeamless(Seamless);
+            paintingElement?.SetMaskSeamless(Seamless);
         }
         protected override void RegisterCallbacksOnTarget()
         {
@@ -55,27 +55,27 @@ namespace Unity.Muse.Common
                 baseTexture = target.style.backgroundImage.value.texture;
             }
 
-            m_PaintingElement = new PaintingElement() { WrapAround = WrapAround };
-            m_PaintingElement.SetMaskSeamless(Seamless);
+            paintingElement = new PaintingElement() { WrapAround = WrapAround };
+            paintingElement.SetMaskSeamless(Seamless);
 
-            m_PaintingElement.SetModel(m_Model);
-            target.Add(m_PaintingElement);
-            m_PaintingElement.InitializeImage(baseTexture, target);
+            paintingElement.SetModel(m_Model);
+            target.Add(paintingElement);
+            paintingElement.InitializeImage(baseTexture, target);
         }
 
         protected override void UnregisterCallbacksFromTarget()
         {
-            if (m_PaintingElement == null)
+            if (paintingElement == null)
                 return;
 
-            m_PaintingElement.Dispose();
-            target.Remove(m_PaintingElement);
-            m_PaintingElement = null;
+            paintingElement.Dispose();
+            target.Remove(paintingElement);
+            paintingElement = null;
         }
 
         public RenderTexture GetTexture()
         {
-            return m_PaintingElement?.Export();
+            return paintingElement?.Export();
         }
         public void SetModel(Model model)
         {

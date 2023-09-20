@@ -83,7 +83,7 @@ namespace Unity.Muse.Common
             {
                 if (m_OperatorData.settings[1] != "")
                 {
-                    image.image = GetImage();
+                    image.image = GetTexture();
                     progress.style.display = DisplayStyle.None;
                 }
             };
@@ -100,20 +100,24 @@ namespace Unity.Muse.Common
 
         Image GetImageUI()
         {
+            var texture = GetTexture();
+            if (texture is null)
+                return null;
+
             var image = new Image();
             image.AddToClassList("muse-ref-image");
             image.name = "muse-reference-image-field";
-            image.image = GetImage();
+            image.image = texture;
 
             return image;
         }
 
-        Texture GetImage()
+        Texture GetTexture()
         {
             if (m_OperatorData.settings[1] == "")
                 return null;
 
-            var texture = new Texture2D(2, 2);
+            var texture = TextureUtils.Create();
             texture.LoadImage(Convert.FromBase64String(m_OperatorData.settings[1]));
             return texture;
         }
@@ -153,6 +157,8 @@ namespace Unity.Muse.Common
         {
             m_OperatorData.enabled = enable;
         }
+
+        public bool Hidden { get; set; }
 
         public IOperator Clone()
         {

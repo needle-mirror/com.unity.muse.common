@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Unity.AppUI.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
-using TextField = Unity.AppUI.UI.TextField;
 using Text = Unity.AppUI.UI.Text;
 
 namespace Unity.Muse.Common
@@ -43,8 +42,13 @@ namespace Unity.Muse.Common
             var UI = new ExVisualElement { passMask = ExVisualElement.Passes.Clear | ExVisualElement.Passes.OutsetShadows };
             UI.AddToClassList("muse-node");
             UI.name = "prompt-node";
-            var text = new Text();
-            text.text = Label;
+            var text = new Text
+            {
+                text = Label,
+                tooltip = TextContent.operatorNegativePromptTooltip,
+                pickingMode = PickingMode.Position
+            };
+
             text.AddToClassList("muse-node__title");
             text.AddToClassList("bottom-gap");
 
@@ -136,6 +140,8 @@ namespace Unity.Muse.Common
             m_OperatorData.enabled = enable;
         }
 
+        public bool Hidden { get; set; }
+
         public IOperator Clone()
         {
             var result = new NegativePromptOperator();
@@ -161,9 +167,11 @@ namespace Unity.Muse.Common
         /// <returns> UI for the operator. Set to Null if the operator should not be displayed in the settings view. Disable the returned VisualElement if you want it to be displayed but not usable.</returns>
         public VisualElement GetSettingsView()
         {
-            var view = new Text { text = GetNegativePrompt() };
-            if (string.IsNullOrEmpty(view.text))
-                view.SetEnabled(false);
+            var text = GetNegativePrompt();
+            if (string.IsNullOrEmpty(text))
+                return null;
+
+            var view = new Text { text = text };
             return view;
         }
     }
