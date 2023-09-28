@@ -199,7 +199,7 @@ namespace Unity.Muse.Common
                         m_Container.RemoveAt(removedAtIndex);
                 }
 
-                m_Operators.Remove(op);
+                m_Operators.RemoveAt(foundIndex);
             }
         }
 
@@ -223,12 +223,21 @@ namespace Unity.Muse.Common
 
             m_LastGenerateTime = currentTime;
 
-            var referenceOp = m_Operators.GetOperator<ReferenceOperator>();
-            var isVariation = referenceOp != null && referenceOp.Enabled();
             var generateOperator = m_Operators.GetOperator<GenerateOperator>();
             var promptOperator = m_Operators.GetOperator<PromptOperator>();
+            var referenceOperator = m_Operators.GetOperator<ReferenceOperator>();
+            var isReferenceOperatorEnabled = referenceOperator != null && referenceOperator.Enabled();
+            var isColorMode = isReferenceOperatorEnabled &&
+                referenceOperator.GetSettingEnum<ReferenceOperator.Mode>(ReferenceOperator.Setting.Mode) == ReferenceOperator.Mode.Color;
+            var isVariationFromArtifact =
+                isColorMode && !string.IsNullOrEmpty(referenceOperator.GetSettingString(ReferenceOperator.Setting.Guid));
+            var isVariationFromTexture = isColorMode && referenceOperator.GetSettingTex(ReferenceOperator.Setting.Image);
+            var isShape = isReferenceOperatorEnabled &&
+                referenceOperator.GetSettingTex(ReferenceOperator.Setting.Image) &&
+                referenceOperator.GetSettingEnum<ReferenceOperator.Mode>(ReferenceOperator.Setting.Mode) ==
+                ReferenceOperator.Mode.Shape;
 
-            if(promptOperator.IsPromptValid() == false)
+            if (!promptOperator.IsPromptValid())
                 return;
 
             var modeType = ModesFactory.GetModeKeyFromIndex(m_CurrentMode);
@@ -241,13 +250,24 @@ namespace Unity.Muse.Common
                 var artifact = ArtifactFactory.CreateArtifact(modeType);
                 artifact.SetOperators(m_Operators);
 
-                if (isVariation == false)
-                    artifact.Generate(m_CurrentModel);
-                else
+                if (isVariationFromArtifact || isVariationFromTexture)
+                {
                     artifact.Variate(m_Operators);
+                }
+                else if (isShape)
+                {
+                    artifact.Shape(m_Operators);
+                }
+                else
+                {
+                    artifact.Generate(m_CurrentModel);
+                }
 
                 m_CurrentModel.AddAsset(artifact);
             }
+
+            // Cancel inpainting mode after generation settings have been sent, otherwise the inpainting mask would not be part of the generation
+            m_CurrentModel.SetActiveTool(null);
         }
 
         public void SetModel(Model model)
@@ -305,8 +325,7 @@ namespace Unity.Muse.Common
                 referenceOp = new ReferenceOperator();
                 m_Operators.Add(referenceOp);
             }
-            referenceOp.SetReferenceImage(artifact);
-
+            referenceOp.SetColorImage(artifact as Artifact<Texture2D>);
             m_CurrentModel.UpdateOperators(referenceOp);
             m_CurrentModel.SetActiveTool(null);
         }

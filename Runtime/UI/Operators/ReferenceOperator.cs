@@ -1,125 +1,98 @@
 using System;
-using System.Collections.Generic;
-using Unity.AppUI.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Button = Unity.AppUI.UI.Button;
-using Text = Unity.AppUI.UI.Text;
 
 namespace Unity.Muse.Common
 {
     [Serializable]
     public class ReferenceOperator : IOperator
     {
-        public string OperatorName  => "ReferenceOperator";
-        /// <summary>
-        /// Human-readable label for the operator.
-        /// </summary>
-        public string Label => "Reference Image";
+        public enum Mode
+        {
+            Color = 0,
+            Shape
+        }
 
-        event Action OnDataUpdate;
+        public enum Setting
+        {
+            Guid = 0,
+            Image,
+            Mode,
+            Strength,
+
+            SettingsLength
+        }
+
+        public string OperatorName  => "ReferenceOperator";
+
+        public string Label => "Input Image";
 
         [SerializeField]
         OperatorData m_OperatorData;
 
+        ReferenceOperatorView m_View;
+
+        event Action OnDataUpdate;
 
         public ReferenceOperator()
         {
-            m_OperatorData = new OperatorData(OperatorName, "0.0.1",  new [] { "", "" }, false);
+            m_OperatorData = new OperatorData("ReferenceOperator", "0.0.1", new[]
+            {
+                "",   // Guid
+                "",   // Image
+                "0",  // Mode
+                "50", // Strength
+            }, false);
+            OnDataUpdate += UpdateView;
         }
 
-        public bool IsSavable()
-        {
-            return true;
-        }
+        public bool IsSavable() => true;
 
-        public VisualElement GetCanvasView()
-        {
-            Debug.Log("ReferenceOperator.GetCanvasView()");
-            return new VisualElement();
-        }
+        public VisualElement GetCanvasView() => new VisualElement();
 
         public VisualElement GetOperatorView(Model model)
         {
-            var UI = new ExVisualElement { passMask = ExVisualElement.Passes.Clear | ExVisualElement.Passes.OutsetShadows };
-            UI.AddToClassList("muse-node");
-            UI.name = "reference-node";
+            if (m_View != null)
+                m_View.dataChanged -= OnViewDataChanged;
 
-            var titleRow = new VisualElement();
-            titleRow.AddToClassList("muse-title-row");
-            titleRow.AddToClassList("bottom-gap");
-
-            //title
-            var text = new Text();
-            text.text = Label;
-            text.AddToClassList("muse-node__title");
-            text.AddToClassList("bottom-gap");
-            titleRow.Add(text);
-
-            var deleteButton = new Button(() => OnDeleteClicked(model)) { leadingIcon = "x", size = Size.S, tooltip = TextContent.removeReference };
-            titleRow.Add(deleteButton);
-
-            UI.Add(titleRow);
-
-
-            var image = GetImageUI();
-
-            // var textImage = new Text();
-            // textImage.text = "No image selected";
-            // textImage.AddToClassList("muse-ref-image__text");
-            // m_Image.Add(textImage);
-
-            UI.Add(image);
-
-            var progress = new CircularProgress();
-            progress.AddToClassList("muse-ref-image__progress");
-            progress.StretchToParentSize();
-            progress.style.position = Position.Relative;
-            progress.style.alignSelf = Align.Center;
-            image.style.justifyContent = Justify.Center;
-            image.Add(progress);
-
-            OnDataUpdate += () =>
-            {
-                if (m_OperatorData.settings[1] != "")
-                {
-                    image.image = GetTexture();
-                    progress.style.display = DisplayStyle.None;
-                }
-            };
-
-            OnDataUpdate?.Invoke();
-
-            return UI;
+            m_View = new ReferenceOperatorView(model);
+            m_View.dataChanged += OnViewDataChanged;
+            UpdateView();
+            return m_View;
         }
 
-        void OnDeleteClicked(Model model)
+        void UpdateView()
         {
-            model.RemoveOperators(this);
+            if (m_View == null)
+                return;
+
+            var guid = GetSettingString(Setting.Guid);
+            var img = GetSettingTex(Setting.Image);
+            var mode = GetSettingEnum<Mode>(Setting.Mode);
+            var strength = GetSettingInt(Setting.Strength);
+
+            m_View.SetGuidWithoutNotify(guid);
+            m_View.SetModeWithoutNotify(mode);
+            if (mode == Mode.Color)
+                m_View.SetColorImageWithoutNotify(img);
+            else
+                m_View.SetShapeImageWithoutNotify(img);
+            m_View.SetStrengthWithoutNotify(strength);
         }
 
-        Image GetImageUI()
+        void OnViewDataChanged()
         {
-            var texture = GetTexture();
-            if (texture is null)
-                return null;
+            var guid = m_View.GetGuid();
+            var mode = m_View.GetMode();
+            var img = mode == Mode.Color ? m_View.GetColorImage() : m_View.GetShapeImage();
+            var strength = m_View.GetStrength();
 
-            var image = new Image();
-            image.AddToClassList("muse-ref-image");
-            image.name = "muse-reference-image-field";
-            image.image = texture;
+            var imgPng = img ? img.EncodeToPNG() : null;
 
-            return image;
-        }
-
-        Texture GetTexture()
-        {
-            if (m_OperatorData.settings[1] == "")
-                return null;
-
-            var texture = TextureUtils.Create();
-            texture.LoadImage(Convert.FromBase64String(m_OperatorData.settings[1]));
-            return texture;
+            SetSettingWithoutNotify(Setting.Guid, guid);
+            SetSettingWithoutNotify(Setting.Image, imgPng != null ? Convert.ToBase64String(imgPng) : "");
+            SetSettingWithoutNotify(Setting.Mode, ((int)mode).ToString());
+            SetSettingWithoutNotify(Setting.Strength, strength.ToString());
         }
 
         public OperatorData GetOperatorData()
@@ -127,25 +100,63 @@ namespace Unity.Muse.Common
             return m_OperatorData;
         }
 
+        public int GetSettingInt(Setting setting)
+        {
+            return int.Parse(m_OperatorData.settings[(int) setting]);
+        }
+
+        public string GetSettingString(Setting setting)
+        {
+            return m_OperatorData.settings[(int) setting];
+        }
+
+        public T GetSettingEnum<T>(Setting setting)
+            where T : Enum
+        {
+            return (T)Enum.Parse(typeof(T), m_OperatorData.settings[(int) setting]);
+        }
+
+        public Texture2D GetSettingTex(Setting setting)
+        {
+            var b64String = m_OperatorData.settings[(int) setting];
+
+            if (string.IsNullOrEmpty(b64String))
+                return null;
+
+            var bytes = Convert.FromBase64String(b64String);
+            var img = new Texture2D(2, 2);
+            img.LoadImage(bytes);
+            return img;
+        }
+
         public void SetOperatorData(OperatorData data)
         {
             m_OperatorData.enabled = data.enabled;
-            if (data.settings == null || data.settings.Length < 2)
+            if (data.settings == null || data.settings.Length < (int)Setting.SettingsLength)
                 return;
             m_OperatorData.settings = data.settings;
             OnDataUpdate?.Invoke();
         }
 
-        void SetSettings(IReadOnlyList<string> settings)
+        public void SetColorImage(Artifact<Texture2D> artifact)
         {
-            m_OperatorData.settings[0] = settings[0];
-            m_OperatorData.settings[1] = settings[1];
-            OnDataUpdate?.Invoke();
+            if (artifact is null)
+                return;
+
+            m_OperatorData.enabled = true;
+            SetSettingWithoutNotify(Setting.Guid, artifact.Guid);
+            SetSettingWithoutNotify(Setting.Mode, ((int)Mode.Color).ToString());
+
+            artifact.GetArtifact((artifactInstance, data, message) =>
+            {
+                SetSettingWithoutNotify(Setting.Image, Convert.ToBase64String(artifactInstance.EncodeToPNG()));
+                OnDataUpdate?.Invoke();
+            }, true);
         }
 
-        string[] GetSettings()
+        void SetSettingWithoutNotify(Setting setting, string value)
         {
-            return m_OperatorData.settings;
+            m_OperatorData.settings[(int)setting] = value;
         }
 
         public bool Enabled()
@@ -168,33 +179,13 @@ namespace Unity.Muse.Common
             result.SetOperatorData(operatorData);
             return result;
         }
+
         public void RegisterToEvents(Model model)
-        { }
-
-        public void UnregisterFromEvents(Model model)
-        { }
-
-
-        public void SetReferenceImage(Artifact artifact)
         {
-            m_OperatorData.enabled = true;
-            m_OperatorData.settings[0] = artifact.Guid;
-
-            //Todo, we should implement a get preview in the artifact class
-            if (artifact is Artifact<Texture2D> textureArtifact)
-            {
-                textureArtifact.GetArtifact(OnArtifactReceived, true);
-            }
-            else
-            {
-                throw new NotImplementedException();
-            }
         }
 
-        void OnArtifactReceived(Texture2D artifactInstance, byte[] rawData, string errorMessage)
+        public void UnregisterFromEvents(Model model)
         {
-            m_OperatorData.settings[1] = Convert.ToBase64String(artifactInstance.EncodeToPNG());
-            OnDataUpdate?.Invoke();
         }
 
         /// <summary>
@@ -204,6 +195,16 @@ namespace Unity.Muse.Common
         public VisualElement GetSettingsView()
         {
             return GetImageUI();
+        }
+
+        Image GetImageUI()
+        {
+            var image = new Image();
+            image.AddToClassList("muse-ref-image");
+            image.name = "muse-reference-image-field";
+            image.image = GetSettingTex(Setting.Image);
+
+            return image;
         }
     }
 }

@@ -19,6 +19,13 @@ namespace Unity.Muse.Common.Cache
         ILiteCollection<ArtifactDatabaseObject> m_Collection;
         ILiteCollection<ArtifactDatabaseObject> collection => m_Collection ??= InitCollection();
 
+        internal LiteDbArtifactCache(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+                m_DatabasePath = Path.Combine(Application.persistentDataPath, k_DatabaseName);
+            else
+                m_DatabasePath = path;
+        }
         public override void Initialize()
         {
             BsonMapper.Global.RegisterType<Artifact>(
@@ -29,7 +36,6 @@ namespace Unity.Muse.Common.Cache
 
         LiteDatabase InitDb()
         {
-            m_DatabasePath = Path.Combine(Application.persistentDataPath, k_DatabaseName);
             m_Database = new LiteDatabase(m_DatabasePath);
             return m_Database;
         }
@@ -46,7 +52,7 @@ namespace Unity.Muse.Common.Cache
         /// </summary>
         public override void Dispose()
         {
-            db.Dispose();
+            db?.Dispose();
 
             m_Database = null;
             m_Collection = null;
@@ -55,8 +61,6 @@ namespace Unity.Muse.Common.Cache
         public override void Clear()
         {
             db.DropCollection(k_ArtifactCollectionName);
-            db.DropCollection(k_ArtifactCollectionName + "id");
-
             db.Rebuild();
         }
 

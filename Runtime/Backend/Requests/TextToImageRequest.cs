@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Unity.Muse.Common
@@ -21,6 +21,11 @@ namespace Unity.Muse.Common
             this.model = model;
             this.width = width;
             this.height = height;
+        }
+        
+        public static explicit operator TextToImageRequest(ImageVariationSettingsRequest settings)
+        {
+            return new TextToImageRequest(settings.negative_prompt, settings.seamless, settings.seed, settings.model, settings.width, settings.height);
         }
     }
 }

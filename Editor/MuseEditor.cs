@@ -10,13 +10,6 @@ namespace Unity.Muse.Common.Editor
 {
     public class MuseEditor : EditorWindow
     {
-        public static MuseEditor CreateWindow()
-        {
-            var window = CreateInstance<MuseEditor>();
-            window.Show();
-            return window;
-        }
-
         private MainUI _MainUI;
         IPanel m_Panel;
 
@@ -53,12 +46,26 @@ namespace Unity.Muse.Common.Editor
 
         void CreateGUI()
         {
-            if (CurrentModel == null && !string.IsNullOrEmpty(m_AssetPath))
+            if (!CurrentModel && !string.IsNullOrEmpty(m_AssetPath))
                 CurrentModel = AssetDatabase.LoadAssetAtPath<Model>(m_AssetPath);
 
-            if (CurrentModel == null)
-                Close();
+            if (!CurrentModel)
+            {
+                if (!string.IsNullOrEmpty(m_Mode))
+                {
+                    CurrentModel = CreateInstance<Model>();
+                    CurrentModel.Initialize();
+                    CurrentModel.ModeChanged(ModesFactory.GetModeIndexFromKey(m_Mode));
+                }
 
+                if (!CurrentModel)
+                {
+                    Close();
+                    return;
+                }
+            }
+
+            m_Mode = CurrentModel.CurrentMode;
             m_Panel = rootVisualElement.panel;
             DiscardModel = Instantiate(CurrentModel);
 
@@ -67,6 +74,7 @@ namespace Unity.Muse.Common.Editor
             CurrentModel.OnExportArtifact += OnExportArtifact;
             CurrentModel.OnMultiExport += OnMultiExport;
             CurrentModel.OnModified += OnModelDataModified;
+            CurrentModel.OnGenerateButtonClicked += OnGenerateButtonClicked;
 
             rootVisualElement.ProvideContext(CurrentModel);
 
@@ -89,7 +97,12 @@ namespace Unity.Muse.Common.Editor
         internal void OnModelDataModified()
         {
             if (Preferences.autoSave)
-                SaveChanges();
+            {
+                if (string.IsNullOrEmpty(AssetDatabase.GetAssetPath(CurrentModel)))
+                    hasUnsavedChanges = true;
+                else
+                    SaveChanges();
+            }
             else
                 hasUnsavedChanges = true;
         }
@@ -113,6 +126,7 @@ namespace Unity.Muse.Common.Editor
             CurrentModel.OnExportArtifact -= OnExportArtifact;
             CurrentModel.OnMultiExport -= OnMultiExport;
             CurrentModel.OnModified -= OnModelDataModified;
+            CurrentModel.OnGenerateButtonClicked -= OnGenerateButtonClicked;
         }
 
         void ReleaseTextures()
@@ -167,6 +181,9 @@ namespace Unity.Muse.Common.Editor
             m_AssetPath = AssetDatabase.GetAssetPath(model);
             CurrentModel = model;
 
+            if (string.IsNullOrEmpty(m_AssetPath))
+                hasUnsavedChanges = true;
+
             UpdateTitle();
         }
 
@@ -217,36 +234,47 @@ namespace Unity.Muse.Common.Editor
 
         public override void SaveChanges()
         {
-            if (string.IsNullOrEmpty(AssetDatabase.GetAssetPath(CurrentModel)))
+            if (string.IsNullOrEmpty(m_AssetPath))
             {
-                var path = EditorUtility.SaveFilePanelInProject(TextContent.saveGeneratorAsset,
-                    TextContent.defaultAssetName(ModesFactory.GetModeData(m_Mode)?.title ?? "Muse Generator"), "asset", "");
+                var path = EditorModelAssetEditor.GetSavePath(CurrentModel, true);
                 if (string.IsNullOrEmpty(path))
+                {
+                    base.SaveChanges();
                     return;
-                AssetDatabase.CreateAsset(CurrentModel, path);
+                }
+
+                AssetDatabase.CreateAsset(CurrentModel, ExporterHelpers.GetPathRelativeToRoot(path));
             }
 
             EditorUtility.SetDirty(CurrentModel);
             AssetDatabase.SaveAssetIfDirty(CurrentModel);
+            UpdateTitle();
+
             base.SaveChanges();
         }
 
         public override void DiscardChanges()
         {
-            List<Artifact> deltaArtifacts;
+            m_AssetPath = AssetDatabase.GetAssetPath(CurrentModel);
+
             if (!string.IsNullOrEmpty(m_AssetPath))
             {
-                deltaArtifacts = CurrentModel.AssetsData.FindAll(x => !DiscardModel.AssetsData.Contains(x));
+                List<Artifact> deltaArtifacts;
+                if (!string.IsNullOrEmpty(m_AssetPath))
+                {
+                    deltaArtifacts = CurrentModel.AssetsData.FindAll(x => !DiscardModel.AssetsData.Contains(x));
 
-                AssetDatabase.DeleteAsset(m_AssetPath);
-                AssetDatabase.CreateAsset(DiscardModel, m_AssetPath);
-            }
-            else
-            {
-                deltaArtifacts = CurrentModel.AssetsData;
+                    AssetDatabase.DeleteAsset(m_AssetPath);
+                    AssetDatabase.CreateAsset(DiscardModel, m_AssetPath);
+                }
+                else
+                {
+                    deltaArtifacts = CurrentModel.AssetsData;
+                }
+
+                ArtifactCache.Delete(deltaArtifacts);
             }
 
-            ArtifactCache.Delete(deltaArtifacts);
             base.DiscardChanges();
         }
 
@@ -275,8 +303,27 @@ namespace Unity.Muse.Common.Editor
             SaveChanges();
         }
 
+        void OnGenerateButtonClicked()
+        {
+            if (!string.IsNullOrEmpty(m_AssetPath))
+                return;
+
+            var path = EditorModelAssetEditor.GetSavePath(CurrentModel, false);
+            path = path.Replace("\\", "/");
+            m_AssetPath = ExporterHelpers.GetPathRelativeToRoot(path);
+            AssetDatabase.CreateAsset(CurrentModel, m_AssetPath);
+            CurrentModel = AssetDatabase.LoadAssetAtPath<Model>(m_AssetPath);
+
+            SaveChanges();
+
+            EditorGUIUtility.PingObject(CurrentModel);
+        }
+
         void UpdateTitle()
         {
+            if (string.IsNullOrEmpty(m_AssetPath))
+                m_AssetPath = AssetDatabase.GetAssetPath(CurrentModel);
+
             var titleString = Path.GetFileNameWithoutExtension(m_AssetPath);
             if (string.IsNullOrEmpty(titleString))
                 titleString = defaultWindowTitle;

@@ -1,5 +1,5 @@
 .appui-icon--eraser--regular {
-    --unity-image: url("./Icons/d_Eraser_32.png");
+    --unity-image: url("./Icons/Eraser.png");
 }
 
 .appui-icon--star-filled--regular {
@@ -8,4 +8,12 @@
 
 .appui-icon--download-simple--regular {
     --unity-image: url("./Icons/DownloadSimple.png");
+}
+
+.appui-icon--dislike--regular {
+    --unity-image: url("./Icons/ThumbsDown.png");
+}
+
+.appui-icon--dislike-filled--regular {
+    --unity-image: url("./Icons/ThumbsDownFill.png");
 }

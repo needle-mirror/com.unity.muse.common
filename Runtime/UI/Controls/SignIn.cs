@@ -24,6 +24,8 @@ namespace Unity.Muse.Common
 
         public void SetModel(Model model)
         {
+            if (model == null)
+                return;
             Init();
             m_CurrentModel = model;
             RefreshSignIn();

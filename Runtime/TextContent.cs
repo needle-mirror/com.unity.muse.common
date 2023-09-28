@@ -12,20 +12,22 @@ namespace Unity.Muse.Common
         public static readonly string deleteDialogTitle = "Delete Generations";
         public static readonly string deleteDialogMessage = "You are about to delete generated assets, would you like to continue?";
         public static readonly string deleteDialogOk = "Delete Selected";
-        public static readonly string deleteDialogOkDontShowAgain = "Delete, and don't ask again";
+        public static readonly string deleteDialogOkDontShowAgain = "Don't ask again";
         public static readonly string exportSingle = "Export";
         public static readonly string exportMultiple = "Export All";
         public static readonly string deleteSingle = "Delete";
         public static readonly string deleteMultiple = "Delete All";
+        public static readonly string starSingle = "Star";
+        public static readonly string unStarSingle = "Remove Star";
         public static readonly string starMultiple = "Star All";
         public static readonly string unStarMultiple = "Remove All Stars";
+        public static readonly string refineSingle = "Refine";
         public static readonly string thumbnailSizeSliderTooltip = "Adjust thumbnails size";
-        public static readonly string assetRemovedFromProjectTitle = "Muse Generator asset removed";
-        public static readonly string assetRemovedFromProjectMessage = "The file '{0}' has been deleted or removed from the project folder.\nWould you like to save your generations?";
-        public static readonly string assetSaveAs = "Save As...";
-        public static readonly string discardAndClose = "Discard Generations and Close Window";
+        public static readonly string assetRemovedFromProjectTitle = "Delete selected generator?";
+        public static readonly string assetRemovedFromProjectMessage = "'{0}'\n\nYou cannot undo the delete action.";
         public static readonly string saveGeneratorAsset = "Save Generator Asset";
         public static readonly string bookmarkTooltip = "Shows only starred artifacts";
+        public static readonly string bookmarkButtonTooltip = "Add to favourites";
         public static readonly string operatorGenerateNumberTooltip = "Sets the number of images to be generated.";
         public static readonly string operatorPromptTooltip = "Enter the text to describe the things that you want to generate...";
         public static readonly string operatorNegativePromptTooltip = "Enter the text to describe the things you want to exclude...";
@@ -39,5 +41,12 @@ namespace Unity.Muse.Common
         public static readonly string signUpBetaDialogTitle = "Unity AI Beta Program";
         public static readonly string signUpBetaDialogMessage = "Would you like to register to the Unity AI Beta Program?";
         public static readonly string signUpBeta = "Register";
+        public static readonly string savePanelTitle = "Save";
+        public static readonly string savePanelMessage = "Save changes to an asset in the Project.";
+        public static readonly string dragAndDropColorImageMessage = "Drag and Drop or Import an image to guide your generation";
+        public static readonly string dragAndDropShapeImageMessage = "Drag and Drop or Import a <b>black and white <u><a href=\"https://en.wikipedia.org/wiki/Canny_edge_detector\">canny</a></u> image</b> to guide your generation";
+        public static readonly string dislike = "Dislike";
+        public static readonly string removeDislike = "Remove Dislike";
+        public static readonly string dislikeTooltip = "Dislike this";
     }
 }

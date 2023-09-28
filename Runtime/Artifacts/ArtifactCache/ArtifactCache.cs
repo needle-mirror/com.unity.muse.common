@@ -25,10 +25,21 @@ namespace Unity.Muse.Common
 
         static BaseArtifactCache GetCacheInstanceForPlatform(RuntimePlatform runtimePlatform)
         {
+#if UNITY_WEBGL
             if (runtimePlatform == RuntimePlatform.WebGLPlayer)
-                return new WebArtifactCache();
+                return new WebArtifactCache(null);
+#endif
 
-            return new LiteDbArtifactCache();
+            return new LiteDbArtifactCache(null);
+        }
+
+        internal static BaseArtifactCache CreateCacheInstanceForPlatform(RuntimePlatform runtimePlatform, string assetPath)
+        {
+#if UNITY_WEBGL
+            if (runtimePlatform == RuntimePlatform.WebGLPlayer)
+                return new WebArtifactCache(assetPath);
+#endif
+            return new LiteDbArtifactCache(assetPath);
         }
 
         /// <summary>

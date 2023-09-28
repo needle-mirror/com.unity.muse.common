@@ -1,12 +1,13 @@
 {
   "name": "com.unity.muse.common",
   "displayName": "Muse Common Library",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "unity": "2022.3",
   "description": "Muse Common Library is a package that provides common tools for other Muse AI packages.",
   "dependencies": {
-    "com.unity.dt.app-ui": "0.4.0",
+    "com.unity.dt.app-ui": "0.5.1",
     "com.unity.burst": "1.8.7",
+    "com.unity.settings-manager": "2.0.1",
     "com.unity.modules.imageconversion": "1.0.0",
     "com.unity.modules.unitywebrequesttexture": "1.0.0"
   },
@@ -18,18 +19,18 @@
     }
   ],
   "relatedPackages": {
-    "com.unity.muse.common.tests": "0.2.0"
+    "com.unity.muse.common.tests": "0.3.0"
   },
   "_upm": {
-    "changelog": "### Changed\n\n- Improve in-painting experience.\n- Artifacts cannot be unselected in refinement.\n\n### Fixed\n\n- Fix delete not appearing in context menu when there was an error with the generation.\n- Fix title of Muse window reseting when reloading the window.\n- Fix error when working with a large number of selected assets.\n- Fix artifact favorite icon not showing after changing the thumbnail."
+    "changelog": "### Added\n\n- Add Muse Preferences window\n\n### Changed\n\n- Improve asset creation workflow - selecting Menu -> Muse -> Muse Sprite / Texture creates a temporary asset that can be saved later.\n\n\n### Fixed\n\n- Fix generate button is enabled with whitespace only prompt.\n- Fix duplicated generation settings when using \"Use\".\n- Control toolbar settings persists even if the tool was deactivated.\n- Export button not visible in the Assets list."
   },
   "upmCi": {
-    "footprint": "02f88f291fb10c700bfa1d860376ce7747af8c12"
+    "footprint": "6133eaa6362bead27bb7231f4757ea942a5073ca"
   },
-  "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.muse.common@0.2/manual/index.html",
+  "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.muse.common@0.3/manual/index.html",
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/UnityMuseAITools.git",
     "type": "git",
-    "revision": "da1fe357fbde6534473ea14e26b9c5c75435248f"
+    "revision": "5969a3e565b4f1d647235a78ef428c516aa47bd3"
   }
 }

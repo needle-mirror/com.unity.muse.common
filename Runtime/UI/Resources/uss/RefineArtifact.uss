@@ -6,6 +6,10 @@
     display: none;
 }
 
+.refine-button-hidden {
+    display: none;
+}
+
 :hover > .muse-asset-image__control-buttons-container > .refine-button,
 .is-hovered > .refine-button {
     display: flex;

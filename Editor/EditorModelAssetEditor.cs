@@ -4,16 +4,13 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Unity.Muse.Common.Editor
 {
     [CustomEditor(typeof(Model))]
     internal class EditorModelAssetEditor : UnityEditor.Editor
     {
-        public static readonly string defaultAssetCreationPath = "Assets";
-
-        public static string assetCreationPath = defaultAssetCreationPath;
-
         Model Target => target as Model;
 
         public override void OnInspectorGUI()
@@ -67,17 +64,32 @@ namespace Unity.Muse.Common.Editor
                 return;
 
             var model = CreateInstance<Model>();
+            model.Initialize();
             model.ModeChanged(modeIndex);
-            AssetDatabase.CreateAsset(model, AssetDatabase.GenerateUniqueAssetPath(Path.Combine(assetCreationPath,
-                TextContent.defaultAssetName(ModesFactory.GetModeData(mode)?.title ?? "Muse Generator") + ".asset")));
-            EditorGUIUtility.PingObject(model);
 
-            OpenEditorTo(model);
+            var wins = GetAllInstances<MuseEditor>();
+            var window = wins.FirstOrDefault(w => w.CurrentModel == model);
+            if (window != null)
+                window.Focus();
+            else
+                OpenEditorTo(model);
         }
 
         public static T[] GetAllInstances<T>() where T : EditorWindow
         {
             return Resources.FindObjectsOfTypeAll<T>().Where(window => window.GetType() == typeof(T)).ToArray();
+        }
+
+        public static string GetSavePath(Model currentModel, bool showDialog)
+        {
+            var defaultName = TextContent.defaultAssetName(ModesFactory.GetModeData(currentModel.CurrentMode)?.title ?? "Muse Generator");
+            var promptOperator = currentModel.CurrentOperators?.GetOperator<PromptOperator>();
+            var fileName = promptOperator != null && !string.IsNullOrWhiteSpace(promptOperator.GetPrompt())
+                ? promptOperator.GetPrompt()
+                : defaultName;
+
+            var path = ExporterHelpers.GetUniquePath("Assets", fileName, "asset");
+            return showDialog ? EditorUtility.SaveFilePanelInProject(TextContent.savePanelTitle, Path.GetFileNameWithoutExtension(path), "asset", TextContent.savePanelMessage) : path;
         }
     }
 }

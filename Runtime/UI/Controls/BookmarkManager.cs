@@ -1,18 +1,16 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using Unity.Muse.Common.Utils;
 using UnityEngine;
 
 namespace Unity.Muse.Common
 {
-    internal class BookmarkManager : IModelData, ISerializationCallbackReceiver
+    [Serializable]
+    internal class BookmarkManager : IModelData
     {
         public event Action OnModified;
 
         [SerializeField]
-        string[] m_Bookmarks = Array.Empty<string>();
-
-        HashSet<string> m_BookmarkedArtifacts;
+        SerializedHashSet<string> m_BookmarkedArtifacts;
 
         [SerializeField]
         bool m_IsFilterEnabled;
@@ -49,10 +47,7 @@ namespace Unity.Muse.Common
 
         void InitializeBookmarks()
         {
-            m_BookmarkedArtifacts = new HashSet<string>();
+            m_BookmarkedArtifacts = new SerializedHashSet<string>();
         }
-
-        public void OnBeforeSerialize() => m_Bookmarks = m_BookmarkedArtifacts.ToArray();
-        public void OnAfterDeserialize() => m_BookmarkedArtifacts = new HashSet<string>(m_Bookmarks);
     }
 }

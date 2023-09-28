@@ -180,8 +180,11 @@ namespace Unity.Muse.Common
                     if (Contains(m_Settings))
                         Remove(m_Settings);
 
-                    m_Settings = settings;
-                    Add(m_Settings);
+                    if (tool == m_Model.ActiveTool)
+                    {
+                        m_Settings = settings;
+                        Add(m_Settings);
+                    }
                 }
             }
         }

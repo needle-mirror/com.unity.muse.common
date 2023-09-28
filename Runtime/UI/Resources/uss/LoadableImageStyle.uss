@@ -5,7 +5,7 @@
 
 .li-element{
     overflow: hidden;
-    background-color: var(--appui-backgrounds-100);
+    background-color: rgba(0,0,0,0);
     flex-grow: 1;
 
     -unity-background-scale-mode: scale-to-fit;

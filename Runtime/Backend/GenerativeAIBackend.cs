@@ -42,13 +42,13 @@ namespace Unity.Muse.Common
 
 #if UNITY_GENERATIVE_AI_STAGING
         protected const string k_ServiceBaseURL = "https://musetools-stg-hbasf8cec2dxb0dh.z01.azurefd.net/api/v1";
-
 #else
         protected const string k_ServiceBaseURL = "https://musetools-test-auamdbc0faeda7f4.z01.azurefd.net/api/v1";
 #endif
         protected static readonly string k_TextToImageServiceBaseURL = $"{k_ServiceBaseURL}/text-to-image";
         static readonly string k_InpaintingURL = $"{k_ServiceBaseURL}/inpaint/generate";
         static readonly string k_ImageVariateURL = $"{k_ServiceBaseURL}/image_variate/generate";
+        static readonly string k_ControlNetGenerateURL = $"{k_ServiceBaseURL}/controlnet/generate";
         static readonly string k_RequestGenerateStatusURL = $"{k_TextToImageServiceBaseURL}/request_status";
         static readonly string k_DownloadGeneratedImageURL = $"{k_TextToImageServiceBaseURL}/download_image";
         static readonly string k_DownloadURL = $"{k_TextToImageServiceBaseURL}/download_url";
@@ -76,7 +76,12 @@ namespace Unity.Muse.Common
         /// Initiate Image variation generation on Cloud. It only allocates texture ids and actual generation occurs in background.
         /// Use `RequestStatus` to query progress and `DownloadImage` to download intermediate or final result.
         /// </summary>
-        public static UnityWebRequestAsyncOperation VariateImage(string sourceGuid, string prompt, TextToImageRequest settings, Action<TextToImageResponse, string> onDone)
+        public static UnityWebRequestAsyncOperation VariateImage(
+            string sourceGuid,
+            string imageB64,
+            string prompt,
+            ImageVariationSettingsRequest settings,
+            Action<TextToImageResponse, string> onDone)
         {
             void HandleRequest(object data, string error)
             {
@@ -93,7 +98,47 @@ namespace Unity.Muse.Common
                 }
             }
 
-            return SendJSONRequest(k_ImageVariateURL, new ImageVariationRequest(sourceGuid, prompt, settings, AccessToken),
+            object request;
+
+            if (string.IsNullOrEmpty(sourceGuid))
+            {
+                request = new ImageVariationBase64Request(imageB64, prompt, settings, AccessToken);
+            }
+            else
+            {
+                request = new ImageVariationRequest(sourceGuid, prompt, settings, AccessToken);
+            }
+
+            return SendJSONRequest(k_ImageVariateURL, request, HandleRequest);
+        }
+
+        public static UnityWebRequestAsyncOperation ControlNetGenerate(
+            string sourceGuid,
+            string sourceBase64,
+            string prompt,
+            ImageVariationSettingsRequest settings,
+            Action<TextToImageResponse, string> onDone)
+        {
+            void HandleRequest(object data, string error)
+            {
+                if (onDone != null)
+                {
+                    if (data != null)
+                    {
+                        var res = JsonUtility.FromJson<TextToImageResponse>(Encoding.UTF8.GetString((byte[])data));
+                        res.seed = settings.seed;
+                        onDone(res, error);
+                        return;
+                    }
+                    onDone(null, error);
+                }
+            }
+
+            return SendJSONRequest(k_ControlNetGenerateURL, new ControlNetGenerateRequest(
+                    sourceGuid,
+                    sourceBase64,
+                    prompt,
+                    settings, AccessToken),
                 HandleRequest);
         }
 
@@ -236,6 +281,7 @@ namespace Unity.Muse.Common
         /// <summary>
         /// Train a style using a set of textures
         /// </summary>
+        /// <param name="guid"></param>
         /// <param name="name"></param>
         /// <param name="texturesData"></param>
         /// <param name="onDone"></param>

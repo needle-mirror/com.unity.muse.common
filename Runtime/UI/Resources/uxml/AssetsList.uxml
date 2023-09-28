@@ -17,8 +17,8 @@
             </ui:VisualElement>
 
             <ui:VisualElement class="muse-assetslist__header">
-                <appui:SearchBar class="muse-assetslist__searchbar" size="S"/>
-                <appui:ActionButton class="muse-assetslist__bookmark-filter-button" size="S" icon="star"/>
+                <appui:SearchBar class="muse-assetslist__searchbar" />
+                <appui:ActionButton class="muse-assetslist__bookmark-filter-button" icon="star"/>
             </ui:VisualElement>
             <muse:GridView name="muse-assetslist__gridview" class="muse-assetslist__gridview" />
 

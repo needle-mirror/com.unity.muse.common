@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 using UnityEditor;
 using UnityEngine;
 
@@ -35,7 +36,7 @@ namespace Unity.Muse.Common.Editor
         {
             var exporter = ArtifactExporterFactory.instance.GetExporterForType(artifact.GetType());
             path = GetAbsolutePath(path);
-            if(path.Length > maxSystemPathLength)
+            if (path.Length > maxSystemPathLength)
                 Debug.Log($"Specified path '{path}' is too long. Use GetPath or GetUniquePath helper methods to create a valid path.");
 
             exporter?.Export(artifact, path, onExport);
@@ -176,7 +177,10 @@ namespace Unity.Muse.Common.Editor
 
         static string GetAbsolutePath(string path)
         {
-            return path.StartsWith(assetsRoot) ? path.Replace("Assets", Application.dataPath) : path;
+            if (path.StartsWith(assetsRoot))
+                path = path.Replace("Assets", Application.dataPath);
+            path = path.Replace("\\", "/");
+            return path;
         }
 
         static string FindUniqueFileName(string directory, string fileName, string extension)
@@ -189,12 +193,26 @@ namespace Unity.Muse.Common.Editor
             return $"{fileName} {runningNumber}";
         }
 
-        static string GetPathRelativeToRoot(string path)
+        public static string GetPathRelativeToRoot(string path)
         {
             if (string.IsNullOrWhiteSpace(path))
                 return string.Empty;
 
             return path.StartsWith(assetsRoot) ? path : FileUtil.GetProjectRelativePath(path);
+        }
+
+        public static string RemoveSpecialCharacters(string stringValue, char replaceCharacter = '_')
+        {
+            if (stringValue == null)
+                return null;
+
+            foreach (var c in Path.GetInvalidFileNameChars())
+                stringValue = stringValue.Replace(c, replaceCharacter);
+
+            // Remove additional special characters that Unity doesn't like
+            foreach (var c in "/:?<>*|\\~")
+                stringValue = stringValue.Replace(c, replaceCharacter);
+            return stringValue.Trim();
         }
     }
 }

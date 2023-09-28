@@ -1,3 +1,4 @@
+#if UNITY_WEBGL
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,10 +17,21 @@ namespace Unity.Muse.Common
         const string k_DatabaseName = "ArtifactCache.db";
         const string k_ArtifactCollectionName = "artifacts";
 
+        FileStream m_Fs;
+        string m_DatabasePath;
+
         UltraLiteDatabase m_Database;
         UltraLiteDatabase db => m_Database ??= InitDb();
         UltraLiteCollection<ArtifactDatabaseObject> m_Collection;
         UltraLiteCollection<ArtifactDatabaseObject> collection => m_Collection ??= InitCollection();
+
+        internal WebArtifactCache(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+                m_DatabasePath = k_FileStreamPath;
+            else
+                m_DatabasePath = path;
+        }
 
         public override void Initialize()
         {
@@ -31,8 +43,8 @@ namespace Unity.Muse.Common
 
         UltraLiteDatabase InitDb()
         {
-            using var fs = new FileStream(k_FileStreamPath, FileMode.OpenOrCreate);
-            m_Database = new UltraLiteDatabase(fs);
+            m_Fs = new FileStream(m_DatabasePath, FileMode.OpenOrCreate);
+            m_Database = new UltraLiteDatabase(m_Fs);
             return m_Database;
         }
 
@@ -48,7 +60,8 @@ namespace Unity.Muse.Common
         /// </summary>
         public override void Dispose()
         {
-            db.Dispose();
+            db?.Dispose();
+            m_Fs?.Dispose();
 
             m_Database = null;
             m_Collection = null;
@@ -56,7 +69,11 @@ namespace Unity.Muse.Common
 
         public override void Clear()
         {
-            db.DropCollection(k_ArtifactCollectionName);
+            if (db.CollectionExists(k_ArtifactCollectionName))
+            {
+                db.DropCollection(k_ArtifactCollectionName);
+                m_Collection = null;
+            }
         }
 
         public override bool IsInCache(Artifact artifact)
@@ -182,3 +199,4 @@ namespace Unity.Muse.Common
         }
     }
 }
+#endif

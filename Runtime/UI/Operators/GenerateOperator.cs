@@ -1,6 +1,7 @@
 using Unity.AppUI.UI;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Text = Unity.AppUI.UI.Text;
@@ -149,11 +150,11 @@ namespace Unity.Muse.Common
                 //Need to get Labels...
                 dropdown.bindItem = (item, i) => item.label = modes[i];
                 dropdown.sourceItems = modes;
-                dropdown.SetValueWithoutNotify(ModesFactory.GetModeIndexFromKey(operatorData.settings[0]));
+                dropdown.SetValueWithoutNotify(new[] {ModesFactory.GetModeIndexFromKey(operatorData.settings[0])});
                 dropdown.RegisterValueChangedCallback((evt) =>
                 {
-                    operatorData.settings[0] = ModesFactory.GetModeKeyFromIndex(evt.newValue);
-                    model.ModeChanged(evt.newValue);
+                    operatorData.settings[0] = ModesFactory.GetModeKeyFromIndex(evt.newValue.FirstOrDefault());
+                    model.ModeChanged(evt.newValue.FirstOrDefault());
                 });
 
                 Add(dropdown);
@@ -195,7 +196,7 @@ namespace Unity.Muse.Common
 #if UNITY_WEBGL && !UNITY_EDITOR
                 if (operatorData.settings[0] != "")
                 {
-                    dropdown.SetValueWithoutNotify(ModesFactory.GetModeIndexFromKey(operatorData.settings[0]));
+                    dropdown.SetValueWithoutNotify(new[] {ModesFactory.GetModeIndexFromKey(operatorData.settings[0])});
                 }
 #endif
 
@@ -221,7 +222,10 @@ namespace Unity.Muse.Common
 
             void OnPromptChanged(string prompt)
             {
-                m_CurrentGenerateButton?.SetEnabled(prompt?.Length >= PromptOperator.MinimumPromptLength);
+                if (string.IsNullOrWhiteSpace(prompt))
+                    m_CurrentGenerateButton?.SetEnabled(false);
+                else
+                    m_CurrentGenerateButton?.SetEnabled(prompt.Length >= PromptOperator.MinimumPromptLength);
             }
         }
     }

@@ -22,7 +22,7 @@ namespace Unity.Muse.Common
 
     [Serializable]
     [Icon(IconHelper.assetIconPath)]
-    public class Model : ScriptableObject, IContext
+    public class Model : ScriptableObject, IContext, IEquatable<Model>
     {
         /// <summary>
         /// Event raised when the model was modified.
@@ -59,6 +59,13 @@ namespace Unity.Muse.Common
         internal event SetOperatorDefault OnSetOperatorDefaults;
         internal event Action OnForbiddenAccess;
 
+        public string guid = Guid.Empty.ToString();
+
+        public void Initialize()
+        {
+            guid = Guid.NewGuid().ToString();
+        }
+
         void OnEnable()
         {
             if (string.IsNullOrEmpty(currentMode))
@@ -66,6 +73,9 @@ namespace Unity.Muse.Common
                 var mode = PlayerPrefs.GetInt("Muse.Mode", 0);
                 currentMode = ModesFactory.GetModeKeyFromIndex(mode);
             }
+
+            if (guid == Guid.Empty.ToString())
+                guid = Guid.NewGuid().ToString();
 
             foreach (var modelData in m_Data)
                 modelData.OnModified += () => OnModified?.Invoke();
@@ -102,7 +112,7 @@ namespace Unity.Muse.Common
         List<IModelData> m_Data = new List<IModelData>();
 
         [SerializeReference]
-        Artifact preRefinedArtifact;        // The selected artifact prior to entering refine mode
+        Artifact preRefinedArtifact; // The selected artifact prior to entering refine mode
 
         [SerializeReference]
         Artifact refinedArtifact;
@@ -130,7 +140,7 @@ namespace Unity.Muse.Common
 
         public bool isRefineMode => refinedArtifact != null;
 
-        public T GetData<T>() where T: IModelData, new()
+        public T GetData<T>() where T : IModelData, new()
         {
             var data = m_Data.Find(d => d is T);
             if (data == null)
@@ -147,7 +157,7 @@ namespace Unity.Muse.Common
         public void DeleteData<T>()
         {
             var index = m_Data.FindIndex(d => d is T);
-            if(index > 0)
+            if (index > 0)
                 m_Data.RemoveAt(index);
         }
 
@@ -157,7 +167,15 @@ namespace Unity.Muse.Common
         }
 
         List<IOperator> modeDefaultOperators => ModesFactory.GetMode(currentMode).Select(op => op.Clone()).ToList();
-        IEnumerable<IOperator> currentOperators => m_Operators ??= modeDefaultOperators;
+        IEnumerable<IOperator> currentOperators
+        {
+            get
+            {
+                if (m_Operators == null || !m_Operators.Any())
+                    m_Operators = modeDefaultOperators;
+                return m_Operators;
+            }
+        }
 
         /// <summary>
         /// Set or replace operators in the nodes list.
@@ -205,14 +223,14 @@ namespace Unity.Muse.Common
                 OnOperatorRemoved?.Invoke(operators);
         }
 
-        internal T AddOperator<T>() where T: class, IOperator
+        internal T AddOperator<T>() where T : class, IOperator
         {
             var op = modeDefaultOperators.GetOperator<T>();
             UpdateOperators(op);
             return op;
         }
 
-        internal void SetOperatorEnable<T>(bool enabled) where T: class, IOperator
+        internal void SetOperatorEnable<T>(bool enabled) where T : class, IOperator
         {
             var op = m_Operators.GetOperator<T>();
             if (op != null)
@@ -222,7 +240,7 @@ namespace Unity.Muse.Common
             }
         }
 
-        internal void SetOperatorVisibility<T>(bool visible) where T: class, IOperator
+        internal void SetOperatorVisibility<T>(bool visible) where T : class, IOperator
         {
             var op = m_Operators.GetOperator<T>();
             if (op != null)
@@ -265,8 +283,8 @@ namespace Unity.Muse.Common
         bool IsArtifactUnused(Artifact artifact)
         {
             return !assetsData.Any(assetsArtifact =>
-                !ReferenceEquals(assetsArtifact, artifact)        // Don't check the artifact itself
-                && assetsArtifact.history.Contains(artifact));    // Check if the artifact is present in any history
+                !ReferenceEquals(assetsArtifact, artifact) // Don't check the artifact itself
+                && assetsArtifact.history.Contains(artifact)); // Check if the artifact is present in any history
         }
 
         /// <summary>
@@ -281,7 +299,7 @@ namespace Unity.Muse.Common
             List<Artifact> removeFromCache = new();
             Artifact selected = null;
             Artifact setAsThumbnail = null;
-            int setAsThumbnailIndex = RefinedArtifactGenerationsIndex;  // Keep the generations index we might be replacing
+            int setAsThumbnailIndex = RefinedArtifactGenerationsIndex; // Keep the generations index we might be replacing
             var finishRefine = false;
 
             // Remove from cache (will only actually be removed from cache if unused elsewhere
@@ -393,7 +411,7 @@ namespace Unity.Muse.Common
 
         public void ModeChanged(int mode)
         {
-            if(mode < 0 )
+            if (mode < 0)
                 return;
             currentMode = ModesFactory.GetModeKeyFromIndex(mode);
             OnModeChanged?.Invoke(mode);
@@ -472,7 +490,7 @@ namespace Unity.Muse.Common
             if (m_StaticOperators is null || !m_StaticOperators.Any())
                 m_StaticOperators = operators.Where(o => o is GenerateOperator);
 
-            foreach (var staticOperator in m_StaticOperators ??  Array.Empty<IOperator>())
+            foreach (var staticOperator in m_StaticOperators ?? Array.Empty<IOperator>())
             {
                 operators = currentOperators?.Select(o =>
                     o.GetType() == staticOperator.GetType() ? staticOperator : o).ToList();
@@ -530,7 +548,7 @@ namespace Unity.Muse.Common
             var clone = artifact.Clone(currentMode);
             assetsData.Add(clone);
             clone.history.Clear();
-            clone.history = new() {clone};
+            clone.history = new() { clone };
             RefineArtifact(clone);
         }
 
@@ -550,13 +568,43 @@ namespace Unity.Muse.Common
         {
             OnForbiddenAccess?.Invoke();
         }
-        
+
         /// <summary>
         /// Force updating the available tools state
         /// </summary>
         public void UpdateToolState()
         {
             OnUpdateToolState?.Invoke();
+        }
+
+        public bool Equals(Model other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return base.Equals(other) || guid == other.guid;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((Model)obj);
+        }
+
+        public static bool operator ==(Model lhs, Model rhs)
+        {
+            return ReferenceEquals(lhs, rhs) || (lhs != null) && lhs.Equals(rhs);
+        }
+
+        public static bool operator !=(Model lhs, Model rhs)
+        {
+            return ((object)lhs != null) && !lhs.Equals(rhs);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(base.GetHashCode(), guid);
         }
     }
 }

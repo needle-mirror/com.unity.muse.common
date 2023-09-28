@@ -196,7 +196,7 @@ namespace Unity.Muse.Common
         /// <summary>
         /// Unregister callback from UnityConnectEvent
         /// </summary>
-        /// <param name="callback"> Callback to unregister </param>
+        /// <param name="attachedDelegate"> Callback to unregister </param>
         /// <param name="eventId"> Event to unregister from </param>
         /// <returns></returns>
         /// <exception cref="Exception"> Event cannot be unregistered </exception>

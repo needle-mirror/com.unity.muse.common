@@ -35,7 +35,7 @@
         {
           "type": "ReferenceOperator",
           "version": "1.0",
-          "enabled": false
+          "enabled": true
         },
         {
           "type": "MaskOperator",

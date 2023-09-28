@@ -59,15 +59,17 @@ namespace Unity.Muse.Common
             //Need to get Labels...
             dropdown.bindItem = (item, i) => item.label = data[i];
             dropdown.sourceItems = data;
-            dropdown.SetValueWithoutNotify(Array.IndexOf(data, m_OperatorData.settings[0]));
+            dropdown.SetValueWithoutNotify( new []{ Array.IndexOf(data, m_OperatorData.settings[0]) });
             dropdown.RegisterValueChangedCallback((evt) =>
             {
-                m_OperatorData.settings[0] = data[evt.newValue];
+                using var selection = evt.newValue.GetEnumerator();
+                if (selection.MoveNext())
+                    m_OperatorData.settings[0] = data[selection.Current];
             });
 
             OnDataUpdate += () =>
             {
-                dropdown.SetValueWithoutNotify(Array.IndexOf(data, m_OperatorData.settings[0]));
+                dropdown.SetValueWithoutNotify(new []{ Array.IndexOf(data, m_OperatorData.settings[0]) });
             };
 
             UI.Add(dropdown);

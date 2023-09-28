@@ -219,6 +219,17 @@ namespace Unity.Muse.Common
         }
 
         /// <summary>
+        /// Sets the prompt text.
+        /// </summary>
+        /// <param name="promptText">Prompt text</param>
+        public void SetPrompt(string promptText)
+        {
+            m_OperatorData.settings[0] = promptText;
+            if(m_PromptField != null)
+                m_PromptField.value = promptText;
+        }
+
+        /// <summary>
         /// Get the settings view for this operator.
         /// </summary>
         /// <returns> UI for the operator. Set to Null if the operator should not be displayed in the settings view. Disable the returned VisualElement if you want it to be displayed but not usable.</returns>

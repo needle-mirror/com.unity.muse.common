@@ -71,15 +71,21 @@ namespace Unity.Muse.Common
 
         void UpdateResolutionChip(UnityEngine.Texture texture)
         {
-            m_ResolutionChip.label = texture.width switch
+            if (texture)
             {
-                2048 => "2K",
-                4096 => "4K",
-                8192 => "8K",
-                _ => string.Empty
-            };
-
-            m_ResolutionChip.style.display = string.IsNullOrEmpty(m_ResolutionChip.label) ? DisplayStyle.None : DisplayStyle.Flex;
+                m_ResolutionChip.label = texture.width switch
+                {
+                    2048 => "2K",
+                    4096 => "4K",
+                    8192 => "8K",
+                    _ => string.Empty
+                };
+                m_ResolutionChip.style.display = string.IsNullOrEmpty(m_ResolutionChip.label) ? DisplayStyle.None : DisplayStyle.Flex;
+            }
+            else
+            {
+                m_ResolutionChip.style.display = DisplayStyle.None;
+            }
         }
     }
 }

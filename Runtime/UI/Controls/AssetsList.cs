@@ -5,6 +5,9 @@ using Unity.AppUI.UI;
 using Unity.Muse.Common.Utils;
 using UnityEngine;
 using UnityEngine.UIElements;
+#if UNITY_EDITOR
+using Unity.Muse.Common.Editor.Settings;
+#endif
 using Button = Unity.AppUI.UI.Button;
 using Dragger = Unity.Muse.Common.Baryon.UI.Manipulators.Dragger;
 
@@ -613,26 +616,45 @@ namespace Unity.Muse.Common
         {
             if (!m_GridView.selectedItems.Any())
                 return;
-
+#if UNITY_EDITOR
+            if(MusePreferences.deleteWithoutWarning)
+                DoDeleteSelected();
+#else
             if (Preferences.Session.deleteWithoutWarning)
                 DoDeleteSelected();
+#endif
             else
             {
+                var checkbox = new Checkbox
+                {
+                    label = TextContent.deleteDialogOkDontShowAgain,
+                    style =
+                    {
+                        flexGrow = 1
+                    }
+                };
                 var dialog = new AlertDialog
                 {
                     title = TextContent.deleteDialogTitle,
                     description = TextContent.deleteDialogMessage,
                     variant = AlertSemantic.Destructive
                 };
-                dialog.SetPrimaryAction(2, TextContent.deleteDialogOk, DoDeleteSelected);
-                dialog.SetSecondaryAction(1, TextContent.deleteDialogOkDontShowAgain, () =>
+                dialog.SetPrimaryAction(2, TextContent.deleteDialogOk, () =>
                 {
-                    Preferences.Session.deleteWithoutWarning = true;
-                    DoDeleteSelected();
+				    if (checkbox.value == CheckboxState.Checked)
+				    {
+#if UNITY_EDITOR
+					    MusePreferences.deleteWithoutWarning = true;
+#else
+					    Preferences.Session.deleteWithoutWarning = true;
+#endif
+				    }
+				    DoDeleteSelected();
                 });
                 dialog.SetCancelAction(0, TextContent.cancel);
-                var modal = Modal.Build(m_GridView.scrollView.contentContainer, dialog);
-                modal.Show();
+                dialog.actionContainer.Insert(0, checkbox);
+                var modal = Modal.Build(m_GridView, dialog);
+                modal.Show();;
             }
         }
 
@@ -826,7 +848,7 @@ namespace Unity.Muse.Common
 
         void UpdateExportButton()
         {
-            var canExport = m_GridView.selectedItems.Any(s => s is ArtifactView artifactView && ArtifactCache.IsInCache(artifactView.Artifact));
+            var canExport = m_GridView.selectedItems.Any(s => s is Artifact artifact && ArtifactCache.IsInCache(artifact));
             m_ExportButton.style.display = canExport ? DisplayStyle.Flex : DisplayStyle.None;
         }
 

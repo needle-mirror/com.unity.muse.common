@@ -49,11 +49,12 @@ namespace Unity.Muse.Common
         SetAsThumbnail = UserDefined + 11,
         Star = UserDefined + 12,
         UnStar = UserDefined + 13,
-		Branch = UserDefined + 14,
-		GenerationSettings = UserDefined + 15
+        Branch = UserDefined + 14,
+        GenerationSettings = UserDefined + 15,
+        Feedback = UserDefined + 16
     }
 
-    public abstract class ArtifactView: VisualElement
+    public abstract class ArtifactView : VisualElement
     {
         public Artifact Artifact => m_Artifact;
 
@@ -79,16 +80,16 @@ namespace Unity.Muse.Common
                 return;
             CurrentModel.DeselectAll();
             CurrentModel.ArtifactSelected(Artifact);
-            var actionContext = new ActionContext(new List<ArtifactView> {this});
-            
+            var actionContext = new ActionContext(new List<ArtifactView> { this });
+
             var availableActions = GetAvailableActions(actionContext);
-            if(!availableActions.Any())
+            if (!availableActions.Any())
                 return;
-            
+
             var menuBuilder = MenuBuilder.Build(menuAnchor).SetPlacement(PopoverPlacement.BottomEnd);
-            menuBuilder.dismissed += (_,_) => MenuDismissed();
+            menuBuilder.dismissed += (_, _) => MenuDismissed();
             var actionIds = new List<int>();
-            
+
             foreach (var availableAction in availableActions)
             {
                 if (actionIds.Contains(availableAction.id)) continue;
@@ -115,19 +116,28 @@ namespace Unity.Muse.Common
                 DoDelete();
             else
             {
+                var checkbox = new Checkbox
+                {
+                    label = TextContent.deleteDialogOkDontShowAgain,
+                    style =
+                    {
+                        flexGrow = 1
+                    }
+                };
                 var dialog = new AlertDialog
                 {
                     title = TextContent.deleteDialogTitle,
                     description = TextContent.deleteDialogMessage,
                     variant = AlertSemantic.Destructive
                 };
-                dialog.SetPrimaryAction(2, TextContent.deleteDialogOk, DoDelete);
-                dialog.SetSecondaryAction(1, TextContent.deleteDialogOkDontShowAgain, () =>
+                dialog.SetPrimaryAction(2, TextContent.deleteDialogOk, () =>
                 {
-                    Preferences.Session.deleteWithoutWarning = true;
+                    if (checkbox.value == CheckboxState.Checked)
+                        Preferences.Session.deleteWithoutWarning = true;
                     DoDelete();
                 });
                 dialog.SetCancelAction(0, TextContent.cancel);
+                dialog.actionContainer.Insert(0, checkbox);
                 var modal = Modal.Build(this, dialog);
                 modal.Show();
             }
@@ -146,18 +156,18 @@ namespace Unity.Muse.Common
         /// <param name="pointerEvent">The pointer event at the source of the action.</param>
         public virtual void PerformAction(int actionId, ActionContext context, IPointerEvent pointerEvent)
         {
-            switch ((Actions) actionId)
+            switch ((Actions)actionId)
             {
                 case Actions.Star:
-                    CurrentModel.GetData<BookmarkManager>().Bookmark(m_Artifact,true);
+                    CurrentModel.GetData<BookmarkManager>().Bookmark(m_Artifact, true);
                     break;
                 case Actions.UnStar:
-                    CurrentModel.GetData<BookmarkManager>().Bookmark(m_Artifact,false);
+                    CurrentModel.GetData<BookmarkManager>().Bookmark(m_Artifact, false);
                     break;
                 case Actions.Save:
-                    #if UNITY_EDITOR
+#if UNITY_EDITOR
                     CurrentModel.ExportArtifact(m_Artifact);
-                    #endif
+#endif
                     break;
                 case Actions.Refine:
                     CurrentModel.RefineArtifact(m_Artifact);

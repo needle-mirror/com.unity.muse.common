@@ -132,5 +132,10 @@ namespace Unity.Muse.Common
         {
             return;
         }
+
+        public virtual void Shape(List<IOperator> ops)
+        {
+            return;
+        }
     }
 }

@@ -16,23 +16,8 @@ namespace Unity.Muse.Common.Editor
                 var editors = Resources.FindObjectsOfTypeAll<MuseEditor>().Where(w => w.CurrentModel == asset).ToArray();
                 if (editors.Length > 0)
                 {
-                    if (EditorUtility.DisplayDialog(TextContent.assetRemovedFromProjectTitle, string.Format(TextContent.assetRemovedFromProjectMessage, asset.name), TextContent.assetSaveAs, TextContent.discardAndClose))
-                    {
-                        var savePath = EditorUtility.SaveFilePanel(TextContent.saveGeneratorAsset, Path.GetDirectoryName(assetPath), Path.GetFileNameWithoutExtension(assetPath), "asset");
-                        if (!string.IsNullOrEmpty(savePath) && savePath.StartsWith(Application.dataPath))
-                        {
-                            savePath = "Assets" + savePath.Substring(Application.dataPath.Length);
-
-                            AssetDatabase.MoveAsset(assetPath, savePath);
-
-                            foreach (var museEditor in editors)
-                                museEditor.AssetMoved(savePath);
-
-                            return AssetDeleteResult.DidDelete;
-                        }
-
+                    if (!EditorUtility.DisplayDialog(TextContent.assetRemovedFromProjectTitle, string.Format(TextContent.assetRemovedFromProjectMessage, asset.name), TextContent.deleteSingle, TextContent.cancel))
                         return AssetDeleteResult.DidDelete;
-                    }
                 }
                 foreach (var museEditor in editors)
                     museEditor.Close();

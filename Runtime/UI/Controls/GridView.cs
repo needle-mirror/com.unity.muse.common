@@ -157,7 +157,11 @@ namespace Unity.Muse.Common
             selectionType = SelectionType.Single;
             m_ScrollOffset = 0.0f;
 
-            scrollView = new ScrollView { viewDataKey = "grid-view__scroll-view" };
+            scrollView = new ScrollView
+            {
+                viewDataKey = "grid-view__scroll-view",
+                horizontalScrollerVisibility = ScrollerVisibility.Hidden,
+            };
             scrollView.StretchToParentSize();
             scrollView.verticalScroller.valueChanged += OnScroll;
 
