@@ -5,7 +5,7 @@ using Object = UnityEngine.Object;
 
 namespace Unity.Muse.Common
 {
-    public static class ObjectUtils
+    internal static class ObjectUtils
     {
         static Dictionary<Object, List<object>> s_ObjectPool = new();
 

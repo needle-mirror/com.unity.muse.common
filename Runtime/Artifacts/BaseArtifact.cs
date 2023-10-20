@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Unity.Muse.Common
 {
     [Serializable]
-    public abstract class Artifact: IEquatable<Artifact>
+    internal abstract class Artifact: IEquatable<Artifact>
     {
         public static readonly string k_InvalidGUID = string.Empty;
         [SerializeField]

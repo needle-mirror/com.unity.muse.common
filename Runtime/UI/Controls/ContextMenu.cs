@@ -3,7 +3,7 @@ using UnityEngine.UIElements;
 
 namespace Unity.Muse.Common
 {
-    public class ContextMenu : VisualElement, IControl
+    internal class ContextMenu : VisualElement, IControl
     {
         public new class UxmlFactory : UxmlFactory<ContextMenu, UxmlTraits> { }
 

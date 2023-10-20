@@ -7,7 +7,7 @@ using UnityEngine.Serialization;
 namespace Unity.Muse.Common
 {
     [Serializable]
-    public abstract class Artifact<T> : Artifact
+    internal abstract class Artifact<T> : Artifact
     {
         protected Artifact(string guid, uint seed)
             : base(guid, seed) { }

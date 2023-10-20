@@ -14,7 +14,7 @@ using Dropdown = Unity.AppUI.UI.Dropdown;
 namespace Unity.Muse.Common
 {
     [Serializable]
-    public class GenerateOperator : IOperator
+    internal class GenerateOperator : IOperator
     {
         public string OperatorName => "GenerateOperator";
         /// <summary>

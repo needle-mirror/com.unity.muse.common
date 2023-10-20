@@ -2,7 +2,7 @@ using UnityEngine.UIElements;
 
 namespace Unity.Muse.Common
 {
-    public abstract class CanvasManipulator: Manipulator
+    internal abstract class CanvasManipulator: Manipulator
     {
         protected Model m_CurrentModel;
         protected CanvasManipulator(Model model)

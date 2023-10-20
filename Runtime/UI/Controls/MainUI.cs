@@ -6,7 +6,7 @@ using UnityEngine.UIElements;
 
 namespace Unity.Muse.Common
 {
-    public class MainUI : VisualElement, IControl
+    internal class MainUI : VisualElement, IControl
     {
         [Serializable]
         class UISize : IModelData

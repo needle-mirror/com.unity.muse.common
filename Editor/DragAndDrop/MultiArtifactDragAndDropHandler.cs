@@ -7,7 +7,7 @@ using UnityEngine.Scripting;
 namespace Unity.Muse.Common.Editor
 {
     [Preserve]
-    public sealed class MultiArtifactDragAndDropHandler : IArtifactDragAndDropHandler
+    internal sealed class MultiArtifactDragAndDropHandler : IArtifactDragAndDropHandler
     {
         readonly IList<IArtifactDragAndDropHandler> m_Handlers;
 

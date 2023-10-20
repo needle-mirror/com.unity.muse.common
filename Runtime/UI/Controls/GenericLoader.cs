@@ -5,7 +5,7 @@ using AppUI = Unity.AppUI.UI;
 
 namespace Unity.Muse.Common
 {
-    public class GenericLoader : VisualElement
+    internal class GenericLoader : VisualElement
     {
         const string k_StyleSheetPath = "uss/GradientLoaderStyle";
 
@@ -104,7 +104,7 @@ namespace Unity.Muse.Common
                 m_ProgressLabel.text = $"{Mathf.RoundToInt(progress * 100f)}%";
         }
 
-        public enum State
+        internal enum State
         {
             None,
             Loading,

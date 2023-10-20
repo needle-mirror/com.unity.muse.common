@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Unity.GenerativeAI.Editor
 {
 
-    public class EditorCloudContext : ICloudContext
+    internal class EditorCloudContext : ICloudContext
     {
         [InitializeOnLoadMethod]
         static void InjectEditorContext()

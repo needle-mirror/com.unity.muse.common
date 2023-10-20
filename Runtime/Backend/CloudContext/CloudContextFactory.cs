@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Unity.Muse.Common
 {
-    public class CloudContextFactory
+    internal class CloudContextFactory
     {
         static Type s_DefaultCloudContextType;
         static ICloudContext s_Context;

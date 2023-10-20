@@ -3,14 +3,14 @@ using System;
 namespace Unity.Muse.Common
 {
     [Serializable]
-    public class StyleTrainStatusResponse : Response
+    internal class StyleTrainStatusResponse : Response
     {
         public string status;
         public TrainStatusVersion[] versions;
     }
 
     [Serializable]
-    public struct TrainStatusVersion
+    internal struct TrainStatusVersion
     {
         public string guid;
         public int version;

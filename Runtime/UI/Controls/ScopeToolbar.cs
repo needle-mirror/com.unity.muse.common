@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 namespace Unity.Muse.Common
 {
-    public class ScopeToolbar : VisualElement, IControl, INotifyValueChanged<int>
+    internal class ScopeToolbar : VisualElement, IControl, INotifyValueChanged<int>
     {
         const string ussClassName = "muse-scopetoolbar";
 

@@ -9,7 +9,7 @@ using Text = Unity.AppUI.UI.Text;
 namespace Unity.Muse.Common
 {
     [Serializable]
-    public class MaskOperator : IOperator
+    internal class MaskOperator : IOperator
     {
         public string OperatorName  => "MaskOperator";
         /// <summary>

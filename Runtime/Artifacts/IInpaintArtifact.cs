@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Unity.Muse.Common
 {
-    public interface IInpaintArtifact
+    internal interface IInpaintArtifact
     {
         public void GenerateInpaint(string prompt,
             string sourceGuid,

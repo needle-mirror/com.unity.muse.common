@@ -6,7 +6,7 @@ using Button = Unity.AppUI.UI.Button;
 
 namespace Unity.Muse.Common
 {
-    public class SignIn : ExVisualElement, IControl
+    internal class SignIn : ExVisualElement, IControl
     {
 #if UNITY_EDITOR
         bool m_Initialized;

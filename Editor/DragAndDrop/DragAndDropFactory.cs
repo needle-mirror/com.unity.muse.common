@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Unity.Muse.Common.Editor
 {
-    public class DragAndDropFactory
+    internal class DragAndDropFactory
     {
         static Dictionary<string, Type> s_ArtifactTypes;
 

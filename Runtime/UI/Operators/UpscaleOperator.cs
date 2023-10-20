@@ -8,7 +8,7 @@ using Text = Unity.AppUI.UI.Text;
 namespace Unity.Muse.Common
 {
     [Serializable]
-    public class UpscaleOperator : IOperator
+    internal class UpscaleOperator : IOperator
     {
         public string OperatorName  => "UpscaleOperator";
         /// <summary>

@@ -7,7 +7,7 @@ using Object = UnityEngine.Object;
 
 namespace Unity.Muse.Common
 {
-    public abstract class DropManipulator<T> : Manipulator
+    internal abstract class DropManipulator<T> : Manipulator
         where T : Object
     {
         public Artifact artifact { get; protected set; }

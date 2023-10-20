@@ -4,7 +4,7 @@ using UnityEngine.UIElements;
 
 namespace Unity.Muse.Common
 {
-    public partial class PaintingElement : Image, IDisposable
+    internal partial class PaintingElement : Image, IDisposable
     {
         bool Seamless { get; set; }
         public bool WrapAround { get; set; }
@@ -57,6 +57,9 @@ namespace Unity.Muse.Common
         }
         public void InitializeImage(Texture baseTexture, VisualElement imageContainer)
         {
+            if (baseTexture == null)
+                return;
+            
             InitializeMaskTexture(baseTexture);
 
             if (m_MaskImage == null)

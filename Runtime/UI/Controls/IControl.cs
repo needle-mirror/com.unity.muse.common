@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Unity.Muse.Common
 {
-    public interface IControl
+    internal interface IControl
     {
         public void SetModel(Model model);
 

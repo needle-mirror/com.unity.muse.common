@@ -18,7 +18,7 @@ namespace Unity.Muse.Common
             guid = sourceGuid;
         }
     }
-    public enum MaskType
+    internal enum MaskType
     {
         [Description("user_defined")]
         UserDefined,

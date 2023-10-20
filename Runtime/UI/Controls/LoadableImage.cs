@@ -5,7 +5,7 @@ using Unity.AppUI.UI;
 
 namespace Unity.Muse.Common
 {
-    public class LoadableImage : Image
+    internal class LoadableImage : Image
     {
         const string k_StylePath = "uss/LoadableImageStyle";
         const string k_ClassStatusElement = "li-element";
@@ -52,8 +52,8 @@ namespace Unity.Muse.Common
 
         protected void OnLoaded(UnityEngine.Texture texture)
         {
-            GenericLoader.SetState(GenericLoader.State.None);
             image = texture;
+            GenericLoader.SetState(GenericLoader.State.None);
 
             UpdateResolutionChip(texture);
         }

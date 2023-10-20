@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 
 namespace Unity.Muse.Common.Cache
 {
-    public class LiteDbArtifactCache : BaseArtifactCache
+    internal class LiteDbArtifactCache : BaseArtifactCache
     {
         const string k_DatabaseName = "ArtifactCache.db";
         const string k_ArtifactCollectionName = "artifacts";

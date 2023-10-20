@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Unity.Muse.Common
 {
-    public static class OperatorsFactory
+    internal static class OperatorsFactory
     {
         static Dictionary<string, Type> s_AvailableOperatorTypes;
 

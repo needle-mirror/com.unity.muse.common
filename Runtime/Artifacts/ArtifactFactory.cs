@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Unity.Muse.Common
 {
-    public static class ArtifactFactory
+    internal static class ArtifactFactory
     {
         static Dictionary<string, Type> s_ArtifactTypes;
 

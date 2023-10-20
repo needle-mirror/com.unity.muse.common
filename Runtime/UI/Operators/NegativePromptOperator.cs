@@ -8,7 +8,7 @@ using Text = Unity.AppUI.UI.Text;
 namespace Unity.Muse.Common
 {
     [Serializable]
-    public class NegativePromptOperator : IOperator
+    internal class NegativePromptOperator : IOperator
     {
         public string OperatorName  => "NegativePromptOperator";
         /// <summary>

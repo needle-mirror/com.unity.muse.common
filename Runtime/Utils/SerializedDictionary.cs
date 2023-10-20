@@ -49,7 +49,7 @@ namespace Unity.Muse.Common.Utils
     /// <typeparam name="SK">The type which the key will be serialized for</typeparam>
     /// <typeparam name="SV">The type which the value will be serialized for</typeparam>
     [Serializable]
-    public abstract class SerializedDictionary<K, V, SK, SV> : Dictionary<K, V>, ISerializationCallbackReceiver
+    internal abstract class SerializedDictionary<K, V, SK, SV> : Dictionary<K, V>, ISerializationCallbackReceiver
     {
         [SerializeField]
         List<SK> m_Keys = new List<SK>();

@@ -7,7 +7,7 @@ namespace Unity.Muse.Common
     /// Artifact that represents a simple image (the image doesn't support any operators).
     /// </summary>
     [Serializable]
-    public class SimpleImageArtifact : Artifact<Texture2D>
+    internal class SimpleImageArtifact : Artifact<Texture2D>
     {
         public SimpleImageArtifact(string guid, uint seed)
             : base(guid, seed) { }
@@ -30,7 +30,7 @@ namespace Unity.Muse.Common
 
         public override Texture2D ConstructFromData(byte[] data)
         {
-            var tex = new Texture2D(2, 2);
+            var tex = TextureUtils.Create();
             tex.LoadImage(data);
 
             return tex;

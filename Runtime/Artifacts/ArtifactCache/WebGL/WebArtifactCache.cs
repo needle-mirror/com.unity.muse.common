@@ -11,7 +11,7 @@ using Query = UltraLiteDB.Query;
 
 namespace Unity.Muse.Common
 {
-    public class WebArtifactCache : BaseArtifactCache
+    internal class WebArtifactCache : BaseArtifactCache
     {
         readonly string k_FileStreamPath = $"{Application.persistentDataPath}/{k_DatabaseName}";
         const string k_DatabaseName = "ArtifactCache.db";

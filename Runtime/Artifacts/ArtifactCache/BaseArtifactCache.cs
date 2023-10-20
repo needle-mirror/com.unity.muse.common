@@ -1,11 +1,10 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using Object = UnityEngine.Object;
 
 namespace Unity.Muse.Common
 {
-    public abstract class BaseArtifactCache
+    internal abstract class BaseArtifactCache
     {
         public abstract void Initialize();
         public abstract void Clear();

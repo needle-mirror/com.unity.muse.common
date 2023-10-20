@@ -3,7 +3,7 @@ using System;
 namespace Unity.Muse.Common
 {
     [Serializable]
-    public class StyleTrainStatusRequest : GuidItemRequest
+    internal class StyleTrainStatusRequest : GuidItemRequest
     {
         public StyleTrainStatusRequest(string accessToken, string guid) : base(guid, accessToken)
         {

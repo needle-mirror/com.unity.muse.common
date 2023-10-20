@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Unity.Muse.Common
 {
     [Serializable]
-    public struct ModeStruct
+    internal struct ModeStruct
     {
         public string type;
         public string label;
@@ -19,12 +19,12 @@ namespace Unity.Muse.Common
         public OperatorData[] operators;
     }
     [Serializable]
-    public struct Modes
+    internal struct Modes
     {
         public List<ModeStruct> modes;
     }
 
-    public static class ModesFactory
+    internal static class ModesFactory
     {
         static readonly Dictionary<string, ModeStruct> k_Modes = new Dictionary<string, ModeStruct>();
 

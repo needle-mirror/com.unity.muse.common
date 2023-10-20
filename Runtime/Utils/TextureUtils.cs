@@ -3,7 +3,7 @@ using UnityEngine.Experimental.Rendering;
 
 namespace Unity.Muse.Common
 {
-    public static class TextureUtils
+    internal static class TextureUtils
     {
         /// <summary>
         /// Creates a texture that will remain in memory even after a scene is unloaded.

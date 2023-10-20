@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace Unity.Muse.Common
 {
-    public class UnityConnectProxy
+    internal class UnityConnectProxy
     {
         private object unityConnect;
         private MethodInfo userIdMethod;

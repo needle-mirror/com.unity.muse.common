@@ -1,10 +1,10 @@
 using System;
 using System.IO;
 using System.Linq;
+using Unity.Muse.Common.Editor.Settings;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace Unity.Muse.Common.Editor
 {
@@ -88,7 +88,9 @@ namespace Unity.Muse.Common.Editor
                 ? promptOperator.GetPrompt()
                 : defaultName;
 
-            var path = ExporterHelpers.GetUniquePath("Assets", fileName, "asset");
+            var directory = MusePreferences.GetMuseAssetGeneratedFolderPathFromMode(currentModel.CurrentMode);
+            var path = ExporterHelpers.GetUniquePath(directory, fileName, "asset");
+
             return showDialog ? EditorUtility.SaveFilePanelInProject(TextContent.savePanelTitle, Path.GetFileNameWithoutExtension(path), "asset", TextContent.savePanelMessage) : path;
         }
     }

@@ -3,7 +3,7 @@ using System;
 namespace Unity.Muse.Common
 {
     [Serializable]
-    public class StyleTrainResponse : GuidResponse
+    internal class StyleTrainResponse : GuidResponse
     {
         public int VersionCount;
     }

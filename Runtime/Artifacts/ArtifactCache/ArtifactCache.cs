@@ -7,7 +7,7 @@ using Object = UnityEngine.Object;
 
 namespace Unity.Muse.Common
 {
-    public static class ArtifactCache
+    internal static class ArtifactCache
     {
         static BaseArtifactCache s_ArtifactCache;
 

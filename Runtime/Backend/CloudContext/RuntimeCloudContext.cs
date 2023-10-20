@@ -8,7 +8,7 @@ namespace Unity.Muse.Common
 {
     [Preserve]
     [Serializable]
-    public class RuntimeCloudContext : MonoBehaviour, ICloudContext
+    internal class RuntimeCloudContext : MonoBehaviour, ICloudContext
     {
         public double TimeSinceStartup => Time.unscaledTimeAsDouble;
         List<ICloudContext.Callback> m_DeferredCallbackList = new();

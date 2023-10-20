@@ -3,7 +3,7 @@ using System;
 namespace Unity.Muse.Common
 {
     [Serializable]
-    public class Response
+    internal class Response
     {
         public bool success;
         public string error;

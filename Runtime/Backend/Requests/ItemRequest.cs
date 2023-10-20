@@ -3,7 +3,7 @@ using System;
 namespace Unity.Muse.Common
 {
     [Serializable]
-    public class ItemRequest
+    internal class ItemRequest
     {
         public string access_token;
 

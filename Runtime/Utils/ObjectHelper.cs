@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Unity.Muse.Common
 {
-    public static class ObjectHelper
+    internal static class ObjectHelper
     {
         public static void SafeDestroy(this Object @object)
         {

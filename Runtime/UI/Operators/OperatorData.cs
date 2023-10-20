@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Unity.Muse.Common
 {
     [Serializable]
-    public struct OperatorData
+    internal struct OperatorData
     {
         public string type;
         public string version;

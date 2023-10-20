@@ -13,7 +13,7 @@ using Dragger = Unity.Muse.Common.Baryon.UI.Manipulators.Dragger;
 
 namespace Unity.Muse.Common
 {
-    public class AssetsList : ExVisualElement, IControl
+    internal class AssetsList : ExVisualElement, IControl
     {
         const string ussClassName = "muse-assetslist";
         static readonly string dragBarUssClassName = ussClassName + "__dragbar";
@@ -69,10 +69,10 @@ namespace Unity.Muse.Common
             this.ApplyTemplate("uxml/AssetsList");
             Init();
 
-            if(Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.OSXPlayer)
-                m_DeleteShortcut = new MuseShortcut("Delete Artifact", DeleteSelected, KeyCode.Backspace, KeyModifier.Action, this);
+            if (Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.OSXPlayer)
+                m_DeleteShortcut = new MuseShortcut("Delete Artifact", DeleteSelected, KeyCode.Backspace, KeyModifier.Action, this) { requireFocus = true };
             else
-                m_DeleteShortcut = new MuseShortcut("Delete Artifact", DeleteSelected, KeyCode.Delete, source: this);
+                m_DeleteShortcut = new MuseShortcut("Delete Artifact", DeleteSelected, KeyCode.Delete, source: this) { requireFocus = true };
         }
 
         void OnAttachToPanel(AttachToPanelEvent evt) => MuseShortcuts.AddShortcut(m_DeleteShortcut);
@@ -212,7 +212,7 @@ namespace Unity.Muse.Common
 
             m_ExportButton = this.Q<Button>(className: exportButtonUssClassName);
             m_ExportButton.clicked += () =>
-                PerformAction(null, (int)Actions.Save, new List<object>(m_GridView.selectedItems.Where(selected => GetView((Artifact)selected).Preview != null)));
+                PerformAction(null, (int)Actions.Save, new List<object>(m_GridView.selectedItems.Where(selected => GetArtifactView((Artifact)selected) != null)));
             m_ExportButton.tooltip = TextContent.saveTooltip;
 
             m_BookmarkFilterButton = this.Q<ActionButton>(className:bookmarkFilterButtonUssClassName);
@@ -372,7 +372,7 @@ namespace Unity.Muse.Common
         /// <returns>The artifact view.</returns>
         internal ArtifactView GetView(Artifact artifact)
         {
-            return GetViews.FirstOrDefault(view => view.Artifact == artifact);
+            return GetViews.FirstOrDefault(view =>  ReferenceEquals(view.Artifact, artifact));
         }
 
         void OnGridViewDragStarted(PointerMoveEvent evt)

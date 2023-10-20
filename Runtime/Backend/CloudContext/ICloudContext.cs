@@ -1,6 +1,6 @@
 namespace Unity.Muse.Common
 {
-    public interface ICloudContext
+    internal interface ICloudContext
     {
         public delegate void Callback();
         void RegisterNextFrameCallback(Callback cb);

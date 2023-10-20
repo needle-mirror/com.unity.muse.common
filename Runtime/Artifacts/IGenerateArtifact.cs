@@ -2,7 +2,7 @@ using System;
 
 namespace Unity.Muse.Common
 {
-    public interface IGenerateArtifact
+    internal interface IGenerateArtifact
     {
         public void Generate(string prompt, TextToImageRequest settings, Action<TextToImageResponse, string> onDone);
     }

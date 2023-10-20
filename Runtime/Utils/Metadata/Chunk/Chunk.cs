@@ -86,7 +86,7 @@ namespace Unity.Muse.Common
         /// CRC Calculator according to PNG specification.
         /// </summary>
         /// <remarks>https://www.w3.org/TR/PNG-CRCAppendix.html</remarks>
-        public static class Crc
+        internal static class Crc
         {
             static uint[] s_CrcTable;
             static bool s_IsCrcTableComputed = false;

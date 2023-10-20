@@ -8,7 +8,7 @@ using Text = Unity.AppUI.UI.Text;
 namespace Unity.Muse.Common
 {
     [Serializable]
-    public class LoraOperator : IOperator
+    internal class LoraOperator : IOperator
     {
         public string OperatorName  => "LoraOperator";
         /// <summary>

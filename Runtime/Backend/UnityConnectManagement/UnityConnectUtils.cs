@@ -8,14 +8,14 @@ using UnityEditor;
 
 namespace Unity.Muse.Common
 {
-    public class ChangeInfo
+    internal class ChangeInfo
     {
         public bool registered;
         public Func<Task> onChange;
         public Delegate eventDelegate;
     }
 
-    public enum UnityConnectEvents
+    internal enum UnityConnectEvents
     {
         StateChanged,
         ProjectRefreshed,

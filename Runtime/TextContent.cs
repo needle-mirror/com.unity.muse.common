@@ -14,13 +14,13 @@ namespace Unity.Muse.Common
         public static readonly string deleteDialogOk = "Delete Selected";
         public static readonly string deleteDialogOkDontShowAgain = "Don't ask again";
         public static readonly string exportSingle = "Export";
-        public static readonly string exportMultiple = "Export All";
+        public static readonly string exportMultiple = "Export Selected";
         public static readonly string deleteSingle = "Delete";
-        public static readonly string deleteMultiple = "Delete All";
+        public static readonly string deleteMultiple = "Delete Selected";
         public static readonly string starSingle = "Star";
         public static readonly string unStarSingle = "Remove Star";
-        public static readonly string starMultiple = "Star All";
-        public static readonly string unStarMultiple = "Remove All Stars";
+        public static readonly string starMultiple = "Star Selected";
+        public static readonly string unStarMultiple = "Unstar Selected";
         public static readonly string refineSingle = "Refine";
         public static readonly string thumbnailSizeSliderTooltip = "Adjust thumbnails size";
         public static readonly string assetRemovedFromProjectTitle = "Delete selected generator?";

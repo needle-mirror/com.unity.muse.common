@@ -8,7 +8,7 @@ namespace Unity.Muse.Common
     /// <summary>
     /// View Displaying an error message and a retry button
     /// </summary>
-    public class ErrorView : VisualElement
+    internal class ErrorView : VisualElement
     {
         /// <summary>
         /// Error Visual Element

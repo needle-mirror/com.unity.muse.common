@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Unity.Muse.Common
 {
-    public static class ArtifactExtension
+    internal static class ArtifactExtension
     {
         /// <summary>
         /// Utility method to get operators of a certain type from an artifact.

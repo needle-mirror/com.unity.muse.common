@@ -2,7 +2,7 @@ using System;
 
 namespace Unity.Muse.Common
 {
-    public interface IUpscaleArtifact
+    internal interface IUpscaleArtifact
     {
         public void Upscale(Model model);
     }

@@ -8,7 +8,7 @@ using Text = Unity.AppUI.UI.Text;
 namespace Unity.Muse.Common
 {
     [Serializable]
-    public class PromptOperator : IOperator
+    internal class PromptOperator : IOperator
     {
         public const int MinimumPromptLength = 1;
         public string OperatorName  => "PromptOperator";

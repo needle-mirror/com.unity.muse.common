@@ -4,7 +4,7 @@ using UnityEngine.UIElements;
 
 namespace Unity.Muse.Common
 {
-    public interface IOperator
+    internal interface IOperator
     {
         public string OperatorName { get; }
         /// <summary>

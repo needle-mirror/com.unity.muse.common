@@ -3,7 +3,7 @@ using UnityEngine.UIElements;
 
 namespace Unity.Muse.Common
 {
-    public class ArtifactNode : VisualElement
+    internal class ArtifactNode : VisualElement
     {
         const string k_MainUssClassName = "muse-canvas-node";
 

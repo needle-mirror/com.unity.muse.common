@@ -5,15 +5,15 @@ using UnityEngine.UIElements;
 namespace Unity.Muse.Common
 {
     [Serializable]
-    public class ReferenceOperator : IOperator
+    internal class ReferenceOperator : IOperator
     {
-        public enum Mode
+        internal enum Mode
         {
             Color = 0,
             Shape
         }
 
-        public enum Setting
+        internal enum Setting
         {
             Guid = 0,
             Image,

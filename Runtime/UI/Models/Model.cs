@@ -10,7 +10,7 @@ namespace Unity.Muse.Common
     /// <summary>
     /// Custom model data.
     /// </summary>
-    public interface IModelData
+    internal interface IModelData
     {
         /// <summary>
         /// Event raised when the data was modified.
@@ -20,6 +20,9 @@ namespace Unity.Muse.Common
 
     delegate IEnumerable<IOperator> SetOperatorDefault(IEnumerable<IOperator> currentOperators);
 
+    /// <summary>
+    /// Muse main Scriptable Object model that holds all the data.
+    /// </summary>
     [Serializable]
     [Icon(IconHelper.assetIconPath)]
     public class Model : ScriptableObject, IContext, IEquatable<Model>
@@ -27,41 +30,41 @@ namespace Unity.Muse.Common
         /// <summary>
         /// Event raised when the model was modified.
         /// </summary>
-        public event Action OnModified;
-        public event Action<Artifact> OnArtifactAdded;
-        public event Action<Artifact[]> OnArtifactRemoved;
-        public event Action<string, IList<Artifact>> OnEditorDragStart;
-        public event Action<IList<(string name, IList<Artifact> artifacts)>> OnEditorMultiDragStart;
-        public event Action<IEnumerable<Artifact>, Vector3> OnItemsDropped;
-        public event Action<Artifact> OnArtifactSelected;
-        public event Action<ICanvasTool> OnActiveToolChanged;
-        public event Action OnUpdateToolState;
-        public event Action<Texture2D> OnMaskPaintDone;
-        public event Action<string> OnCurrentPromptChanged;
-        public event Action<IEnumerable<IOperator>, bool> OnOperatorUpdated;
+        internal event Action OnModified;
+        internal event Action<Artifact> OnArtifactAdded;
+        internal event Action<Artifact[]> OnArtifactRemoved;
+        internal event Action<string, IList<Artifact>> OnEditorDragStart;
+        internal event Action<IList<(string name, IList<Artifact> artifacts)>> OnEditorMultiDragStart;
+        internal event Action<IEnumerable<Artifact>, Vector3> OnItemsDropped;
+        internal event Action<Artifact> OnArtifactSelected;
+        internal event Action<ICanvasTool> OnActiveToolChanged;
+        internal event Action OnUpdateToolState;
+        internal event Action<Texture2D> OnMaskPaintDone;
+        internal event Action<string> OnCurrentPromptChanged;
+        internal event Action<IEnumerable<IOperator>, bool> OnOperatorUpdated;
         /// <summary>
         /// Called when removing an operator
         /// </summary>
-        public event Action<IEnumerable<IOperator>> OnOperatorRemoved;
-        public event Action OnGenerateButtonClicked;
-        public event Action<Artifact> OnExportArtifact;
-        public event Action<IList<ArtifactView>> OnMultiExport;
-        public event Action OnDeselectAll;
-        public event Action<bool> OnSetMaskSeamless;
-        public event Action<int> OnModeChanged;
-        public event Action<bool> OnLoggedInStateChanged;
-        public event Action<Artifact> OnFrameArtifactRequested;
-        public event Action OnDispose;
-        public event Action<Artifact> OnRefineArtifact;
-        public event Action<Artifact> OnCanvasRefineArtifact;
-        public event Action<Artifact> OnFinishRefineArtifact;
-        public event Action<Artifact> OnSetReferenceOperator;
+        internal event Action<IEnumerable<IOperator>> OnOperatorRemoved;
+        internal event Action OnGenerateButtonClicked;
+        internal event Action<Artifact> OnExportArtifact;
+        internal event Action<IList<ArtifactView>> OnMultiExport;
+        internal event Action OnDeselectAll;
+        internal event Action<bool> OnSetMaskSeamless;
+        internal event Action<int> OnModeChanged;
+        internal event Action<bool> OnLoggedInStateChanged;
+        internal event Action<Artifact> OnFrameArtifactRequested;
+        internal event Action OnDispose;
+        internal event Action<Artifact> OnRefineArtifact;
+        internal event Action<Artifact> OnCanvasRefineArtifact;
+        internal event Action<Artifact> OnFinishRefineArtifact;
+        internal event Action<Artifact> OnSetReferenceOperator;
         internal event SetOperatorDefault OnSetOperatorDefaults;
         internal event Action OnForbiddenAccess;
 
-        public string guid = Guid.Empty.ToString();
+        internal string guid = Guid.Empty.ToString();
 
-        public void Initialize()
+        internal void Initialize()
         {
             guid = Guid.NewGuid().ToString();
         }
@@ -81,23 +84,23 @@ namespace Unity.Muse.Common
                 modelData.OnModified += () => OnModified?.Invoke();
         }
 
-        public List<Artifact> AssetsData
+        internal List<Artifact> AssetsData
         {
             get => isRefineMode ? refinedArtifact.history : assetsData;
             private set => assetsData = value;
         }
 
-        public List<Artifact> DraggedArtifacts { get; private set; } = new List<Artifact>();
+        internal List<Artifact> DraggedArtifacts { get; private set; } = new List<Artifact>();
 
-        public string CurrentMode
+        internal string CurrentMode
         {
             get => currentMode;
             private set => currentMode = value;
         }
 
-        public ICanvasTool ActiveTool { get; private set; }
+        internal ICanvasTool ActiveTool { get; private set; }
 
-        public void DeselectAll()
+        internal void DeselectAll()
         {
             OnDeselectAll?.Invoke();
         }
@@ -129,18 +132,18 @@ namespace Unity.Muse.Common
         /// <summary>
         /// Get the list of operators currently being used
         /// </summary>
-        public List<IOperator> CurrentOperators => currentOperators.ToList();
+        internal List<IOperator> CurrentOperators => currentOperators.ToList();
 
         /// <summary>
         /// The artifact currently being refined.
         /// </summary>
-        public Artifact RefinedArtifact => refinedArtifact;
+        internal Artifact RefinedArtifact => refinedArtifact;
 
-        public Artifact SelectedArtifact => selectedArtifact;
+        internal Artifact SelectedArtifact => selectedArtifact;
 
-        public bool isRefineMode => refinedArtifact != null;
+        internal bool isRefineMode => refinedArtifact != null;
 
-        public T GetData<T>() where T : IModelData, new()
+        internal T GetData<T>() where T : IModelData, new()
         {
             var data = m_Data.Find(d => d is T);
             if (data == null)
@@ -154,14 +157,14 @@ namespace Unity.Muse.Common
             return (T)data;
         }
 
-        public void DeleteData<T>()
+        internal void DeleteData<T>()
         {
             var index = m_Data.FindIndex(d => d is T);
             if (index > 0)
                 m_Data.RemoveAt(index);
         }
 
-        public void GenerateButtonClicked()
+        internal void GenerateButtonClicked()
         {
             OnGenerateButtonClicked?.Invoke();
         }
@@ -182,7 +185,7 @@ namespace Unity.Muse.Common
         /// </summary>
         /// <param name="operators">Operators to update.</param>
         /// <param name="set">Set or update the operators</param>
-        public void UpdateOperators(IEnumerable<IOperator> operators, bool set)
+        internal void UpdateOperators(IEnumerable<IOperator> operators, bool set)
         {
             if (set)
             {
@@ -207,7 +210,7 @@ namespace Unity.Muse.Common
         /// Set or replace operators in the nodes list.
         /// </summary>
         /// <param name="operators">Operators to update.</param>
-        public void UpdateOperators(params IOperator[] operators)
+        internal void UpdateOperators(params IOperator[] operators)
         {
             UpdateOperators(operators, false);
         }
@@ -216,7 +219,7 @@ namespace Unity.Muse.Common
         /// Remove operators in the nodes list.
         /// </summary>
         /// <param name="operators">Operators to remove.</param>
-        public void RemoveOperators(params IOperator[] operators)
+        internal void RemoveOperators(params IOperator[] operators)
         {
             var removed = m_Operators.RemoveAll(operators.Contains);
             if (removed > 0)
@@ -255,7 +258,7 @@ namespace Unity.Muse.Common
         /// </summary>
         /// <param name="artifact">The artifact to select.</param>
         /// <param name="force">Force the selection change even if the artifact is the same as current selection.</param>
-        public void ArtifactSelected(Artifact artifact, bool force = false)
+        internal void ArtifactSelected(Artifact artifact, bool force = false)
         {
             if (SelectedArtifact == artifact && !force)
                 return;
@@ -268,7 +271,7 @@ namespace Unity.Muse.Common
             SetOperatorDefaults();
         }
 
-        public void AddAsset(Artifact artifact)
+        internal void AddAsset(Artifact artifact)
         {
             AssetsData ??= new List<Artifact>();
 
@@ -291,7 +294,7 @@ namespace Unity.Muse.Common
         /// Remove give artifacts from this model.
         /// </summary>
         /// <param name="artifacts">Artifacts to remove from model.</param>
-        public void RemoveAssets(params Artifact[] artifacts)
+        internal void RemoveAssets(params Artifact[] artifacts)
         {
             if (artifacts.Length == 0)
                 return;
@@ -349,28 +352,28 @@ namespace Unity.Muse.Common
                 ArtifactSelected(selected);
         }
 
-        public void EditorStartDrag(string type, IList<Artifact> artifact)
+        internal void EditorStartDrag(string type, IList<Artifact> artifact)
         {
             OnEditorDragStart?.Invoke(type, artifact);
         }
 
-        public void EditorStartMultiDrag(IList<(string name, IList<Artifact> artifacts)> artifactsList)
+        internal void EditorStartMultiDrag(IList<(string name, IList<Artifact> artifacts)> artifactsList)
         {
             OnEditorMultiDragStart?.Invoke(artifactsList);
         }
 
-        public void DragStart(IEnumerable<Artifact> artifacts)
+        internal void DragStart(IEnumerable<Artifact> artifacts)
         {
             DraggedArtifacts.Clear();
             DraggedArtifacts.AddRange(artifacts);
         }
 
-        public void DragEnd()
+        internal void DragEnd()
         {
             DraggedArtifacts.Clear();
         }
 
-        public void DragEnd(IEnumerable<Artifact> artifacts)
+        internal void DragEnd(IEnumerable<Artifact> artifacts)
         {
             foreach (var artifact in artifacts)
             {
@@ -378,38 +381,38 @@ namespace Unity.Muse.Common
             }
         }
 
-        public void DropItems(IEnumerable<Artifact> artifacts, Vector3 position)
+        internal void DropItems(IEnumerable<Artifact> artifacts, Vector3 position)
         {
             OnItemsDropped?.Invoke(artifacts, position);
         }
 
-        public void SetActiveTool(ICanvasTool tool)
+        internal void SetActiveTool(ICanvasTool tool)
         {
             ActiveTool = tool;
             OnActiveToolChanged?.Invoke(ActiveTool);
         }
 
-        public void MaskPaintDone(Texture2D texture)
+        internal void MaskPaintDone(Texture2D texture)
         {
             OnMaskPaintDone?.Invoke(texture);
         }
 
-        public void SetMaskSeamless(bool seamless)
+        internal void SetMaskSeamless(bool seamless)
         {
             OnSetMaskSeamless?.Invoke(seamless);
         }
 
-        public void ExportArtifact(Artifact artifact)
+        internal void ExportArtifact(Artifact artifact)
         {
             OnExportArtifact?.Invoke(artifact);
         }
 
-        public void MultiExport(IList<ArtifactView> artifactViews)
+        internal void MultiExport(IList<ArtifactView> artifactViews)
         {
             OnMultiExport?.Invoke(artifactViews);
         }
 
-        public void ModeChanged(int mode)
+        internal void ModeChanged(int mode)
         {
             if (mode < 0)
                 return;
@@ -417,22 +420,22 @@ namespace Unity.Muse.Common
             OnModeChanged?.Invoke(mode);
         }
 
-        public void LoggedInStateChanged(bool loggedIn)
+        internal void LoggedInStateChanged(bool loggedIn)
         {
             OnLoggedInStateChanged?.Invoke(loggedIn);
         }
 
-        public void RequestFrameArtifact(Artifact artifact)
+        internal void RequestFrameArtifact(Artifact artifact)
         {
             OnFrameArtifactRequested?.Invoke(artifact);
         }
 
-        public void Dispose()
+        internal void Dispose()
         {
             OnDispose?.Invoke();
         }
 
-        public void RefineArtifact(Artifact artifact)
+        internal void RefineArtifact(Artifact artifact)
         {
             if (artifact?.Guid == refinedArtifact?.Guid)
                 return;
@@ -447,7 +450,7 @@ namespace Unity.Muse.Common
             OnRefineArtifact?.Invoke(artifact);
         }
 
-        public void FinishRefineArtifact()
+        internal void FinishRefineArtifact()
         {
             if (refinedArtifact is null)
                 return;
@@ -464,17 +467,17 @@ namespace Unity.Muse.Common
             OnFinishRefineArtifact?.Invoke(previousArtifact);
         }
 
-        public void CanvasRefineArtifact(Artifact artifact)
+        internal void CanvasRefineArtifact(Artifact artifact)
         {
             OnCanvasRefineArtifact?.Invoke(artifact);
         }
 
-        public void SetReferenceOperator(Artifact artifact)
+        internal void SetReferenceOperator(Artifact artifact)
         {
             OnSetReferenceOperator?.Invoke(artifact);
         }
 
-        public void SetCurrentPrompt(string prompt)
+        internal void SetCurrentPrompt(string prompt)
         {
             OnCurrentPromptChanged?.Invoke(prompt);
         }
@@ -519,6 +522,12 @@ namespace Unity.Muse.Common
             artifact.history = refinedArtifact.history.ToList();
             refinedArtifact.history.Clear();
             assetsData[indexToReplace] = artifact;
+
+            refinedArtifact = artifact;
+
+            ArtifactSelected(refinedArtifact);
+
+            OnRefineArtifact?.Invoke(artifact);
         }
 
         /// <summary>
@@ -526,12 +535,11 @@ namespace Unity.Muse.Common
         /// </summary>
         /// <param name="artifact">Artifact to set.</param>
         /// <param name="indexToReplace">The index in the generations list to replace. (optional)</param>
-        public void SetAsThumbnail(Artifact artifact, int? indexToReplace = null)
+        internal void SetAsThumbnail(Artifact artifact, int? indexToReplace = null)
         {
             indexToReplace ??= RefinedArtifactGenerationsIndex;
 
             SetAsThumbnailInternal(artifact, indexToReplace.Value);
-            RefineArtifact(artifact);
         }
 
         internal bool IsThumbnail(Artifact artifact)
@@ -543,7 +551,7 @@ namespace Unity.Muse.Common
         /// Branch off the given artifact and add it to the generations list as a new generations.
         /// </summary>
         /// <param name="artifact">The artifact to branch off.</param>
-        public void Branch(Artifact artifact)
+        internal void Branch(Artifact artifact)
         {
             var clone = artifact.Clone(currentMode);
             assetsData.Add(clone);
@@ -572,11 +580,12 @@ namespace Unity.Muse.Common
         /// <summary>
         /// Force updating the available tools state
         /// </summary>
-        public void UpdateToolState()
+        internal void UpdateToolState()
         {
             OnUpdateToolState?.Invoke();
         }
 
+        ///<inheritdoc/>
         public bool Equals(Model other)
         {
             if (ReferenceEquals(null, other)) return false;
@@ -584,6 +593,7 @@ namespace Unity.Muse.Common
             return base.Equals(other) || guid == other.guid;
         }
 
+        ///<inheritdoc/>
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj)) return false;
@@ -591,17 +601,24 @@ namespace Unity.Muse.Common
             if (obj.GetType() != this.GetType()) return false;
             return Equals((Model)obj);
         }
-
+        
+        /// <summary>
+        /// Equality operator between Models
+        /// </summary>
         public static bool operator ==(Model lhs, Model rhs)
         {
             return ReferenceEquals(lhs, rhs) || (lhs != null) && lhs.Equals(rhs);
         }
-
+        
+        /// <summary>
+        /// Inequality operator between Models
+        /// </summary>
         public static bool operator !=(Model lhs, Model rhs)
         {
             return ((object)lhs != null) && !lhs.Equals(rhs);
         }
 
+        ///<inheritdoc/>
         public override int GetHashCode()
         {
             return HashCode.Combine(base.GetHashCode(), guid);

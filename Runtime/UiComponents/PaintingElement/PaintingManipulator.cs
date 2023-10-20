@@ -3,7 +3,7 @@ using UnityEngine.UIElements;
 
 namespace Unity.Muse.Common
 {
-    public class PaintingManipulator : Manipulator
+    internal class PaintingManipulator : Manipulator
     {
         public PaintingElement paintingElement { get; private set; }
         Model m_Model;

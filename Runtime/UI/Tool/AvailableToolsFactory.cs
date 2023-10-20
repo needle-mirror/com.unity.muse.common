@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Unity.Muse.Common
 {
-    public static class AvailableToolsFactory
+    internal static class AvailableToolsFactory
     {
         static Dictionary<string, HashSet<Type>> s_AvailableTools;
 

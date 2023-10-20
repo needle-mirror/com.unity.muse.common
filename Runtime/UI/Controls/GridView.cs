@@ -21,7 +21,7 @@ namespace Unity.Muse.Common
         /// Available Operations.
         /// </summary>
         [Flags]
-        public enum GridOperation
+        internal enum GridOperation
         {
             None = 0,
             SelectAll,

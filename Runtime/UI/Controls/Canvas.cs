@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 namespace Unity.Muse.Common
 {
-    public class Canvas : VisualElement
+    internal class Canvas : VisualElement
     {
         public new class UxmlFactory : UxmlFactory<Canvas, UxmlTraits> { }
 

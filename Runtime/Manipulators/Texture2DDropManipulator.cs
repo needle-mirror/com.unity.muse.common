@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Unity.Muse.Common
 {
-    public class Texture2DDropManipulator : DropManipulator<Texture2D>
+    internal class Texture2DDropManipulator : DropManipulator<Texture2D>
     {
         static readonly string[] k_Extensions = new[]
         {
@@ -17,7 +17,7 @@ namespace Unity.Muse.Common
 
         protected override bool GetDroppableObjectForPath(string path, out Texture2D obj)
         {
-            var ext = System.IO.Path.GetExtension(path);
+            var ext = System.IO.Path.GetExtension(path)?.ToLower() ?? string.Empty;
             if (!k_Extensions.Contains(ext))
             {
                 obj = null;

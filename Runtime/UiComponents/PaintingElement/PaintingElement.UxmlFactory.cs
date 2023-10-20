@@ -4,7 +4,7 @@ using UnityEngine.UIElements;
 
 namespace Unity.Muse.Common
 {
-    public partial class PaintingElement
+    internal partial class PaintingElement
     {
         public const string rootClass = "ng-paintelement-image-root";
         public const string maskClass = "ng-paintelement-image-mask";

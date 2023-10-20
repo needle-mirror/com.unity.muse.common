@@ -11,7 +11,7 @@ namespace Unity.Muse.Common.Baryon.UI.Manipulators
     /// <summary>
     /// Manipulator which monitors Press, Hold and Release events in order to drag visuals.
     /// </summary>
-    public class Dragger : Pressable
+    internal class Dragger : Pressable
     {
         internal static readonly PropertyInfo handledByDraggerProp = typeof(PointerMoveEvent).GetProperty("isHandledByDragger", BindingFlags.NonPublic | BindingFlags.Instance);
 

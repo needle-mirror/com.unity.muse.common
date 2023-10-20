@@ -9,7 +9,7 @@ using Dragger = Unity.Muse.Common.Baryon.UI.Manipulators.Dragger;
 
 namespace Unity.Muse.Common
 {
-    public class NodesList : VisualElement, IControl
+    internal class NodesList : VisualElement, IControl
     {
         const string k_USSClassName = "muse-nodeslist";
         const string k_DragBarUssClassName = k_USSClassName + "__dragbar";

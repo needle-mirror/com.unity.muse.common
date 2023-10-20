@@ -1,6 +1,7 @@
 using System;
 using Unity.AppUI.UI;
 using Unity.Muse.Common.Utils;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Unity.Muse.Common
@@ -73,7 +74,15 @@ namespace Unity.Muse.Common
 
         void UseAll()
         {
-            m_CurrentModel.UpdateOperators(m_Artifact.CloneOperators().ToArray(), true);
+            // We don't want to override the amount of Images to generate
+            var operators = m_Artifact.CloneOperators();
+            var currentGenerateOperator = m_CurrentModel.CurrentOperators.GetOperator<GenerateOperator>();
+            var index = operators.FindIndex(o => o is GenerateOperator);
+
+            if (index >= 0)
+                operators[index] = currentGenerateOperator;
+
+            m_CurrentModel.UpdateOperators(operators, true);
             m_Dismiss?.Invoke();
         }
     }

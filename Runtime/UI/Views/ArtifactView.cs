@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 
 namespace Unity.Muse.Common
 {
-    public struct ContextMenuAction
+    internal struct ContextMenuAction
     {
         public int id;
 
@@ -20,7 +20,7 @@ namespace Unity.Muse.Common
         public bool enabled;
     }
 
-    public struct ActionContext
+    internal struct ActionContext
     {
         public readonly bool isMultiSelect;
 
@@ -54,7 +54,7 @@ namespace Unity.Muse.Common
         Feedback = UserDefined + 16
     }
 
-    public abstract class ArtifactView : VisualElement
+    internal abstract class ArtifactView : VisualElement
     {
         public Artifact Artifact => m_Artifact;
 

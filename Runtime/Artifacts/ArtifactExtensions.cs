@@ -1,6 +1,6 @@
 namespace Unity.Muse.Common
 {
-    public static class ArtifactExtensions
+    internal static class ArtifactExtensions
     {
         public static bool IsValid(this Artifact artifact)
         {

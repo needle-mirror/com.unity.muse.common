@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Unity.Muse.Common
 {
     [Serializable]
-    public struct ImageVariationSettingsRequest
+    internal struct ImageVariationSettingsRequest
     {
         public string negative_prompt;
         public bool seamless;

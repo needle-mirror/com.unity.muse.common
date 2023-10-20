@@ -2,7 +2,7 @@ using System;
 
 namespace Unity.Muse.Common
 {
-    public interface IVariateArtifact
+    internal interface IVariateArtifact
     {
         public void Variate(Model model, int variationNbr = 4);
     }

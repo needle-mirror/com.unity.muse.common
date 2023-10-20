@@ -5,7 +5,7 @@ namespace Unity.Muse.Common
     /// <summary>
     /// Common Interface for Canvas Tools
     /// </summary>
-    public interface ICanvasTool
+    internal interface ICanvasTool
     {
         /// <summary>
         /// Get the Canvas Manipulator
@@ -46,7 +46,7 @@ namespace Unity.Muse.Common
        /// <summary>
        /// Tool button data
        /// </summary>
-       public class ToolButtonData
+       internal class ToolButtonData
        {
            /// <summary>
            /// Name of the Button

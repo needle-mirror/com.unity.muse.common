@@ -3,7 +3,7 @@ using System;
 namespace Unity.Muse.Common
 {
     [Serializable]
-    public class TextToImageItemRequest : ItemRequest
+    internal class TextToImageItemRequest : ItemRequest
     {
         public string prompt;
 

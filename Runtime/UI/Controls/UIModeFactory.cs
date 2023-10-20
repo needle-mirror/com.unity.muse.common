@@ -3,13 +3,13 @@ using System.Collections.Generic;
 
 namespace Unity.Muse.Common
 {
-    public interface IUIMode
+    internal interface IUIMode
     {
         void Activate(MainUI mainUI);
         void Deactivate();
     }
 
-    public static class UIModeFactory
+    internal static class UIModeFactory
     {
         static Dictionary<string, Type> s_AvailableUIMode;
 

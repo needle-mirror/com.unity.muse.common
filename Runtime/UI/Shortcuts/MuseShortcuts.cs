@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 namespace Unity.Muse.Common
 {
     [Flags]
-    public enum KeyModifier
+    internal enum KeyModifier
     {
         /// <summary>
         ///   <para>No modifier keys.</para>
@@ -31,17 +31,23 @@ namespace Unity.Muse.Common
         Control = 8,
     }
 
-    public class MuseShortcut
+    internal class MuseShortcut
     {
         public readonly string id;
         public readonly KeyCode keyCode;
         public readonly KeyModifier keyModifier;
         public readonly Action action;
+        
         /// <summary>
         /// Source element related to the shortcut.
         /// Used to detect which panel to apply shortcut to.
         /// </summary>
         public readonly VisualElement source;
+
+        /// <summary>
+        /// Shortcut requires focus on the source element or its children.
+        /// </summary>
+        internal bool requireFocus { get; set; }
 
         /// <summary>
         /// Muse Shortcut
@@ -61,7 +67,7 @@ namespace Unity.Muse.Common
         }
     }
 
-    public static class MuseShortcuts
+    internal static class MuseShortcuts
     {
         static Dictionary<KeyCode, List<MuseShortcut>> s_Shortcuts = new Dictionary<KeyCode, List<MuseShortcut>>();
 

@@ -42,7 +42,7 @@ namespace Unity.Muse.Common
         /// <summary>
         /// Preferences that last only for one session.
         /// </summary>
-        public static class Session
+        internal static class Session
         {
             public const string sessionKeyPrefix = "Unity.Muse.Common.SessionPreferences.";
             static Dictionary<string, string> s_SessionPlayerPreferences = new()

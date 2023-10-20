@@ -4,7 +4,7 @@ using UnityEngine.UIElements;
 
 namespace Unity.Muse.Common
 {
-    public class SquareBoxHandler : Manipulator
+    internal class SquareBoxHandler : Manipulator
     {
         VisualElement m_GeometryChangedTarget;
         public SquareBoxHandler(VisualElement geometryChangedTarget)

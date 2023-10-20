@@ -8,9 +8,9 @@ using UnityEngine.UIElements;
 
 namespace Unity.Muse.Common.Editor
 {
-    public class MuseEditor : EditorWindow
+    internal class MuseEditor : EditorWindow
     {
-        private MainUI _MainUI;
+        MainUI _MainUI;
         IPanel m_Panel;
 
         public Model CurrentModel;
@@ -22,6 +22,7 @@ namespace Unity.Muse.Common.Editor
         string m_Mode;
 
         MuseShortcut m_SaveShortcut;
+        Vector2 m_MinSizeWindow = new(500f, 350f);
 
         string defaultWindowTitle => TextContent.defaultAssetName(ModesFactory.GetModeData(m_Mode)?.title ?? "Muse Generator");
 
@@ -34,6 +35,7 @@ namespace Unity.Muse.Common.Editor
             MuseShortcuts.AddShortcut(m_SaveShortcut);
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
             UpdateTitle();
+            minSize = m_MinSizeWindow;
         }
 
         void OnDisable()

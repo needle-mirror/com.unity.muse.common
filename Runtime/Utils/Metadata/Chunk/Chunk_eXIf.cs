@@ -11,7 +11,7 @@ namespace Unity.Muse.Common
     /// </summary>
     internal class Chunk_eXIf : Chunk
     {
-        public enum IFDTagType : int
+        internal enum IFDTagType : int
         {
             /// <summary>
             /// File change date and time.
@@ -43,7 +43,7 @@ namespace Unity.Muse.Common
             Copyright = 0x8298
         }
 
-        public enum DataType
+        internal enum DataType
         {
             /// <summary>
             /// Unsigned Byte (1 byte).
@@ -122,7 +122,7 @@ namespace Unity.Muse.Common
             { (int)IFDTagType.Copyright, DataType.String }
         };
 
-        public class Tag
+        internal class Tag
         {
             public readonly short tagType;
             public readonly DataType dataType;

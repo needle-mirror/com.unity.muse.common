@@ -26,8 +26,18 @@ namespace Unity.Muse.Common
             {
                 foreach (var shortcut in shortcuts)
                 {
-                    if (evt.target is VisualElement element && element.panel != shortcut.source?.panel)
-                        continue;
+                    if (evt.target is VisualElement element)
+                    {
+                        if (element.panel != shortcut.source?.panel)
+                            continue;
+
+                        if (shortcut.requireFocus &&
+                            element.panel?.focusController.focusedElement is VisualElement focusedElement &&
+                            shortcut.source != null && focusedElement != shortcut.source &&
+                            !shortcut.source.Contains(focusedElement))
+                            continue;
+                    }
+
                     shortcut.action?.Invoke();
                 }
 

@@ -8,11 +8,11 @@ using UnityEngine.Networking;
 
 namespace Unity.Muse.Common
 {
-    public class GenerativeAIBackend
+    internal class GenerativeAIBackend
     {
         internal static event Action OnForbiddenAccess;
 
-        public static class StatusEnum
+        internal static class StatusEnum
         {
             public const string WAITING = "waiting";
             public const string WORKING = "working";
@@ -20,7 +20,7 @@ namespace Unity.Muse.Common
             public const string FAILED = "failed";
         }
 
-        public enum GeneratorModel
+        internal enum GeneratorModel
         {
             StableDiffusionV_1_4 = 14,
             //StableDiffusionV_1_5 = 15,
@@ -66,7 +66,7 @@ namespace Unity.Muse.Common
 
 
         [System.Serializable]
-        public class DownloadURLResponse
+        internal class DownloadURLResponse
         {
             public bool success;
             public string url;

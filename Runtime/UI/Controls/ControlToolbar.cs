@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 
 namespace Unity.Muse.Common
 {
-    public class ControlToolbar : VisualElement, IControl
+    internal class ControlToolbar : VisualElement, IControl
     {
         const string k_USSClassName = "muse-controltoolbar";
 
@@ -162,8 +162,13 @@ namespace Unity.Muse.Common
         {
             foreach (var kvp in m_ActionButtons)
             {
-                kvp.Value.EnableInClassList(Styles.hiddenUssClassName, !kvp.Key.EvaluateEnableState(m_Model?.SelectedArtifact));
+                var enabled = kvp.Key.EvaluateEnableState(m_Model?.SelectedArtifact);
+                kvp.Value.EnableInClassList(Styles.hiddenUssClassName, !enabled);
                 kvp.Value.selected = m_Model?.ActiveTool == kvp.Key;
+                
+                if(m_Model?.ActiveTool == kvp.Key && !enabled)
+                    CleanToolbar();
+
             }
         }
 

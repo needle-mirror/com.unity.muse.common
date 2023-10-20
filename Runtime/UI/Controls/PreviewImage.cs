@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 namespace Unity.Muse.Common
 {
-    public class PreviewImage: LoadableImage
+    internal class PreviewImage: LoadableImage
     {
         Artifact m_CurrentArtifact;
         public event Action<Artifact> OnSelected;

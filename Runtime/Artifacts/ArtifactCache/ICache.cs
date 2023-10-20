@@ -1,6 +1,6 @@
 namespace Unity.Muse.Common
 {
-    public interface ICache<T>
+    internal interface ICache<T>
     {
         void Initialize();
         void Clear();

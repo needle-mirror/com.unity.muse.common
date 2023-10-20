@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 namespace Unity.Muse.Common.Utils
 {
-    public static class VisualElementExtensions
+    internal static class VisualElementExtensions
     {
         public static void ApplyTemplate(this VisualElement element, VisualTreeAsset uxmlTemplate)
         {

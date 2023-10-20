@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Unity.Muse.Common
 {
-    public class MuseModeAsset : ScriptableObject
+    internal class MuseModeAsset : ScriptableObject
     {
         public Modes modes;
     }
