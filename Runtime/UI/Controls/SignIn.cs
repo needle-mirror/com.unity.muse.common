@@ -14,7 +14,7 @@ namespace Unity.Muse.Common
 #if UNITY_EDITOR
         bool m_Initialized;
 
-        ChangeInfo m_Info = new ChangeInfo();
+        ChangeInfo m_Info = new();
         Model m_CurrentModel;
         MainUI m_MainUI;
         bool? m_LoggedIn;
@@ -28,20 +28,41 @@ namespace Unity.Muse.Common
 
         void AttachToPanel(AttachToPanelEvent evt)
         {
+            if(!m_Initialized) return;
             RefreshSignInDialog();
         }
 
         void RefreshSignInDialog()
         {
+            if (!UnityConnectUtils.GetIsUserInfoReady())
+            {
+                schedule.Execute(RefreshSignInDialog).ExecuteLater(1000);
+                return;
+            }
+
             if (m_LoggedIn is not null && !m_LoggedIn.Value)
             {
-                m_SigninDialog ??= AccountUtility.DisplaySigninDialog(this);
+                if (m_SigninDialog?.view?.panel is null)
+                {
+                    try
+                    {
+                        DismissSigninDialog();
+                    }
+                    catch (Exception exception)
+                    {
+                        Debug.LogException(exception);
+                    }
+                }
+                m_SigninDialog = AccountUtility.DisplaySigninDialog(this);
             }
             else
-            {
-                m_SigninDialog?.Dismiss();
-                m_SigninDialog = null;
-            }
+                DismissSigninDialog();
+        }
+
+        void DismissSigninDialog()
+        {
+            m_SigninDialog?.Dismiss();
+            m_SigninDialog = null;
         }
 
         public void SetModel(Model model)

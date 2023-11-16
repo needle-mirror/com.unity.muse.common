@@ -85,5 +85,7 @@ namespace Unity.Muse.Common
         public static readonly string generateButtonEnterPromptTooltip = "Enter a prompt to enable generation.";
         public static readonly string generateButtonPaintMaskTooltip = "Paint a mask to enable generation.";
         public static readonly string generateButtonEnterPromptAndPaintMaskTooltip = "Enter a prompt and paint a mask to enable generation.";
+        public static readonly string failedToRetrieveArtifact = "Failed to retrieve artifact.";
+        public static readonly string potentialInappropriateContentDetected = "Potentially inappropriate content.";
     }
 }

@@ -25,6 +25,12 @@ namespace Unity.Muse.Common
             history.Add(this);
         }
         public delegate void ArtifactPreviewDelegate(Texture2D preview, byte[] rawData, string errorMessage);
+
+        /// <summary>
+        /// This flag informs if the artifact's generate content is safe.
+        /// </summary>
+        public virtual bool isSafe => true;
+
         public abstract void GetPreview(ArtifactPreviewDelegate onDoneCallback, bool useCache);
         /// <summary>
         /// Only called once for a generation group

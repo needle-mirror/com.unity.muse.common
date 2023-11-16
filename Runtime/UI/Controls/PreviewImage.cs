@@ -21,7 +21,7 @@ namespace Unity.Muse.Common
 
         private void OnRetry()
         {
-            if (!m_CurrentArtifact.IsValid())
+            if (!m_CurrentArtifact.IsValid() || !m_CurrentArtifact.isSafe)
             {
                 m_CurrentArtifact.RetryGenerate(this.GetContext<Model>());
             }
@@ -71,6 +71,7 @@ namespace Unity.Muse.Common
                 SetAsset(artifact);
                 return;
             }
+            
 
             OnError("Generation failed.");
         }
@@ -84,7 +85,7 @@ namespace Unity.Muse.Common
                 return;
             }
 
-            OnError("Failed to retrieve artifact.");
+            OnError(!m_CurrentArtifact.isSafe ? TextContent.potentialInappropriateContentDetected : TextContent.failedToRetrieveArtifact);
         }
 
         void OnPointerDown(PointerDownEvent evt)

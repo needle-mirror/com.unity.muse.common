@@ -56,7 +56,7 @@ namespace Unity.Muse.Common.Account
                 return;
             if (!UnityConnectUtils.GetIsLoggedIn())
                 return;
-            
+
             DisplaySubscriptionDialog(parent);
         }
 
@@ -180,22 +180,8 @@ namespace Unity.Muse.Common.Account
             }
         }
 
-        static  Modal s_SigninDialog;
         public static Modal DisplaySigninDialog(VisualElement parent)
         {
-            if (s_SigninDialog is not null)
-            {
-                try
-                {
-                    s_SigninDialog.Dismiss();
-                    s_SigninDialog = null;
-                }
-                catch (Exception exception)
-                {
-                    Debug.LogException(exception);
-                }
-            }
-
             var dialog = new AlertDialog();
             dialog.AddToClassList("muse-subscription-dialog");
             dialog.AddToClassList("muse-subscription-message");
@@ -221,16 +207,16 @@ namespace Unity.Muse.Common.Account
             dialog.actionContainer.style.justifyContent = Justify.FlexEnd;
             dialog.actionContainer.Add(subscribe);
 
-            s_SigninDialog = Modal.Build(parent, dialog);
-            s_SigninDialog.SetKeyboardDismiss(false);
-            s_SigninDialog.view.AddToClassList("muse-subscription-modal");
+            var signinDialog = Modal.Build(parent, dialog);
+            signinDialog.SetKeyboardDismiss(false);
+            signinDialog.view.AddToClassList("muse-subscription-modal");
             // Changing passMask and using `--background-color` on the modal's ExVisualElement is necessary to have
             // a larger border radius on the dialog then the default. Otherwise ghosting on the dialog's edges occurs.
-            if (s_SigninDialog.view.contentContainer is ExVisualElement exVisualElement)
+            if (signinDialog.view.contentContainer is ExVisualElement exVisualElement)
                 exVisualElement.passMask = ExVisualElement.Passes.Clear | ExVisualElement.Passes.BackgroundColor | ExVisualElement.Passes.OutsetShadows;
-            s_SigninDialog.Show();
+            signinDialog.Show();
 
-            return s_SigninDialog;
+            return signinDialog;
         }
 
         public static void UpdateMusePackages()

@@ -101,6 +101,14 @@ AssetsList {
     background-image: url("./CardStack.png");
 }
 
+.dark-mode .muse-asset-image {
+    background-image: url("./d_CardSingle.png");
+}
+
+.dark-mode .muse-artifact--with-refinements {
+    background-image: url("./d_CardStack.png");
+}
+
 .muse--refinement-mode .muse-asset-image {
     padding: 0;
     background-image: none;

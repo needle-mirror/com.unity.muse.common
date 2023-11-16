@@ -87,6 +87,11 @@ namespace Unity.Muse.Common
                 if (context.context != null)
                     SetModel(context.context);
             });
+
+#if UNITY_EDITOR
+            if(UnityEditor.EditorGUIUtility.isProSkin)
+                AddToClassList("dark-mode");
+#endif
         }
 
         void OnOrganizationChanged()
@@ -122,7 +127,7 @@ namespace Unity.Muse.Common
 
         public void SetModel(Model model)
         {
-            if(model == this.model)
+            if (model == this.model)
                 return;
 
             Init();
@@ -130,7 +135,7 @@ namespace Unity.Muse.Common
             this.model.OnLoggedInStateChanged += OnLoggedInStateChanged;
             this.model.OnModeChanged += OnModeChanged;
             model.ModeChanged(ModesFactory.GetModeIndexFromKey(model.CurrentMode));
-            schedule.Execute(CreateAccountDropdown);   // Wait until the controltoolbar is hooked up to the model events
+            schedule.Execute(CreateAccountDropdown); // Wait until the controltoolbar is hooked up to the model events
             UpdateView();
         }
 
@@ -196,7 +201,7 @@ namespace Unity.Muse.Common
 
         void Init()
         {
-            if(m_Initialized) return;
+            if (m_Initialized) return;
             m_Canvas = this.Q<Canvas>();
             m_ControlToolbar = this.Q<ControlToolbar>();
             m_NodesList = this.Q<NodesList>();
@@ -208,7 +213,7 @@ namespace Unity.Muse.Common
 
         void AddModelListeners()
         {
-			model.OnRefineArtifact += OnRefineArtifact;
+            model.OnRefineArtifact += OnRefineArtifact;
             model.OnFinishRefineArtifact += OnFinishRefineArtifact;
             model.OnDispose += OnDispose;
             model.OnArtifactSelected += OnArtifactSelected;
@@ -223,7 +228,7 @@ namespace Unity.Muse.Common
 
         void RemoveModelListeners()
         {
-			model.OnRefineArtifact -= OnRefineArtifact;
+            model.OnRefineArtifact -= OnRefineArtifact;
             model.OnFinishRefineArtifact -= OnFinishRefineArtifact;
             model.OnDispose -= OnDispose;
             model.OnArtifactSelected -= OnArtifactSelected;
@@ -243,7 +248,7 @@ namespace Unity.Muse.Common
         void OnLoggedInStateChanged(bool show)
         {
             m_SignIn.style.display = show ? DisplayStyle.None : DisplayStyle.Flex;
-            m_ControlToolbar.style.display =show ? DisplayStyle.Flex : DisplayStyle.None;
+            m_ControlToolbar.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
             m_NodesList.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
             m_AssetsList.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
 
@@ -252,7 +257,7 @@ namespace Unity.Muse.Common
 
         void OnMainUIGeometryChanged(GeometryChangedEvent evt)
         {
-            if(!model.isRefineMode)
+            if (!model.isRefineMode)
                 MaximiseAssetList();
             canvas.UpdateCanvasFrameContainer();
         }
@@ -267,7 +272,7 @@ namespace Unity.Muse.Common
                 m_ScheduledFrameSelectedArtifact?.Pause();
                 m_ScheduledFrameSelectedArtifact = schedule.Execute(() =>
                 {
-                   canvas.FrameAll();
+                    canvas.FrameAll();
                 });
             }
         }
@@ -349,7 +354,7 @@ namespace Unity.Muse.Common
 
         bool OnServerError(long code, string error)
         {
-            switch(code)
+            switch (code)
             {
                 case 429:
                     Debug.LogWarning("Your last request was rate-limited because of too many requests in a short amount of time. Please try again later.");

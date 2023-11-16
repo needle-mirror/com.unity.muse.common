@@ -45,6 +45,13 @@ namespace Unity.Muse.Common
             k_UnityConnectType.GetProperty("loggedIn");
         static PropertyInfo s_LoggedInProperty;
         /// <summary>
+        /// Property used to know if user info is ready to be considered
+        /// </summary>
+        static PropertyInfo isUserInfoReady => s_IsUserInfoReady ??=
+            k_UnityConnectType.GetProperty("isUserInfoReady");
+        static PropertyInfo s_IsUserInfoReady;
+
+        /// <summary>
         /// Property used to get CloudProjectSettings configuration
         /// </summary>
         static PropertyInfo ConfigurationProperty => s_ConfigurationProperty ??=
@@ -114,6 +121,23 @@ namespace Unity.Muse.Common
                 throw new Exception($"Could not fetch CloudProjectSettings log-in state: {exception.Message}");
             }
         }
+        /// <summary>
+        /// Is the user info ready?
+        /// </summary>
+        /// <returns> True if the user is currently logged in </returns>
+        /// <exception cref="Exception"> Throws exception when user's login state cannot be fetched </exception>
+        public static bool GetIsUserInfoReady()
+        {
+            try
+            {
+                return (bool) isUserInfoReady.GetValue(Instance);
+            }
+            catch (Exception exception)
+            {
+                throw new Exception($"Could not fetch CloudProjectSettings is user ready state: {exception.Message}");
+            }
+        }
+
         /// <summary>
         /// Get whether or not the editor is currently in staging
         /// </summary>
