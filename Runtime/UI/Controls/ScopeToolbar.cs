@@ -21,7 +21,7 @@ namespace Unity.Muse.Common
 
         Model m_Model;
 
-        public new class UxmlFactory : UxmlFactory<ScopeToolbar, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<ScopeToolbar, UxmlTraits> { }
 
         public ScopeToolbar()
         {

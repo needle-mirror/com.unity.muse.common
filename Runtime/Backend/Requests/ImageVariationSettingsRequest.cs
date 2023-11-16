@@ -1,10 +1,9 @@
 using System;
-using System.Collections.Generic;
 
 namespace Unity.Muse.Common
 {
     [Serializable]
-    internal struct ImageVariationSettingsRequest
+    struct ImageVariationSettingsRequest
     {
         public string negative_prompt;
         public bool seamless;
@@ -15,7 +14,7 @@ namespace Unity.Muse.Common
         public float strength;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="negativePrompt"></param>
         /// <param name="seamless"></param>

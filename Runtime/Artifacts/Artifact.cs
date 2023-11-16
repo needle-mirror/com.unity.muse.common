@@ -65,7 +65,7 @@ namespace Unity.Muse.Common
                     string statusEnum,
                     float progress,
                     string errorMsg) => {
-                    if (statusEnum == GenerativeAIBackend.StatusEnum.FAILED)
+                    if (statusEnum == GenerativeAIBackend.StatusEnum.failed)
                     {
                         if (string.IsNullOrEmpty(errorMsg))
                         {
@@ -74,7 +74,7 @@ namespace Unity.Muse.Common
 
                         onReceived?.Invoke(default, Array.Empty<byte>(), errorMsg);
                     }
-                    else if (statusEnum == GenerativeAIBackend.StatusEnum.DONE)
+                    else if (statusEnum == GenerativeAIBackend.StatusEnum.done)
                     {
                         GenerativeAIBackend.DownloadArtifact(this, HandleReceiveArtifactData);
                     }

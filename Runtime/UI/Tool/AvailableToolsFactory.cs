@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace Unity.Muse.Common
 {
@@ -20,6 +21,10 @@ namespace Unity.Muse.Common
         public static IEnumerable<ICanvasTool> GetAvailableTools(Model model)
         {
             var tools = new List<ICanvasTool>();
+            
+            if (!model || string.IsNullOrEmpty(model.CurrentMode))
+                return tools;
+            
             var availableTools = s_AvailableTools[model.CurrentMode];
 
             foreach (var instance in availableTools.Select(tool => (ICanvasTool)Activator.CreateInstance(tool)))

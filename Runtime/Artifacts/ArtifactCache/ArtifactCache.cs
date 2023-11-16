@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Muse.Common.Cache;
 using UnityEngine;
+using UnityEngine.Scripting;
 using Object = UnityEngine.Object;
 
 namespace Unity.Muse.Common
@@ -16,6 +17,7 @@ namespace Unity.Muse.Common
         #else
         [RuntimeInitializeOnLoadMethod]
         #endif
+        [Preserve]
         public static void Initialize()
         {
             s_ArtifactCache = GetCacheInstanceForPlatform(Application.platform);

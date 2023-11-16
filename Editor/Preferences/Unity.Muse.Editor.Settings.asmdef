@@ -2,7 +2,9 @@
     "name": "Unity.Muse.Common.Editor.Settings",
     "rootNamespace": "Unity.Muse.Common.Editor.Settings",
     "references": [
-        "Unity.Settings.Editor"
+        "Unity.Settings.Editor",
+        "Unity.Muse.Common.Preferences",
+        "Unity.AppUI"
     ],
     "includePlatforms": [
         "Editor"

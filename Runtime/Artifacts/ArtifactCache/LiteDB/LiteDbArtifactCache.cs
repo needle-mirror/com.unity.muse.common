@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using LiteDB;
 using Unity.Muse.Common.Cache.LiteDb;
 using UnityEngine;
@@ -140,20 +141,8 @@ namespace Unity.Muse.Common.Cache
 
             try
             {
-                foreach (var artifact in artifacts)
-                {
-                    if(artifact == null)
-                        continue;
-
-                    var dbArtifact = collection.FindOne(x => x.Guid == artifact.Guid);
-
-                    if(dbArtifact == null)
-                        continue;
-
-                    collection.Delete(dbArtifact.Id);
-                }
-
-                db.Rebuild();
+                var guids = artifacts.Where(artifact => artifact != null).Select(artifact => artifact.Guid);
+                var deleted = collection.DeleteMany(x => guids.Any(guid => guid == x.Guid));
             }
             catch (Exception e)
             {

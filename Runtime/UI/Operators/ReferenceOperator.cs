@@ -36,12 +36,12 @@ namespace Unity.Muse.Common
 
         public ReferenceOperator()
         {
-            m_OperatorData = new OperatorData("ReferenceOperator", "0.0.1", new[]
+            m_OperatorData = new OperatorData("ReferenceOperator", "0.0.2", new[]
             {
                 "",   // Guid
                 "",   // Image
                 "0",  // Mode
-                "50", // Strength
+                "20", // Strength
             }, false);
             OnDataUpdate += UpdateView;
         }
@@ -191,10 +191,13 @@ namespace Unity.Muse.Common
         /// <summary>
         /// Get the settings view for this operator.
         /// </summary>
+        /// <param name="model">Current Model</param>
+        /// <param name="isCustomSection">This VisualElement will override the whole operator section used by the generation settings</param>
+        /// <param name="dismissAction">Action to trigger on dismiss</param>
         /// <returns> UI for the operator. Set to Null if the operator should not be displayed in the settings view. Disable the returned VisualElement if you want it to be displayed but not usable.</returns>
-        public VisualElement GetSettingsView()
+        public VisualElement GetSettingsView(Model model, ref bool isCustomSection, Action dismissAction)
         {
-            return GetImageUI();
+            return GetSettingTex(Setting.Image) == null ? null : GetImageUI();
         }
 
         Image GetImageUI()

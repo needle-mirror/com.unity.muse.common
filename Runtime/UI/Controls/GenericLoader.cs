@@ -7,8 +7,6 @@ namespace Unity.Muse.Common
 {
     internal class GenericLoader : VisualElement
     {
-        const string k_StyleSheetPath = "uss/GradientLoaderStyle";
-
         const string k_GradientLoaderClass = "genai-loader-gradient";
         const string k_HiddenStateClass = "genai-loader-state-none";
 
@@ -21,7 +19,7 @@ namespace Unity.Muse.Common
         internal event Action OnRetry;
         internal event Action OnDelete;
 
-        public new class UxmlFactory : UxmlFactory<GenericLoader, UxmlTraits>
+        internal new class UxmlFactory : UxmlFactory<GenericLoader, UxmlTraits>
         {
         }
 
@@ -68,11 +66,10 @@ namespace Unity.Muse.Common
             OnDelete?.Invoke();
         }
 
-
         void InitializeStyle()
         {
-            var styleSheet = Resources.Load<StyleSheet>(k_StyleSheetPath);
-            Debug.Assert(k_StyleSheetPath != null, $"Could not find stylesheet at path: {k_StyleSheetPath}");
+            var styleSheet = ResourceManager.Load<StyleSheet>(PackageResources.gradientLoaderStyleSheet);
+            Debug.Assert(styleSheet, $"Could not find stylesheet at path: {PackageResources.gradientLoaderStyleSheet}");
 
             styleSheets.Add(styleSheet);
 

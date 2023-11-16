@@ -1,8 +1,10 @@
 using System;
 using System.Linq;
 using Unity.AppUI.UI;
+using Unity.Muse.Common.Account;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Button = Unity.AppUI.UI.Button;
 
 namespace Unity.Muse.Common
 {
@@ -53,7 +55,7 @@ namespace Unity.Muse.Common
             }
         }
 
-        public new class UxmlFactory : UxmlFactory<MainUI, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<MainUI, UxmlTraits> { }
 
         bool m_Initialized;
         Canvas m_Canvas;
@@ -62,12 +64,11 @@ namespace Unity.Muse.Common
         AssetsList m_AssetsList;
         ScopeToolbar m_ScopeToolbar;
         SignIn m_SignIn;
+        AccountDropdown m_AccountDropdown;
 
         int m_Mode;
 
         IUIMode m_UIMode;
-
-        ActionButton m_CloseButton;
 
         const float k_AssetListLeftMargin = 10f;
         const float k_NodeListMinWidth = 300;
@@ -76,6 +77,7 @@ namespace Unity.Muse.Common
 
         Artifact m_ArtifactToBeRefined;
 
+        IVisualElementScheduledItem m_ScheduledFrameSelectedArtifact;
 
         public MainUI()
         {
@@ -87,6 +89,37 @@ namespace Unity.Muse.Common
             });
         }
 
+        void OnOrganizationChanged()
+        {
+            if (panel is null)
+                return;
+
+            if (AccountInfo.Instance.IsSubscribed)
+            {
+                AccountUtility.DismissSubscriptionDialog(this);
+                m_AccountDropdown?.ShowSubscriptionStartMessage();
+            }
+            else
+            {
+                TryDisplaySubscriptionDialog();
+            }
+        }
+
+        void TryDisplaySubscriptionDialog()
+        {
+            AccountUtility.TryDisplaySubscriptionDialog(model, this);
+        }
+
+        void CreateAccountDropdown()
+        {
+            if (model is null || m_AccountDropdown is not null)
+                return;
+
+            m_AccountDropdown = new AccountDropdown(this);
+            model.AddToToolbar(m_AccountDropdown, 1, ToolbarPosition.Right);
+        }
+
+
         public void SetModel(Model model)
         {
             if(model == this.model)
@@ -97,6 +130,7 @@ namespace Unity.Muse.Common
             this.model.OnLoggedInStateChanged += OnLoggedInStateChanged;
             this.model.OnModeChanged += OnModeChanged;
             model.ModeChanged(ModesFactory.GetModeIndexFromKey(model.CurrentMode));
+            schedule.Execute(CreateAccountDropdown);   // Wait until the controltoolbar is hooked up to the model events
             UpdateView();
         }
 
@@ -132,10 +166,10 @@ namespace Unity.Muse.Common
         void PreUpdateView()
         {
             UnregisterCallback<GeometryChangedEvent>(OnMainUIGeometryChanged);
-            if(m_CloseButton != null)
-                nodesList.Remove(m_CloseButton);
+
             assetsList.OnResized -= AssetListResized;
             nodesList.OnResized -= NodeListResized;
+            nodesList.UnregisterCallback<GeometryChangedEvent>(OnNodesListGeometryChanged);
 
             RemoveModelListeners();
         }
@@ -146,6 +180,8 @@ namespace Unity.Muse.Common
             AddModelListeners();
 
             assetsList.content.style.minWidth = k_AssetListMinWidth;
+            model.SetLeftOverlay(nodesList.content);
+            model.SetRightOverlay(assetsList.content);
 
             MaximiseAssetList();
             assetsList.MarkDirtyRepaint();
@@ -153,12 +189,8 @@ namespace Unity.Muse.Common
             RegisterCallback<GeometryChangedEvent>(OnMainUIGeometryChanged);
             assetsList.OnResized += AssetListResized;
             nodesList.OnResized += NodeListResized;
+            nodesList.RegisterCallback<GeometryChangedEvent>(OnNodesListGeometryChanged);
 
-            m_CloseButton = new() { name = "close", icon = "caret-left", label = "Generations", tooltip = TextContent.backButtonTooltip };
-            m_CloseButton.clicked += OnCloseRefining;
-            nodesList.Add(m_CloseButton);
-
-            UpdateCloseButton();
             UpdateCanvasVisibility();
         }
 
@@ -176,51 +208,68 @@ namespace Unity.Muse.Common
 
         void AddModelListeners()
         {
-			model.OnRefineArtifact += SelectArtifact;
+			model.OnRefineArtifact += OnRefineArtifact;
             model.OnFinishRefineArtifact += OnFinishRefineArtifact;
             model.OnDispose += OnDispose;
             model.OnArtifactSelected += OnArtifactSelected;
             model.OnLoggedInStateChanged += OnLoggedInStateChanged;
             model.OnModeChanged += OnModeChanged;
-            model.OnForbiddenAccess += OnForbiddenAccess;
-            GenerativeAIBackend.OnForbiddenAccess += OnForbiddenAccess;
+            model.OnServerError += OnServerError;
+            RegisterCallback<AttachToPanelEvent>(AttachToPanel);
+            GenerativeAIBackend.OnServerError += OnServerError;
+            AccountInfo.Instance.OnOrganizationChanged += OnOrganizationChanged;
+            TryDisplaySubscriptionDialog();
         }
 
         void RemoveModelListeners()
         {
-			model.OnRefineArtifact -= SelectArtifact;
+			model.OnRefineArtifact -= OnRefineArtifact;
             model.OnFinishRefineArtifact -= OnFinishRefineArtifact;
             model.OnDispose -= OnDispose;
             model.OnArtifactSelected -= OnArtifactSelected;
             model.OnLoggedInStateChanged -= OnLoggedInStateChanged;
             model.OnModeChanged -= OnModeChanged;
-            model.OnForbiddenAccess -= OnForbiddenAccess;
-            GenerativeAIBackend.OnForbiddenAccess -= OnForbiddenAccess;
+            model.OnServerError -= OnServerError;
+            UnregisterCallback<AttachToPanelEvent>(AttachToPanel);
+            GenerativeAIBackend.OnServerError -= OnServerError;
+            AccountInfo.Instance.OnOrganizationChanged -= OnOrganizationChanged;
+        }
+
+        void AttachToPanel(AttachToPanelEvent evt)
+        {
+            TryDisplaySubscriptionDialog();
         }
 
         void OnLoggedInStateChanged(bool show)
         {
             m_SignIn.style.display = show ? DisplayStyle.None : DisplayStyle.Flex;
-            m_Canvas.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
             m_ControlToolbar.style.display =show ? DisplayStyle.Flex : DisplayStyle.None;
             m_NodesList.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
             m_AssetsList.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+
+            UpdateCanvasVisibility();
         }
 
         void OnMainUIGeometryChanged(GeometryChangedEvent evt)
         {
             if(!model.isRefineMode)
                 MaximiseAssetList();
-        }
-
-        void UpdateCloseButton()
-        {
-            m_CloseButton.style.display = model.isRefineMode ? DisplayStyle.Flex : DisplayStyle.None;
+            canvas.UpdateCanvasFrameContainer();
         }
 
         void UpdateCanvasVisibility()
         {
-            canvas.style.display = model.isRefineMode ? DisplayStyle.Flex : DisplayStyle.None;
+            var enabled = model.isRefineMode;
+            canvas.style.display = enabled ? DisplayStyle.Flex : DisplayStyle.None;
+            EnableInClassList("muse--refinement-mode", enabled);
+            if (enabled)
+            {
+                m_ScheduledFrameSelectedArtifact?.Pause();
+                m_ScheduledFrameSelectedArtifact = schedule.Execute(() =>
+                {
+                   canvas.FrameAll();
+                });
+            }
         }
 
         void RefineModeAssetList()
@@ -238,9 +287,9 @@ namespace Unity.Muse.Common
             nodesList.draggerElement.AddToClassList(Styles.hiddenUssClassName);
         }
 
-        void OnCloseRefining()
+        void OnNodesListGeometryChanged(GeometryChangedEvent evt)
         {
-            model.FinishRefineArtifact();
+            canvas.UpdateCanvasFrameContainer();
         }
 
         void NodeListResized()
@@ -271,20 +320,17 @@ namespace Unity.Muse.Common
             }
         }
 
-        void SelectArtifact(Artifact artifact)
+        void OnRefineArtifact(Artifact artifact)
         {
             model.CanvasRefineArtifact(artifact);
             RefineModeAssetList();
             UpdateCanvasVisibility();
-            UpdateCloseButton();
-            schedule.Execute(() => assetsList.ScrollToItem(artifact.Guid)).ExecuteLater(1L);
         }
 
         void OnFinishRefineArtifact(Artifact artifact)
         {
             MaximiseAssetList();
             UpdateCanvasVisibility();
-            UpdateCloseButton();
         }
 
         void OnArtifactSelected(Artifact artifact)
@@ -293,7 +339,7 @@ namespace Unity.Muse.Common
                 return;
 
             if (model.isRefineMode && canvas.refinedArtifact?.Guid != artifact.Guid)
-                SelectArtifact(artifact);
+                model.CanvasRefineArtifact(artifact);
         }
 
         void OnDispose()
@@ -301,40 +347,16 @@ namespace Unity.Muse.Common
             PreUpdateView();
         }
 
-        const string k_BetaUrl = "https://create.unity.com/ai-beta";
-        Modal m_BetaModal;
-
-
-        void OnForbiddenAccess()
+        bool OnServerError(long code, string error)
         {
-            if (m_BetaModal != null)
+            switch(code)
             {
-                m_BetaModal.Show();
-                return;
+                case 429:
+                    Debug.LogWarning("Your last request was rate-limited because of too many requests in a short amount of time. Please try again later.");
+                    return true;
             }
 
-            var dialog = new AlertDialog
-            {
-                title = TextContent.signUpBetaDialogTitle,
-                description = TextContent.signUpBetaDialogMessage,
-                variant = AlertSemantic.Destructive
-            };
-            dialog.SetPrimaryAction(1, TextContent.signUpBeta, SignUpBeta);
-            dialog.SetSecondaryAction(0, TextContent.cancel, OnCancelBeta);
-
-            m_BetaModal = Modal.Build(this, dialog);
-            m_BetaModal.Show();
-        }
-
-        void OnCancelBeta()
-        {
-            m_BetaModal = null;
-        }
-
-        void SignUpBeta()
-        {
-            m_BetaModal = null;
-            Application.OpenURL($"{k_BetaUrl}");
+            return false;
         }
     }
 }

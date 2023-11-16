@@ -1,3 +1,5 @@
+using System;
+
 namespace Unity.Muse.Common
 {
     internal static class TextContent
@@ -43,10 +45,45 @@ namespace Unity.Muse.Common
         public static readonly string signUpBeta = "Register";
         public static readonly string savePanelTitle = "Save";
         public static readonly string savePanelMessage = "Save changes to an asset in the Project.";
-        public static readonly string dragAndDropColorImageMessage = "Drag and Drop or Import an image to guide your generation";
-        public static readonly string dragAndDropShapeImageMessage = "Drag and Drop or Import a <b>black and white <u><a href=\"https://en.wikipedia.org/wiki/Canny_edge_detector\">canny</a></u> image</b> to guide your generation";
+        public static readonly string dragAndDropColorImageMessage = "To guide your generation, drag and drop or import a square image at 512x512 pixels or smaller";
+        public static readonly string dragAndDropShapeImageMessage = "Import a <b>black and white <u><a href=\"https://en.wikipedia.org/wiki/Canny_edge_detector\">canny</a></u> image</b> to guide your generation";
         public static readonly string dislike = "Dislike";
         public static readonly string removeDislike = "Remove Dislike";
         public static readonly string dislikeTooltip = "Dislike this";
+        public static readonly string like = "Like";
+        public static readonly string removeLike = "Remove Like";
+        public static readonly string likeTooltip = "Like this";
+        public static readonly string controlMaskBrushSizeTooltip = "Adjusts the brush size";
+        public static readonly string controlMaskToolTooltip = "Paints a mask over the area that you want to refine.";
+        public static readonly string subTitle = "Register now\nfor early access";
+        public static readonly string subDescription1 = "<line-height=24px>Accelerate your workflows and resolve issues by chatting with Muse and with additional features like Sprite and Texture, you can generate game-ready assets and iterations in seconds.</line-height>";
+        public static readonly string subDescription2 = "Get Muse free for 15 days";
+        public static readonly string subDescription3 = "Only $30 per month – cancel any time.";
+        public static readonly string subStart = "Join early access";
+        public static readonly string subViewPlan = "View Unity Muse capabilities";
+        public static readonly string subAddPoints = "You’ve used up all your points. <link><color=#CE3299FF>Start your subscription</color></link> and get some more.";
+        public static readonly string subNoEntitlements = "You currently do not have an active subscription. <link><color=#CE3299FF>Start your subscription</color></link> to use Muse.";
+        public static readonly string subStartTitle = "A new chapter\nstarts today";
+        public static readonly string subStartDescription = "Enjoy 15 days of boosted productivity with Unity Muse";
+        public static readonly string subStartLearnMore = "Learn more about the trial";
+        public static readonly string subUsageUsed = "Muse Points Used";
+        public static readonly string subUsageExceeded = "While Muse is in early access, Point caps will not be applied.";
+        public static readonly string museTitle = "Unity Muse";
+        public static readonly string subStartedPrimary = "Start Musing";
+        public static readonly string subStartedTitle = "Get ready to unlock\nproductivity, powered\nby AI";
+        public static readonly string subStartedDesc1 = "Your trial has started";
+        public static readonly string subStartedDesc2 = "<line-height=24px>You begin with 1,500 Muse Points, which can be used for any of Muse’s capabilities. Points are shared within your organization. Your trial will end after you have used 1,500 Muse Points or after 15 days, whichever comes first.</line-height>";
+        public static readonly string subStartedDesc3 = "Point caps are not applied";
+        public static readonly string signinTitle = "You are not signed in";
+        public static readonly string signinDescription = "You are currently not signed in to Unity. Please sign in to continue using Unity Muse.";
+        public static readonly string signinAccept = "Sign in";
+        public static readonly string goToMuseAccount = "Go to Muse account";
+        public static readonly string clientStatusDeprecatedMessage = "Your current Muse package is using a deprecated API version. You need to <link><color=#CE3299FF>upgrade your Muse package</color></link> to continue using Muse.";
+        public static string clientStatusWillBeDeprecatedMessage(DateTime date) => $"Your current Muse package is using an API version that will be deprecated on {date:MMMM dd yyyy}. You will need to <link><color=#CE3299FF>upgrade your Muse package</color></link> to continue using Muse.";
+        public static readonly string clientStatusUpdateMessage = "There is a new Muse package version available <link><color=#CE3299FF>for upgrade</color></link>.";
+        public static readonly string generateButtonCooldownTooltip = "Please wait before generating again.";
+        public static readonly string generateButtonEnterPromptTooltip = "Enter a prompt to enable generation.";
+        public static readonly string generateButtonPaintMaskTooltip = "Paint a mask to enable generation.";
+        public static readonly string generateButtonEnterPromptAndPaintMaskTooltip = "Enter a prompt and paint a mask to enable generation.";
     }
 }

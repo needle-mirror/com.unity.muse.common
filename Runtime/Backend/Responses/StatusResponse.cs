@@ -3,13 +3,13 @@ using System;
 namespace Unity.Muse.Common
 {
     [Serializable]
-    internal class StatusResponse : Response
+    class StatusResponse : Response
     {
         public StatusResponseItem[] results;
     }
 
     [Serializable]
-    internal struct StatusResponseItem
+    struct StatusResponseItem
     {
         public string guid;
         public string status;

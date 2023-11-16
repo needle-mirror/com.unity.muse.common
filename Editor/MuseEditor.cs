@@ -10,7 +10,7 @@ namespace Unity.Muse.Common.Editor
 {
     internal class MuseEditor : EditorWindow
     {
-        MainUI _MainUI;
+        public MainUI mainUI;
         IPanel m_Panel;
 
         public Model CurrentModel;
@@ -25,6 +25,8 @@ namespace Unity.Muse.Common.Editor
         Vector2 m_MinSizeWindow = new(500f, 350f);
 
         string defaultWindowTitle => TextContent.defaultAssetName(ModesFactory.GetModeData(m_Mode)?.title ?? "Muse Generator");
+        
+        bool m_Maximized;
 
         void OnEnable()
         {
@@ -67,6 +69,13 @@ namespace Unity.Muse.Common.Editor
                 }
             }
 
+            // If the model has been upgraded to a new version, we need to save it.
+            if (CurrentModel.CheckForUpgrade())
+            {
+                EditorUtility.SetDirty(CurrentModel);
+                AssetDatabase.SaveAssetIfDirty(CurrentModel);
+            }
+
             m_Mode = CurrentModel.CurrentMode;
             m_Panel = rootVisualElement.panel;
             DiscardModel = Instantiate(CurrentModel);
@@ -79,13 +88,12 @@ namespace Unity.Muse.Common.Editor
             CurrentModel.OnGenerateButtonClicked += OnGenerateButtonClicked;
 
             rootVisualElement.ProvideContext(CurrentModel);
-
-            var mainui = Resources.Load<VisualTreeAsset>("uxml/MainUI");
+            var mainui = ResourceManager.Load<VisualTreeAsset>(PackageResources.mainUITemplate);
             mainui.CloneTree(rootVisualElement);
-            var mainUIElement = rootVisualElement.Q<MainUI>();
+            mainUI = rootVisualElement.Q<MainUI>();
             var museRoot = rootVisualElement.Q<Panel>("muse-root");
             museRoot.theme = EditorGUIUtility.isProSkin ? "dark" : "light";
-            mainUIElement.AddToClassList("unity-editor");
+            mainUI.AddToClassList("unity-editor");
 
             if (!string.IsNullOrEmpty(m_Mode))
             {
@@ -119,7 +127,9 @@ namespace Unity.Muse.Common.Editor
             if (!CurrentModel)
                 return;
 
+            CurrentModel.Dispose();
             EditorUtility.SetDirty(CurrentModel);
+            AssetDatabase.SaveAssetIfDirty(CurrentModel);
             ArtifactCache.Dispose();
             ReleaseTextures();
 
@@ -330,6 +340,23 @@ namespace Unity.Muse.Common.Editor
             if (string.IsNullOrEmpty(titleString))
                 titleString = defaultWindowTitle;
             titleContent = new GUIContent(titleString, IconHelper.windowIcon);
+        }
+
+        private void OnGUI()
+        {
+            CheckMaximized();
+        }
+
+        void CheckMaximized()
+        {
+            if (maximized == m_Maximized) return;
+            
+            m_Maximized = maximized;
+            mainUI?.UpdateView();
+            if (!maximized)
+            {
+                rootVisualElement.ProvideContext(CurrentModel); 
+            }
         }
     }
 }

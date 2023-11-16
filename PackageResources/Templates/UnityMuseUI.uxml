@@ -70,7 +70,7 @@
                             <appui:TouchSliderInt name="image-count-slider" class="bottom-gap" label="Images" low-value="1" high-value="10" value="4"  />
                             <ui:VisualElement class="row">
 <!--                                <appui:Button name="add-node-button" class="muse-node__button" primary="false" title="Add Node" />-->
-                                <appui:Button name="generate-button" class="muse-node__button" primary="true" title="Generate" />
+                                <appui:Button name="generate-button" class="muse-node__button muse-theme" variant="Accent" title="Generate" />
                             </ui:VisualElement>
                         </ui:VisualElement>
 

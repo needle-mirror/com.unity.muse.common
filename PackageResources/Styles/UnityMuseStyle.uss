@@ -24,6 +24,10 @@
     padding: var(--appui-sizing-25);
 }
 
+.appui-popover__container {
+    overflow: visible;
+}
+
 .unity-scroller--vertical {
     background-color: rgba(0,0,0,0);
     margin: var(--appui-sizing-60) 0;
@@ -154,4 +158,12 @@
 
 .appui-grid-view__item.is-selected .muse-patterns-view__image {
     border-color: var(--appui-accent-100);
+}
+
+.appui-colorpicker {
+    padding: var(--appui-spacing-200);
+}
+
+.appui-colorpicker__channels-container {
+    margin-top: var(--appui-spacing-150);
 }

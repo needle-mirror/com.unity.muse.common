@@ -10,6 +10,8 @@ namespace Unity.Muse.Common
     internal class ControlToolbar : VisualElement, IControl
     {
         const string k_USSClassName = "muse-controltoolbar";
+        const string k_LeftContentContainerUssClassName = k_USSClassName + "__leftarea";
+        const string k_RightContentContainerUssClassName = k_USSClassName + "__rightarea";
 
         const string k_ActionGroupUssClassName = k_USSClassName + "__actiongroup";
 
@@ -19,13 +21,22 @@ namespace Unity.Muse.Common
 
         ActionGroup m_ActionGroup;
         List<ICanvasTool> m_Tools;
-        Dictionary<ICanvasTool, ActionButton> m_ActionButtons;
 
-        public new class UxmlFactory : UxmlFactory<ControlToolbar, UxmlTraits> { }
+        VisualElement m_LefContentContainer;
+        VisualElement m_RightContentContainer;
+
+        private ActionButton m_CloseButton;
+
+        internal new class UxmlFactory : UxmlFactory<ControlToolbar, UxmlTraits> { }
 
         public ControlToolbar()
         {
             this.RegisterContextChangedCallback<Model>(context => SetModel(context.context));
+        }
+
+        internal List<ICanvasTool> GetTools()
+        {
+            return m_Tools;
         }
 
         public void SetModel(Model model)
@@ -50,6 +61,8 @@ namespace Unity.Muse.Common
             m_Model.OnOperatorUpdated += OnOperatorUpdated;
             m_Model.OnDispose += Unbind;
             m_Model.OnUpdateToolState += UpdateView;
+            m_Model.OnAddToolbar += AddToToolbar;
+            m_Model.OnRemoveToolbar += RemoveFromToolbar;
 
             UpdateView();
         }
@@ -70,6 +83,8 @@ namespace Unity.Muse.Common
             m_Model.OnOperatorUpdated -= OnOperatorUpdated;
             m_Model.OnDispose -= Unbind;
             m_Model.OnUpdateToolState -= UpdateView;
+            m_Model.OnAddToolbar -= AddToToolbar;
+            m_Model.OnRemoveToolbar -= RemoveFromToolbar;
         }
 
         void OnActiveToolChanged(ICanvasTool obj)
@@ -87,6 +102,14 @@ namespace Unity.Muse.Common
 
         void Init()
         {
+            m_LefContentContainer ??= this.Q<VisualElement>(classes:k_LeftContentContainerUssClassName);
+            m_RightContentContainer ??= this.Q<VisualElement>(classes:k_RightContentContainerUssClassName);
+
+            m_CloseButton = new() { name = "close", icon = "caret-left", label = "Generations", tooltip = TextContent.backButtonTooltip };
+            m_CloseButton.clicked += OnCloseRefining;
+
+            AddToToolbar(m_CloseButton, 0, ToolbarPosition.Left);
+
             m_ActionGroup ??= this.Q<ActionGroup>(k_ActionGroupUssClassName);
             m_ActionGroup.Clear();
 
@@ -95,39 +118,10 @@ namespace Unity.Muse.Common
 
             m_Tools.AddRange(AvailableToolsFactory.GetAvailableTools(m_Model));
 
+            var toolContainer = this.panel.visualTree.Q("control-top-content");
             foreach (var tool in m_Tools)
             {
-                var buttonData = tool.GetToolData();
-                var button = new ActionButton
-                {
-                    name = buttonData.Name,
-                    label = buttonData.Label,
-                    icon = buttonData.Icon,
-                    tooltip = buttonData.Tooltip,
-                    quiet = true
-                };
-
-                button.AddToClassList("muse-controltoolbar__actionbutton");
-
-                button.clickable.clicked += () =>
-                {
-
-                    if (button.selected)
-                    {
-                        CleanToolbar();
-                        UpdateView();
-                        return;
-                    }
-
-                    tool.ActivateOperators();
-                    m_Model.SetActiveTool(tool);
-                    RefreshTools();
-                    UpdateView();
-                };
-
-                m_ActionButtons ??= new();
-                m_ActionButtons.Add(tool, button);
-                m_ActionGroup.Add(button);
+                toolContainer.Add(tool.GetToolView());
             }
 
             UpdateView();
@@ -160,38 +154,64 @@ namespace Unity.Muse.Common
 
         public void UpdateView()
         {
-            foreach (var kvp in m_ActionButtons)
-            {
-                var enabled = kvp.Key.EvaluateEnableState(m_Model?.SelectedArtifact);
-                kvp.Value.EnableInClassList(Styles.hiddenUssClassName, !enabled);
-                kvp.Value.selected = m_Model?.ActiveTool == kvp.Key;
-                
-                if(m_Model?.ActiveTool == kvp.Key && !enabled)
-                    CleanToolbar();
-
-            }
-        }
-
-        void RefreshTools()
-        {
-            if (m_Tools is null || !m_Initialized)
+            if (m_Tools == null)
                 return;
-
+            
             foreach (var tool in m_Tools)
             {
-                var settings = tool.GetSettings();
-                if (settings != null && settings != m_Settings)
-                {
-                    if (Contains(m_Settings))
-                        Remove(m_Settings);
+                var enabled = tool.EvaluateEnableState(m_Model?.SelectedArtifact);
+                
+                var toolView = tool.GetToolView();
+                toolView?.EnableInClassList(Styles.hiddenUssClassName, !enabled);
 
-                    if (tool == m_Model.ActiveTool)
-                    {
-                        m_Settings = settings;
-                        Add(m_Settings);
-                    }
-                }
+                if (!enabled && m_Model != null && m_Model.ActiveTool == tool)
+                    m_Model.SetActiveTool(null);
+            }
+
+            UpdateCloseButton();
+        }
+
+        void RefreshTools() { }
+
+        void AddToToolbar(VisualElement element, int priority, ToolbarPosition position)
+        {
+            var container = position == ToolbarPosition.Left ? m_LefContentContainer : m_RightContentContainer;
+            try
+            {
+                container.Insert(priority, element);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                container.Add(element);
             }
         }
+
+        void RemoveFromToolbar(VisualElement element)
+        {
+            if (m_LefContentContainer.Contains(element))
+            {
+                m_LefContentContainer.Remove(element);
+            }
+            else if(m_RightContentContainer.Contains(element))
+            {
+                m_RightContentContainer.Remove(element);
+            }
+        }
+
+        void OnCloseRefining()
+        {
+            m_Model.FinishRefineArtifact();
+        }
+
+        void UpdateCloseButton()
+        {
+            m_CloseButton.style.display = m_Model.isRefineMode ? DisplayStyle.Flex : DisplayStyle.None;
+        }
+    }
+
+    internal enum ToolbarPosition
+    {
+        Left,
+        Right
     }
 }

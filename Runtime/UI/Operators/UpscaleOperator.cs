@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.AppUI.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -8,7 +9,7 @@ using Text = Unity.AppUI.UI.Text;
 namespace Unity.Muse.Common
 {
     [Serializable]
-    internal class UpscaleOperator : IOperator
+    internal class UpscaleOperator : IProxyOperator 
     {
         public string OperatorName  => "UpscaleOperator";
         /// <summary>
@@ -23,12 +24,19 @@ namespace Unity.Muse.Common
 
         public UpscaleOperator()
         {
-            m_OperatorData = new OperatorData(OperatorName, "0.0.1",  new [] { "" }, false);
+            m_OperatorData = new OperatorData(OperatorName, "0.0.1",  new [] { "", "" }, false);
         }
 
         public bool IsSavable()
         {
             return true;
+        }
+
+        public IEnumerable<IOperator> CloneProxyOperators()
+        {
+            var operatorsData = JsonUtility.FromJson<OperatorDataArray>(m_OperatorData.settings[1]);
+            var operators = ModesFactory.GetOperators(operatorsData.operators);
+            return operators;
         }
 
         public VisualElement GetCanvasView()
@@ -39,7 +47,10 @@ namespace Unity.Muse.Common
 
         public VisualElement GetOperatorView(Model model)
         {
-            var UI = new ExVisualElement { passMask = ExVisualElement.Passes.Clear | ExVisualElement.Passes.OutsetShadows };
+            var UI = new ExVisualElement
+            {
+                passMask = ExVisualElement.Passes.Clear | ExVisualElement.Passes.OutsetShadows | ExVisualElement.Passes.BackgroundColor
+            };
             UI.AddToClassList("muse-node");
             UI.AddToClassList("appui-elevation-8");
             UI.name = "upscale-node";
@@ -96,9 +107,25 @@ namespace Unity.Muse.Common
 
         public bool Hidden { get; set; }
 
-        public void SetParentGuid(string guid)
+        public void SetParent(Artifact parent)
         {
-            m_OperatorData.settings[0] = guid;
+            if(parent == null)
+                return;
+            
+            m_OperatorData.settings[0] = parent.Guid;
+            var ops = parent.CloneOperators();
+
+            var opsDataArray = new OperatorDataArray
+            {
+                operators = new OperatorData[ops.Count]
+            };
+            
+            for (var i = 0; i < ops.Count; i++)
+            {
+                opsDataArray.operators[i] = ops[i].GetOperatorData();
+            }
+            
+            m_OperatorData.settings[1] = JsonUtility.ToJson(opsDataArray);
             OnDataUpdate?.Invoke();
         }
         public IOperator Clone()
@@ -118,16 +145,50 @@ namespace Unity.Muse.Common
         /// <summary>
         /// Get the settings view for this operator.
         /// </summary>
+        /// <param name="model">Current Model</param>
+        /// <param name="isCustomSection">This VisualElement will override the whole operator section used by the generation settings</param>
+        /// <param name="dismissAction">Action to trigger on dismiss</param>
         /// <returns> UI for the operator. Set to Null if the operator should not be displayed in the settings view. Disable the returned VisualElement if you want it to be displayed but not usable.</returns>
-        public VisualElement GetSettingsView()
+        public VisualElement GetSettingsView(Model model, ref bool isCustomSection, Action dismissAction)
         {
-            VisualElement result = null;
-            if (Enabled())
+            if(m_OperatorData.settings.Length < 2)
+                return null;
+            
+            isCustomSection = true;
+            var container = new VisualElement();
+            var upscaleView = new VisualElement
             {
-                result = new VisualElement();
-                result.SetEnabled(false);           // Don't allow "use" on upscale operator
+                userData = GenerationSettingsView.HideUse // Don't allow "use" on upscale operator
+            };
+
+            container.Add(GenerationSettings.CreateView(this.Label, upscaleView, null));
+
+            var operatorsData = JsonUtility.FromJson<OperatorDataArray>(m_OperatorData.settings[1]);
+            
+            var operators = ModesFactory.GetOperators(operatorsData.operators);
+            foreach (var op in operators)
+            {
+                var isOpCustomView = false;
+
+                var view = op.GetSettingsView(model, ref isOpCustomView, dismissAction);
+                if(view == null)
+                    continue;
+                
+                container.Add(isOpCustomView ? view : GenerationSettings.CreateView(op.Label, view, () =>
+                {
+                    model.UpdateOperators(op.Clone());
+                    dismissAction?.Invoke();
+                }));
             }
-            return result;
+
+            return container;
+        }
+
+        //Json Utility doesn't provide top level list/array serialization
+        [Serializable]
+        class OperatorDataArray
+        {
+            public OperatorData[] operators;
         }
     }
 }

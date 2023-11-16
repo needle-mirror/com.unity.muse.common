@@ -9,9 +9,10 @@ using Text = Unity.AppUI.UI.Text;
 namespace Unity.Muse.Common
 {
     [Serializable]
-    internal class MaskOperator : IOperator
+    internal class MaskOperator : IMaskOperator
     {
-        public string OperatorName  => "MaskOperator";
+        public string OperatorName => "MaskOperator";
+
         /// <summary>
         /// Human-readable label for the operator.
         /// </summary>
@@ -21,7 +22,8 @@ namespace Unity.Muse.Common
         OperatorData m_OperatorData;
 
         event Action OnDataUpdate;
-        public Texture2D GetMask()
+
+        public Texture2D GetMaskTexture()
         {
             var b64String = m_OperatorData.settings[0];
             var bytes = Convert.FromBase64String(b64String);
@@ -29,14 +31,27 @@ namespace Unity.Muse.Common
             maskTexture.LoadImage(bytes);
             return maskTexture;
         }
+
+        public string GetMask()
+        {
+            return m_OperatorData.settings[0];
+        }
+
+        public bool IsClear()
+        {
+            return m_OperatorData.settings[2] == "1";
+        }
+
         public MaskOperator()
         {
-            m_OperatorData = new OperatorData("MaskOperator", "0.0.1", new[]{"","True"}, false);
+            m_OperatorData = new OperatorData("MaskOperator", "0.0.1", new[] { "", "True", "1" }, false);
         }
+
         public bool IsSavable()
         {
             return true;
         }
+
         public bool GetSeamless()
         {
             return bool.Parse(m_OperatorData.settings[1]);
@@ -50,7 +65,10 @@ namespace Unity.Muse.Common
 
         public VisualElement GetOperatorView(Model model)
         {
-            var UI = new ExVisualElement { passMask = ExVisualElement.Passes.Clear | ExVisualElement.Passes.OutsetShadows };
+            var UI = new ExVisualElement
+            {
+                passMask = ExVisualElement.Passes.Clear | ExVisualElement.Passes.OutsetShadows | ExVisualElement.Passes.BackgroundColor
+            };
             UI.AddToClassList("muse-node");
             UI.AddToClassList("appui-elevation-8");
             UI.name = "mask-node";
@@ -74,17 +92,13 @@ namespace Unity.Muse.Common
             image.Add(imageText);
             UI.Add(image);
 
-            var inputLabel = new InputLabel("Seamless inpainting");
-            inputLabel.inputAlignment = Align.FlexEnd;
-            UI.Add(inputLabel);
-
             m_OperatorData.settings[1] = "True";
 
             OnDataUpdate += () =>
             {
                 if (m_OperatorData.settings[0] != "")
                 {
-                    image.image = GetMask();
+                    image.image = GetMaskTexture();
                     imageText.text = "";
                 }
             };
@@ -99,7 +113,7 @@ namespace Unity.Muse.Common
             image.name = "muse-reference-image-field";
 
             if (m_OperatorData.settings[0] != "")
-                image.image = GetMask();
+                image.image = GetMaskTexture();
 
             image.AddToClassList("bottom-gap");
 
@@ -124,12 +138,13 @@ namespace Unity.Muse.Common
         {
             m_OperatorData.settings[0] = settings[0];
             m_OperatorData.settings[1] = settings[1];
+            m_OperatorData.settings[2] = settings[2];
             OnDataUpdate?.Invoke();
         }
 
         string[] GetSettings()
         {
-             return new[] { m_OperatorData.settings[0], m_OperatorData.settings[1] };
+            return new[] { m_OperatorData.settings[0], m_OperatorData.settings[1], m_OperatorData.settings[2] };
         }
 
         public bool Enabled()
@@ -164,16 +179,17 @@ namespace Unity.Muse.Common
             };
         }
 
-        void OnMaskPaintDone(Texture2D texture)
+        void OnMaskPaintDone(Texture2D texture, bool isClear)
         {
             m_OperatorData.settings[0] = Convert.ToBase64String(texture.EncodeToPNG());
+            m_OperatorData.settings[2] = isClear ? "1" : "0";
             OnDataUpdate?.Invoke();
         }
 
         public void RegisterToEvents(Model model)
         {
             if (!model.CurrentOperators.Contains(this))
-                return;         // Only register to paint event for the current operator and not the selected artifact's operator
+                return; // Only register to paint event for the current operator and not the selected artifact's operator
 
             model.OnMaskPaintDone += OnMaskPaintDone;
         }
@@ -186,8 +202,11 @@ namespace Unity.Muse.Common
         /// <summary>
         /// Get the settings view for this operator.
         /// </summary>
+        /// <param name="model">Current Model</param>
+        /// <param name="isCustomSection">This VisualElement will override the whole operator section used by the generation settings</param>
+        /// <param name="dismissAction">Action to trigger on dismiss</param>
         /// <returns> UI for the operator. Set to Null if the operator should not be displayed in the settings view. Disable the returned VisualElement if you want it to be displayed but not usable.</returns>
-        public VisualElement GetSettingsView()
+        public VisualElement GetSettingsView(Model model, ref bool isCustomSection, Action dismissAction)
         {
             if (string.IsNullOrEmpty(m_OperatorData.settings[0]))
                 return null;

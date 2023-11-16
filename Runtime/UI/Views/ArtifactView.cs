@@ -51,7 +51,8 @@ namespace Unity.Muse.Common
         UnStar = UserDefined + 13,
         Branch = UserDefined + 14,
         GenerationSettings = UserDefined + 15,
-        Feedback = UserDefined + 16
+        Feedback = UserDefined + 16,
+        FeedbackLike = UserDefined + 17
     }
 
     internal abstract class ArtifactView : VisualElement
@@ -65,7 +66,7 @@ namespace Unity.Muse.Common
 
         public abstract VisualElement PaintSurfaceElement { get; }
 
-        protected Model CurrentModel => this.GetContext<Model>();
+        protected Model CurrentModel;
 
         protected Artifact m_Artifact = null;
 
@@ -183,7 +184,7 @@ namespace Unity.Muse.Common
                     break;
                 case Actions.CreateVariations:
                     CurrentModel.DeselectAll();
-                    var numVariations = m_Artifact.GetOperator<GenerateOperator>()?.GetCount() ?? 4;
+                    var numVariations = CurrentModel.CurrentOperators.GetOperator<GenerateOperator>()?.GetCount() ?? 4;
                     (m_Artifact as IVariateArtifact)?.Variate(CurrentModel, numVariations);
                     break;
                 case Actions.SetAsThumbnail:
@@ -206,6 +207,21 @@ namespace Unity.Muse.Common
         public ArtifactView(Artifact artifact)
         {
             m_Artifact = artifact;
+
+            CurrentModel = this.GetContext<Model>();
+            this.RegisterContextChangedCallback<Model>(ContextChanged);
+            RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+        }
+
+        void ContextChanged(ContextChangedEvent<Model> evt)
+        {
+            CurrentModel = evt.context;
+        }
+
+        void OnGeometryChanged(GeometryChangedEvent evt)
+        {
+            EnableInClassList("muse-artifact--with-refinements",
+                CurrentModel && !CurrentModel.isRefineMode && Artifact.history.Count > 1);
         }
 
         public virtual void DragEditor() { }

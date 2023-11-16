@@ -9,7 +9,7 @@ using UnityEngine;
 namespace Unity.Muse.Common.Editor
 {
     [CustomEditor(typeof(Model))]
-    internal class EditorModelAssetEditor : UnityEditor.Editor
+    class EditorModelAssetEditor : UnityEditor.Editor
     {
         Model Target => target as Model;
 
@@ -35,7 +35,7 @@ namespace Unity.Muse.Common.Editor
             return false;
         }
 
-        static void OpenEditorTo(Model asset)
+        static MuseEditor OpenEditorTo(Model asset)
         {
             MuseEditor window = null;
             var windows = GetAllInstances<MuseEditor>();
@@ -55,13 +55,15 @@ namespace Unity.Muse.Common.Editor
 
             window.Show();
             window.Focus();
+
+            return window;
         }
 
-        public static void OpenWindowForMode(string mode)
+        public static MuseEditor OpenWindowForMode(string mode)
         {
             var modeIndex = ModesFactory.GetModeIndexFromKey(mode);
             if (modeIndex == -1)
-                return;
+                return null;
 
             var model = CreateInstance<Model>();
             model.Initialize();
@@ -70,9 +72,12 @@ namespace Unity.Muse.Common.Editor
             var wins = GetAllInstances<MuseEditor>();
             var window = wins.FirstOrDefault(w => w.CurrentModel == model);
             if (window != null)
+            {
                 window.Focus();
-            else
-                OpenEditorTo(model);
+                return window;
+            }
+
+            return OpenEditorTo(model);
         }
 
         public static T[] GetAllInstances<T>() where T : EditorWindow

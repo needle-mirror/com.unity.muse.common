@@ -1,0 +1,36 @@
+.muse-controltoolbar {
+    flex-direction: row;
+    align-items: center;
+    background-color: var(--appui-backgrounds-100);
+    height: 46px;
+    padding-left: var(--appui-spacing-125);
+    padding-right: var(--appui-spacing-125);
+}
+
+.muse-controltoolbar__leftarea  {
+    flex-direction: row;
+    align-items: center;
+    padding-left: var(--appui-spacing-100);
+}
+
+.muse-controltoolbar__centerarea  {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    width: 100%;
+}
+
+.muse-controltoolbar__rightarea  {
+    flex-direction: row;
+    align-items: center;
+}
+
+.muse-controltoolbar__actiongroup {
+    width: auto;
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.muse-controltoolbar__actionbutton {
+}

@@ -45,5 +45,10 @@ namespace Unity.Muse.Common.Editor.Settings
         {
             return instance.ContainsKey<T>(key, scope);
         }
+
+        internal static void DeleteKey<T>(string key, SettingsScope scope = SettingsScope.Project)
+        {
+            instance.DeleteKey<T>(key, scope);
+        }
     }
 }

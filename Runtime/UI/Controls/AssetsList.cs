@@ -33,7 +33,7 @@ namespace Unity.Muse.Common
 
         bool m_Inited;
 
-        GridView m_GridView;
+        AppUI.UI.GridView m_GridView;
 
         Dragger m_HorizontalDraggable;
 
@@ -49,7 +49,7 @@ namespace Unity.Muse.Common
         string m_CurrentMode;
         public event Action OnResized;
 
-        readonly MuseShortcut m_DeleteShortcut;
+        readonly List<MuseShortcut> m_DeleteShortcuts;
 
         int m_CountPerRow = 2;
 
@@ -66,17 +66,22 @@ namespace Unity.Muse.Common
 
         public AssetsList()
         {
-            this.ApplyTemplate("uxml/AssetsList");
+            this.ApplyTemplate(PackageResources.assetsListTemplate);
             Init();
 
+            m_DeleteShortcuts = new List<MuseShortcut>
+            {
+                new("Delete Artifact", DeleteSelected, KeyCode.Delete, source: this) { requireFocus = true }
+            };
+
             if (Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.OSXPlayer)
-                m_DeleteShortcut = new MuseShortcut("Delete Artifact", DeleteSelected, KeyCode.Backspace, KeyModifier.Action, this) { requireFocus = true };
-            else
-                m_DeleteShortcut = new MuseShortcut("Delete Artifact", DeleteSelected, KeyCode.Delete, source: this) { requireFocus = true };
+            {
+                m_DeleteShortcuts.Add( new MuseShortcut("Delete Artifact", DeleteSelected, KeyCode.Backspace, KeyModifier.Action, this) { requireFocus = true });
+            }
         }
 
-        void OnAttachToPanel(AttachToPanelEvent evt) => MuseShortcuts.AddShortcut(m_DeleteShortcut);
-        void OnDetachFromPanel(DetachFromPanelEvent evt) => MuseShortcuts.RemoveShortcut(m_DeleteShortcut);
+        void OnAttachToPanel(AttachToPanelEvent evt) => MuseShortcuts.AddShortcuts(m_DeleteShortcuts);
+        void OnDetachFromPanel(DetachFromPanelEvent evt) => MuseShortcuts.RemoveShortcuts(m_DeleteShortcuts);
 
         void OnResizeBarDrag(Dragger manipulator)
         {
@@ -141,6 +146,15 @@ namespace Unity.Muse.Common
             {
                 SetModel(model);
                 UpdateView();
+                schedule.Execute(() =>
+                {
+                    if (m_GridView.selectedIds != null && m_GridView.selectedIds.Any())
+                    {
+                        var selectedId = m_GridView.selectedIds?.First() ?? -1;
+						if (selectedId >= 0)
+                        	m_GridView.ScrollToItem(selectedId);
+                    }
+                });
             });
         }
 
@@ -180,20 +194,21 @@ namespace Unity.Muse.Common
         void Init()
         {
             m_ViewCache = new(new ArtifactComparer());
-            passMask = Passes.Clear | Passes.OutsetShadows;
+            passMask = Passes.Clear | Passes.OutsetShadows | Passes.BackgroundColor;
             content = this.Q<VisualElement>(classes: ussClassName);
             m_ContextMenuAnchor = this.Q<VisualElement>(contextMenuAnchorUssClassName);
             m_PreviousSelectedIndices = new List<int>();
-            m_GridView = this.Q<GridView>(gridviewUssClassName);
+            m_GridView = this.Q<AppUI.UI.GridView>(gridviewUssClassName);
+            m_GridView.allowNoSelection = true;
             m_GridView.makeItem = MakeItemView;
             m_GridView.bindItem = BindGridItem;
+            m_GridView.operationMask &= ~AppUI.UI.GridView.GridOperations.Cancel;
             m_GridView.columnCount = 2;
             m_GridView.itemHeight = (int)k_DefaultThumbnailSize;
             m_GridView.selectionType = SelectionType.Multiple;
-            m_GridView.onSelectionChange += OnGridViewSelectionChanged;
-            m_GridView.onContextClick += OnGridViewContextClick;
-            m_GridView.onDoubleClick += OnGridViewDoubleClick;
-            m_GridView.onItemsChosen += OnGridViewItemsChosen;
+            m_GridView.selectionChanged += OnGridViewSelectionChanged;
+            m_GridView.contextClicked += OnGridViewContextClick;
+            m_GridView.doubleClicked += OnGridViewDoubleClick;
             m_GridView.dragStarted += OnGridViewDragStarted;
             m_GridView.dragUpdated += OnGridViewDragUpdated;
             m_GridView.dragFinished += OnGridViewDragFinished;
@@ -201,7 +216,6 @@ namespace Unity.Muse.Common
             m_GridView.scrollView.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
             m_GridView.scrollView.verticalScrollerVisibility = ScrollerVisibility.AlwaysVisible;
             m_GridView.scrollView.verticalScroller.style.opacity = 0;
-            m_GridView.scrollView.RegisterCallback<KeyDownEvent>(OnGridViewKeyDown);
             m_VerticalScrollerDragContainer = m_GridView.scrollView.verticalScroller.slider.Q(classes:BaseSlider<float>.dragContainerUssClassName);
             m_DraggableContainer = this.Q<VisualElement>(dragBarUssClassName);
             m_ThumbnailSizeSlider = this.Q<SliderFloat>(thumbnailSizeSliderUssClassName);
@@ -305,33 +319,6 @@ namespace Unity.Muse.Common
             m_FilteredItemsList = isBookmarkFilterEnabled ? m_FilteredItemsList.Where(a => m_BookmarkManager.IsBookmarked(a)).ToList() : m_FilteredItemsList;
 
             m_GridView.itemsSource = m_FilteredItemsList;
-            var selectedIndex = new List<int>();
-            for (int i = 0; i < selectedItems.Length; ++i)
-            {
-                var index = m_FilteredItemsList.FindIndex(x => x == (Artifact)selectedItems[i]);
-                if (index >= 0)
-                    selectedIndex.Add(index);
-            }
-            m_GridView.SetSelectionWithoutNotify(selectedIndex);
-            m_GridView.Refresh();
-        }
-
-        void OnGridViewKeyDown(KeyDownEvent evt)
-        {
-            if (evt.keyCode == KeyCode.F)
-            {
-                evt.StopPropagation();
-
-                if (m_CurrentModel == null)
-                    return;
-
-                var selection = new List<object>(m_GridView.selectedItems);
-
-                if (selection.Count != 1)
-                    return;
-
-                m_CurrentModel.RequestFrameArtifact(selection[0] as Artifact);
-            }
         }
 
         void OnGridViewSelectionChanged(IEnumerable<object> selectedItems)
@@ -546,7 +533,6 @@ namespace Unity.Muse.Common
             var views = selection.Cast<Artifact>().Select(artifact =>
             {
                 var view = GetArtifactView(artifact);
-                view.ProvideContext(m_CurrentModel);
                 view.UpdateView();
                 return view;
             }).ToList();
@@ -654,7 +640,7 @@ namespace Unity.Muse.Common
                 dialog.SetCancelAction(0, TextContent.cancel);
                 dialog.actionContainer.Insert(0, checkbox);
                 var modal = Modal.Build(m_GridView, dialog);
-                modal.Show();;
+                modal.Show();
             }
         }
 
@@ -664,15 +650,6 @@ namespace Unity.Muse.Common
             m_CurrentModel.RemoveAssets(artifacts.ToArray());
 
             UpdateExportButton();
-        }
-
-        void OnGridViewItemsChosen(IEnumerable<object> items)
-        {
-            if (m_CurrentModel == null)
-                return;
-
-            var artifact = items.Select(item => item as Artifact).FirstOrDefault();
-            m_CurrentModel.RequestFrameArtifact(artifact);
         }
 
         void OnPointerLeave(PointerLeaveEvent evt)
@@ -841,8 +818,6 @@ namespace Unity.Muse.Common
 
         void OnModelDataModified()
         {
-            m_GridView.Refresh();
-
             UpdateExportButton();
         }
 
@@ -852,6 +827,6 @@ namespace Unity.Muse.Common
             m_ExportButton.style.display = canExport ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
-        public new class UxmlFactory : UxmlFactory<AssetsList, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<AssetsList, UxmlTraits> { }
     }
 }

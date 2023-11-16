@@ -8,9 +8,7 @@ namespace Unity.Muse.Common
     {
         public const string rootClass = "ng-paintelement-image-root";
         public const string maskClass = "ng-paintelement-image-mask";
-
-        const string k_StyleResourcePath = "PaintingElementStyle";
-
+        
         public new class UxmlFactory : UxmlFactory<PaintingElement, UxmlTraits> { }
 
         public new class UxmlTraits : Image.UxmlTraits

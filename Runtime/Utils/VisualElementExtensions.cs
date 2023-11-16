@@ -50,7 +50,7 @@ namespace Unity.Muse.Common.Utils
 
         public static void ApplyTemplate(this VisualElement element, string resourcePath)
         {
-            element.ApplyTemplate(Resources.Load<VisualTreeAsset>(resourcePath));
+            element.ApplyTemplate(ResourceManager.Load<VisualTreeAsset>(resourcePath));
         }
     }
 }

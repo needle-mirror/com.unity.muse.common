@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
-using Unity.AppUI.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Text = Unity.AppUI.UI.Text;
 
 namespace Unity.Muse.Common
 {
+    /// <summary>
+    ///  This operator is deprecated and will be removed in a future release.
+    ///  Please use the negative prompt parameter in Prompt Operator instead.
+    /// </summary>
     [Serializable]
     internal class NegativePromptOperator : IOperator
     {
@@ -28,7 +30,7 @@ namespace Unity.Muse.Common
 
         public bool IsSavable()
         {
-            return true;
+            return false;
         }
 
         public VisualElement GetCanvasView()
@@ -39,69 +41,7 @@ namespace Unity.Muse.Common
 
         public VisualElement GetOperatorView(Model model)
         {
-            var UI = new ExVisualElement { passMask = ExVisualElement.Passes.Clear | ExVisualElement.Passes.OutsetShadows };
-            UI.AddToClassList("muse-node");
-            UI.name = "prompt-node";
-            var text = new Text
-            {
-                text = Label,
-                tooltip = TextContent.operatorNegativePromptTooltip,
-                pickingMode = PickingMode.Position
-            };
-
-            text.AddToClassList("muse-node__title");
-            text.AddToClassList("bottom-gap");
-
-            UI.Add(text);
-
-            var negativePromptField = new TextArea
-            {
-                name = "neg-prompt-inputfield"
-            };
-
-            var lastKeyReturn = false;
-            negativePromptField.RegisterCallback((KeyDownEvent evt) =>
-            {
-                if ((evt.keyCode == KeyCode.Tab || evt.keyCode == KeyCode.None && evt.character == '\t') && !evt.shiftKey)
-                {
-                    evt.StopImmediatePropagation();
-                    evt.PreventDefault();
-                    if (evt.character != '\t')
-                        negativePromptField.focusController.FocusNextInDirectionEx(negativePromptField, VisualElementFocusChangeDirection.right);
-                    return;
-                }
-
-                if (evt.keyCode is KeyCode.Return or KeyCode.KeypadEnter)
-                {
-                    lastKeyReturn = true;
-                    return;
-                }
-
-                if (evt.keyCode == KeyCode.None && lastKeyReturn)
-                {
-                    evt.StopPropagation();
-                    evt.PreventDefault();
-                    m_OperatorData.settings[0] = negativePromptField.value;
-                    model.GenerateButtonClicked();
-                }
-
-                lastKeyReturn = false;
-            },TrickleDown.TrickleDown);
-
-            negativePromptField.SetValueWithoutNotify(m_OperatorData.settings[0]);
-            negativePromptField.RegisterValueChangedCallback((evt) =>
-            {
-                m_OperatorData.settings[0] = negativePromptField.value;
-            });
-            UI.Add(negativePromptField);
-
-            OnDataUpdate += () =>
-            {
-                if (m_OperatorData.settings[0] != "")
-                    negativePromptField.value = m_OperatorData.settings[0];
-            };
-
-            return UI;
+            return null;
         }
 
         public OperatorData GetOperatorData()
@@ -155,24 +95,9 @@ namespace Unity.Muse.Common
 
         public void UnregisterFromEvents(Model model)
         { }
-
-        public string GetNegativePrompt()
+        public VisualElement GetSettingsView(Model model, ref bool isCustomSection, Action dismissAction)
         {
-            return m_OperatorData.settings[0];
-        }
-
-        /// <summary>
-        /// Get the settings view for this operator.
-        /// </summary>
-        /// <returns> UI for the operator. Set to Null if the operator should not be displayed in the settings view. Disable the returned VisualElement if you want it to be displayed but not usable.</returns>
-        public VisualElement GetSettingsView()
-        {
-            var text = GetNegativePrompt();
-            if (string.IsNullOrEmpty(text))
-                return null;
-
-            var view = new Text { text = text };
-            return view;
+            return null;
         }
     }
 }

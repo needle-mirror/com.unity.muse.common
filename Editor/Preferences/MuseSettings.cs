@@ -1,21 +1,26 @@
 using System;
+using Unity.AppUI.UI;
 using UnityEditor;
 using UnityEditor.SettingsManagement;
 using UnityEngine;
-using  Unity.Muse.Common.Editor;
-using UnityEngine.UIElements;
 using UnityEngine.Windows;
-using UnityEngine.WSA;
 
 namespace Unity.Muse.Common.Editor.Settings
 {
-    internal static class MusePreferences
+    static class MusePreferences
     {
         const string k_MusePreferencesKey = "muse";
         internal const string assetsRoot = "Assets";
         internal static string keyDeleteWithoutWarning => $"{k_MusePreferencesKey}.deleteWithoutWarning";
         internal static string keySpriteAssetGeneratedFolderPath => $"{k_MusePreferencesKey}.spriteAssetGeneratedPath";
         internal static string keyTextureAssetGeneratedFolderPath => $"{k_MusePreferencesKey}.textureAssetGeneratedPath";
+        internal static string keyCanvasControlScheme => $"{k_MusePreferencesKey}.canvasControlScheme";
+
+        public static event Action preferencesSaved
+        {
+            add => MuseSettingsManager.instance.afterSettingsSaved += value;
+            remove => MuseSettingsManager.instance.afterSettingsSaved -= value;
+        }
 
         public static bool deleteWithoutWarning
         {
@@ -33,6 +38,12 @@ namespace Unity.Muse.Common.Editor.Settings
         {
             get => MuseSettingsManager.Get<string>(keyTextureAssetGeneratedFolderPath, SettingsScope.User);
             set => MuseSettingsManager.Set(keyTextureAssetGeneratedFolderPath, value, SettingsScope.User);
+        }
+
+        public static CanvasControlScheme canvasControlScheme
+        {
+            get => MuseSettingsManager.Get<CanvasControlScheme>(keyCanvasControlScheme, SettingsScope.User);
+            set => MuseSettingsManager.Set(keyCanvasControlScheme, value, SettingsScope.User);
         }
 
         public static string GetMuseAssetGeneratedFolderPathFromMode(string currentMode)
@@ -67,7 +78,12 @@ namespace Unity.Muse.Common.Editor.Settings
 
         [UserSetting]
         static MuseSetting<string> s_TextureAssetGeneratedFolderPath = new (MusePreferences.keyTextureAssetGeneratedFolderPath, MusePreferences.assetsRoot, SettingsScope.User);
-
+        
+        [UserSetting]
+        static MuseSetting<CanvasControlScheme> s_CanvasControlScheme = new (MusePreferences.keyCanvasControlScheme, MusePreferences.canvasControlScheme, SettingsScope.User);
+        
+        const string k_CanvasControlSchemeLabel = "Canvas Control Scheme";
+        
         [UserSettingBlock("General")]
         static void SavePreferencesChanges(string searchContext)
         {
@@ -75,6 +91,10 @@ namespace Unity.Muse.Common.Editor.Settings
 
             s_DeleteWithoutWarning.value = SettingsGUILayout.SearchableToggle("Delete Generations Without Warning", MusePreferences.deleteWithoutWarning, searchContext);
 
+            s_CanvasControlScheme.value =
+                (CanvasControlScheme) EditorGUILayout.EnumPopup("Canvas Control Scheme",
+                    MusePreferences.canvasControlScheme);
+            
             if (EditorGUI.EndChangeCheck())
                 MuseSettingsManager.Save();
         }

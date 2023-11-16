@@ -29,10 +29,6 @@ namespace Unity.Muse.Common
 
         public bool EraseMode { get; set; }
 
-        const string k_MaterialPaintResourcePath = "PaintingMaterial";
-        const string k_MaterialExportResourcePath = "MaskExportMaterial";
-        const string k_MaterialImportResourcePath = "MaskImportMaterial";
-
         static Material s_PaintingMaterial;
         static Material s_ExportMaterial;
         static Material s_ImportMaterial;
@@ -59,7 +55,7 @@ namespace Unity.Muse.Common
         {
             if (baseTexture == null)
                 return;
-            
+
             InitializeMaskTexture(baseTexture);
 
             if (m_MaskImage == null)
@@ -83,7 +79,7 @@ namespace Unity.Muse.Common
                 Add(m_MaskImage);
 
                 m_MaskImage.parent.RegisterCallback<GeometryChangedEvent>((_) => SetMaskElementBounds(imageContainer));
-                styleSheets.Add(Resources.Load<StyleSheet>(k_StyleResourcePath));
+                styleSheets.Add(ResourceManager.Load<StyleSheet>(PackageResources.paintingElementStyleSheet));
             }
 
             m_MaskImage.image = m_MaskTexture;
@@ -122,7 +118,7 @@ namespace Unity.Muse.Common
         {
             if (s_PaintingMaterial == null)
             {
-                var baseMaterial = Resources.Load<Material>(k_MaterialPaintResourcePath);
+                var baseMaterial = ResourceManager.Load<Material>(PackageResources.paintingMaterial);
                 s_PaintingMaterial = new Material(baseMaterial);
             }
 
@@ -158,7 +154,7 @@ namespace Unity.Muse.Common
         {
             if (s_ImportMaterial is null)
             {
-                var materialType = Resources.Load<Material>(k_MaterialImportResourcePath);
+                var materialType = ResourceManager.Load<Material>(PackageResources.maskImportMaterial);
                 s_ImportMaterial = new Material(materialType);
             }
 
@@ -180,7 +176,7 @@ namespace Unity.Muse.Common
         {
             if (s_ExportMaterial == null)
             {
-                s_ExportMaterial = Resources.Load<Material>(k_MaterialExportResourcePath);
+                s_ExportMaterial = ResourceManager.Load<Material>(PackageResources.maskExportMaterial);
             }
 
             var exportTexture = new RenderTexture(m_MaskTexture.width, m_MaskTexture.height, 0, m_MaskTexture.format);
@@ -214,7 +210,7 @@ namespace Unity.Muse.Common
         void OnPointerUp(PointerUpEvent @event)
         {
             if (!m_IsPainting || !m_Model) return;
-            m_Model.MaskPaintDone(Export().ToTexture2D());
+            m_Model.MaskPaintDone(Export().ToTexture2D(), false);
             m_IsPainting = false;
         }
 
@@ -253,7 +249,7 @@ namespace Unity.Muse.Common
             RenderTexture.active = m_MaskTexture;
             GL.Clear(true, true, new Color(1f, 1f, 1f, 0f));
             RenderTexture.active = restoreRT;
-            m_Model?.MaskPaintDone(Export().ToTexture2D());
+            m_Model?.MaskPaintDone(Export().ToTexture2D(), true);
         }
     }
 }

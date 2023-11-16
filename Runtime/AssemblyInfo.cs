@@ -16,4 +16,6 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Unity.Muse.StyleTrainer.Tests")]
 [assembly: InternalsVisibleTo("Unity.Muse.StyleTrainer.Editor")]
 [assembly: InternalsVisibleTo("Unity.Muse.StyleTrainer.Editor.Tests")]
-
+[assembly: InternalsVisibleTo("Unity.Muse.StyleTrainerApp")]
+[assembly: InternalsVisibleTo("Unity.Muse.App")]
+[assembly: InternalsVisibleTo("Unity.Muse.Common.Editor.Settings")]

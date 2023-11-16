@@ -9,8 +9,8 @@ namespace Unity.Muse.Common
 
         public string canny_base64;
 
-        public ControlNetGenerateRequest(string sourceGuid, string sourceBase64, string prompt, ImageVariationSettingsRequest settings, string accessToken)
-            : base(prompt, (TextToImageRequest)settings, accessToken)
+        public ControlNetGenerateRequest(string sourceGuid, string sourceBase64, string prompt, ImageVariationSettingsRequest settings)
+            : base(prompt, (TextToImageRequest)settings)
         {
             guid = sourceGuid;
             canny_base64 = sourceBase64;

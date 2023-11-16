@@ -9,14 +9,27 @@ namespace Unity.Muse.Common
     {
         public event Action OnModified;
 
+        public event Action<Artifact> OnLiked;
         public event Action<Artifact> OnDislike;
 
+        [SerializeField]
+        SerializedHashSet<string> m_Liked;
         [SerializeField]
         SerializedHashSet<string> m_Disliked;
 
         public FeedbackManager()
         {
+            m_Liked = new SerializedHashSet<string>();
             m_Disliked = new SerializedHashSet<string>();
+        }
+
+        public void Like(Artifact artifact)
+        {
+            m_Liked.Add(artifact.Guid);
+
+            OnLiked?.Invoke(artifact);
+
+            OnModified?.Invoke();
         }
 
         public void Dislike(Artifact artifact)
@@ -24,6 +37,19 @@ namespace Unity.Muse.Common
             m_Disliked.Add(artifact.Guid);
 
             OnDislike?.Invoke(artifact);
+
+            OnModified?.Invoke();
+        }
+
+        public void ToggleLike(Artifact artifact)
+        {
+            var guid = artifact.Guid;
+            if (m_Liked.Contains(guid))
+                m_Liked.Remove(guid);
+            else
+                m_Liked.Add(guid);
+
+            OnLiked?.Invoke(artifact);
 
             OnModified?.Invoke();
         }
@@ -41,6 +67,7 @@ namespace Unity.Muse.Common
             OnModified?.Invoke();
         }
 
+        public bool IsLiked(Artifact artifact) => m_Liked.Contains(artifact.Guid);
         public bool IsDisliked(Artifact artifact) => m_Disliked.Contains(artifact.Guid);
     }
 }

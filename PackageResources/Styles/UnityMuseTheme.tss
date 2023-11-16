@@ -1,6 +1,6 @@
 @import url("/Packages/com.unity.dt.app-ui/PackageResources/Styles/Themes/App UI.tss");
 
-@import url("../../Runtime/UI/Resources/uss/GridView.uss");
+@import url("../../Runtime/UI/PackageResources/uss/GridView.uss");
 
 @import url("UnityMuseStyle.uss");
 

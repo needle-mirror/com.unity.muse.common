@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using Unity.AppUI.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -8,7 +9,7 @@ using Text = Unity.AppUI.UI.Text;
 namespace Unity.Muse.Common
 {
     [Serializable]
-    internal class PromptOperator : IOperator
+    internal class PromptOperator : IOperator, ISerializationCallbackReceiver
     {
         public const int MinimumPromptLength = 1;
         public string OperatorName  => "PromptOperator";
@@ -22,18 +23,23 @@ namespace Unity.Muse.Common
         OperatorData m_OperatorData;
 
         TextArea m_PromptField;
+        TextArea m_NegPromptField;
         bool m_LastKeyReturn;
         Model m_Model;
 
+        private const int k_PromptIndex = 0;
+        private const int k_NegPromptIndex = 1;
+        
         public PromptOperator()
         {
-            m_OperatorData = new OperatorData(OperatorName, "0.0.1",  new [] { "" }, false);
+            m_OperatorData = new OperatorData(OperatorName, "0.0.2",  new [] { "", "" }, false);
         }
 
         public bool IsPromptValid()
         {
-            return m_OperatorData.settings[0].Length >= MinimumPromptLength;
+            return m_OperatorData.settings[k_PromptIndex].Length >= MinimumPromptLength;
         }
+        
         public bool IsSavable()
         {
             return true;
@@ -51,7 +57,10 @@ namespace Unity.Muse.Common
             m_PromptField?.UnregisterValueChangingCallback(ValueChangedCallback);
 
             m_Model = model;
-            var UI = new ExVisualElement { passMask = ExVisualElement.Passes.Clear | ExVisualElement.Passes.OutsetShadows };
+            var UI = new ExVisualElement
+            {
+                passMask = ExVisualElement.Passes.Clear | ExVisualElement.Passes.OutsetShadows | ExVisualElement.Passes.BackgroundColor
+            };
             UI.AddToClassList("muse-node");
             UI.name = "prompt-node";
             var text = new Text
@@ -63,25 +72,79 @@ namespace Unity.Muse.Common
             text.AddToClassList("muse-node__title");
             text.AddToClassList("bottom-gap");
             UI.Add(text);
-
             m_PromptField = new TextArea()
             {
                 name = "prompt-inputfield",
-                placeholder = TextContent.promptPlaceholder
+                placeholder = TextContent.promptPlaceholder,
+                autoResize = true,
             };
-
             m_LastKeyReturn = false;
 
             var ticks = DateTime.Now.Ticks;
             m_PromptField.userData = ticks;
             m_PromptField.RegisterCallback<KeyDownEvent>(OnKeyDown,TrickleDown.TrickleDown);
 
-            m_PromptField.SetValueWithoutNotify(m_OperatorData.settings[0]);
+            m_PromptField.SetValueWithoutNotify(m_OperatorData.settings[k_PromptIndex]);
             model.SetCurrentPrompt(m_PromptField.value);
 
             m_PromptField.RegisterValueChangingCallback(ValueChangedCallback);
+            m_PromptField.AddToClassList("bottom-gap");
+            m_PromptField.AddToClassList("muse-prompt-text-area");
             UI.Add(m_PromptField);
 
+            var negPromptText = new Text
+            {
+                text = "Negative Prompt",
+                tooltip = TextContent.operatorNegativePromptTooltip,
+                pickingMode = PickingMode.Position
+            };
+            negPromptText.AddToClassList("muse-node__title");
+            negPromptText.AddToClassList("bottom-gap");
+            UI.Add(negPromptText);
+            
+            m_NegPromptField = new TextArea
+            {
+                name = "neg-prompt-inputfield",
+                autoResize = true,
+            };
+
+            var lastKeyReturn = false;
+            m_NegPromptField.RegisterCallback((KeyDownEvent evt) =>
+            {
+                if ((evt.keyCode == KeyCode.Tab || evt.keyCode == KeyCode.None && evt.character == '\t') && !evt.shiftKey)
+                {
+                    evt.StopImmediatePropagation();
+                    evt.PreventDefault();
+                    if (evt.character != '\t')
+                        m_NegPromptField.focusController.FocusNextInDirectionEx(m_NegPromptField, VisualElementFocusChangeDirection.right);
+                    return;
+                }
+
+                if (evt.keyCode is KeyCode.Return or KeyCode.KeypadEnter)
+                {
+                    lastKeyReturn = true;
+                    return;
+                }
+
+                if (evt.keyCode == KeyCode.None && lastKeyReturn)
+                {
+                    evt.StopPropagation();
+                    evt.PreventDefault();
+                    m_OperatorData.settings[k_NegPromptIndex] = m_NegPromptField.value;
+                    TryGenerate();
+                }
+
+                lastKeyReturn = false;
+            },TrickleDown.TrickleDown);
+
+            m_NegPromptField.SetValueWithoutNotify(m_OperatorData.settings[k_NegPromptIndex]);
+            m_NegPromptField.RegisterValueChangedCallback((evt) =>
+            {
+                m_OperatorData.settings[k_NegPromptIndex] = m_NegPromptField.value;
+            });
+            m_NegPromptField.AddToClassList("muse-prompt-text-area");
+            UI.Add(m_NegPromptField);
+            
             OnDataUpdate -= OnOnDataUpdate;
             OnDataUpdate += OnOnDataUpdate;
 
@@ -90,16 +153,16 @@ namespace Unity.Muse.Common
 
         void OnOnDataUpdate()
         {
-            if (m_OperatorData.settings[0] != "")
+            if (m_OperatorData.settings[k_PromptIndex] != "")
             {
-                m_PromptField.value = m_OperatorData.settings[0];
+                m_PromptField.value = m_OperatorData.settings[k_PromptIndex];
                 m_Model.SetCurrentPrompt(m_PromptField.value);
             }
         }
 
         void ValueChangedCallback(ChangingEvent<string> evt)
         {
-            m_OperatorData.settings[0] = m_PromptField.value;
+            m_OperatorData.settings[k_PromptIndex] = m_PromptField.value;
             m_Model.SetCurrentPrompt(m_PromptField.value);
         }
 
@@ -123,8 +186,8 @@ namespace Unity.Muse.Common
             {
                 evt.StopPropagation();
                 evt.PreventDefault();
-                m_OperatorData.settings[0] = m_PromptField.value;
-                m_Model.GenerateButtonClicked();
+                m_OperatorData.settings[k_PromptIndex] = m_PromptField.value;
+                TryGenerate();
             }
 
             m_LastKeyReturn = false;
@@ -145,7 +208,7 @@ namespace Unity.Muse.Common
         public void SetOperatorData(OperatorData data)
         {
             m_OperatorData.enabled = data.enabled;
-            if (data.settings == null || data.settings.Length < 1)
+            if (data.settings == null || data.settings.Length != m_OperatorData.settings.Length)
                 return;
             m_OperatorData.settings = data.settings;
             OnDataUpdate?.Invoke();
@@ -153,7 +216,8 @@ namespace Unity.Muse.Common
 
         void SetSettings(IReadOnlyList<string> settings)
         {
-            m_OperatorData.settings[0] = settings[0];
+            m_OperatorData.settings[k_PromptIndex] = settings[k_PromptIndex];
+            m_OperatorData.settings[k_NegPromptIndex] = settings[k_NegPromptIndex];
             OnDataUpdate?.Invoke();
         }
 
@@ -215,7 +279,16 @@ namespace Unity.Muse.Common
         /// <returns>The operator's prompt.</returns>
         public string GetPrompt()
         {
-            return m_OperatorData.settings[0];
+            return m_OperatorData.settings[k_PromptIndex];
+        }
+        
+        /// <summary>
+        /// Gets the negative prompt for this operator.
+        /// </summary>
+        /// <returns>The operator's negative prompt.</returns>
+        public string GetNegativePrompt()
+        {
+            return m_OperatorData.settings[k_NegPromptIndex];
         }
 
         /// <summary>
@@ -224,23 +297,91 @@ namespace Unity.Muse.Common
         /// <param name="promptText">Prompt text</param>
         public void SetPrompt(string promptText)
         {
-            m_OperatorData.settings[0] = promptText;
+            m_OperatorData.settings[k_PromptIndex] = promptText;
             if(m_PromptField != null)
                 m_PromptField.value = promptText;
+        }
+        
+        /// <summary>
+        /// Sets the negative prompt text.
+        /// </summary>
+        /// <param name="negativePromptText">Prompt text</param>
+        public void SetNegativePrompt(string negativePromptText)
+        {
+            m_OperatorData.settings[k_NegPromptIndex] = negativePromptText;
+            if(m_NegPromptField != null)
+                m_NegPromptField.value = negativePromptText;
         }
 
         /// <summary>
         /// Get the settings view for this operator.
         /// </summary>
+        /// <param name="model">Current Model</param>
+        /// <param name="isCustomSection">This VisualElement will override the whole operator section used by the generation settings</param>
         /// <returns> UI for the operator. Set to Null if the operator should not be displayed in the settings view. Disable the returned VisualElement if you want it to be displayed but not usable.</returns>
-        public VisualElement GetSettingsView()
+        public VisualElement GetSettingsView(Model model, ref bool isCustomSection, Action dismissAction)
         {
-            var text = GetPrompt();
-            if (string.IsNullOrEmpty(text))
-                return null;
+            isCustomSection = true;
+            var currentPromptOperator = model.CurrentOperators?.GetOperator<PromptOperator>();
+            var container = new VisualElement();
+            var prompt = GetPrompt();
+            var negativePrompt = GetNegativePrompt();
 
-            var view = new Text { text = text };
-            return view;
+            if (!string.IsNullOrEmpty(prompt))
+            {
+                container.Add(GenerationSettings.CreateView("Prompt", new Text { text = prompt }, () =>
+                {
+                    currentPromptOperator?.CopyPrompt(this);
+                    dismissAction?.Invoke();
+                })); 
+            }
+
+            if (!string.IsNullOrEmpty(negativePrompt))
+            {
+                container.Add(GenerationSettings.CreateView("Negative Prompt", new Text {text = negativePrompt},
+                    () =>
+                    {
+                        currentPromptOperator?.CopyNegativePrompt(this);
+                        dismissAction?.Invoke();
+                    })); 
+            }
+            
+            return container;
+        }
+            
+        void CopyPrompt(PromptOperator op)
+        {
+            SetPrompt(op.GetPrompt());
+        }
+        void CopyNegativePrompt(PromptOperator op)
+        {
+            SetNegativePrompt(op.GetNegativePrompt());
+        }
+
+        void TryGenerate()
+        {
+            if(m_Model == null)
+                return;
+
+            if(m_Model.GetData<GenerateButtonData>().isEnabled)
+                m_Model.GenerateButtonClicked();
+        }
+        
+        public void UpgradeVersion()
+        {
+            if (m_OperatorData.version == "0.0.1")
+            {
+                m_OperatorData = new OperatorData(OperatorName, "0.0.2", new[] {m_OperatorData.settings[0], ""}, m_OperatorData.enabled);
+            }
+        }
+
+        public void OnBeforeSerialize()
+        {
+        }
+
+        public void OnAfterDeserialize()
+        {
+            UpgradeVersion();
         }
     }
 }

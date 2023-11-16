@@ -2,12 +2,15 @@ using System;
 using Unity.AppUI.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
+#if UNITY_EDITOR
+using Unity.Muse.Common.Editor.Settings;
+#endif
 
 namespace Unity.Muse.Common
 {
     internal class Canvas : VisualElement
     {
-        public new class UxmlFactory : UxmlFactory<Canvas, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<Canvas, UxmlTraits> { }
 
         Model m_CurrentModel;
 
@@ -16,6 +19,13 @@ namespace Unity.Muse.Common
         readonly AppUI.UI.Canvas m_Canvas;
 
         Artifact m_RefinedArtifact;
+
+        VisualElement m_ControlContent;
+        VisualElement m_ControlTopContent;
+        VisualElement m_ControlMiddleContent;
+        VisualElement m_ControlBottomContent;
+
+        IVisualElementScheduledItem m_ScheduledFrame;
 
         public Artifact refinedArtifact
         {
@@ -32,17 +42,80 @@ namespace Unity.Muse.Common
 
         public override VisualElement contentContainer => m_Canvas.contentContainer;
 
+        Rect frameContainer
+        {
+            get => m_Canvas.frameContainer;
+            set => m_Canvas.frameContainer = value;
+        }
+
+        public AppUI.UI.CanvasManipulator primaryManipulator
+        {
+            get => m_Canvas.primaryManipulator;
+            set => m_Canvas.primaryManipulator = value;
+        }
+
         public Canvas()
         {
             m_Canvas = new AppUI.UI.Canvas
             {
-                frameMargin = 24f
+                frameMargin = 24f,
             };
+            
+#if UNITY_EDITOR
+            m_Canvas.controlScheme = MusePreferences.canvasControlScheme;
+            MusePreferences.preferencesSaved += OnPreferencesChanged;
+#else
+            m_Canvas.controlScheme = Preferences.Session.canvasControlScheme;
+#endif
+            
             hierarchy.Add(m_Canvas);
             m_Canvas.StretchToParentSize();
             this.StretchToParentSize();
 
             this.RegisterContextChangedCallback<Model>(context => SetModel(context.context));
+
+            m_ControlContent = new VisualElement()
+            {
+                name = "control-content",
+                pickingMode = PickingMode.Ignore,
+                style =
+                {
+                    flexGrow = 1f
+                }
+            };
+
+            m_ControlTopContent = new VisualElement()
+            {
+                name = "control-top-content",
+            };
+            
+            m_ControlMiddleContent = new VisualElement()
+            {
+                name = "control-middle-content",
+                pickingMode = PickingMode.Ignore,
+                style =
+                {
+                    flexGrow = 1f
+                }
+            };
+            
+            m_ControlBottomContent = new VisualElement()
+            {
+                name = "control-bottom-content",
+            };
+            
+            m_ControlContent.Add(m_ControlTopContent);
+            m_ControlContent.Add(m_ControlMiddleContent);
+            m_ControlContent.Add(m_ControlBottomContent);
+            
+            hierarchy.Add(m_ControlContent);
+        }
+
+        void OnPreferencesChanged()
+        {
+#if UNITY_EDITOR
+            m_Canvas.controlScheme = MusePreferences.canvasControlScheme;
+#endif
         }
 
         void FrameArtifact(Artifact artifact)
@@ -56,13 +129,42 @@ namespace Unity.Muse.Common
 
         public void FrameAll()
         {
-            m_Canvas.FrameAll();
+            //Scheduling since it can be done too quickly when Unity editor is opened while the
+            //window was open before the editor was closed.
+            schedule.Execute(() =>
+            {
+                UpdateCanvasFrameContainer();
+                m_Canvas.FrameAll();
+            });
         }
         public void SetModel(Model model)
         {
             UnSubscribeToModelEvents();
             m_CurrentModel = model;
             SubscribeToModelEvents();
+        }
+        
+        public void UpdateCanvasFrameContainer()
+        {
+            if (m_CurrentModel == null)
+                return;
+            
+            var leftOverlay = m_CurrentModel.LeftOverlay.resolvedStyle;
+            var rightOverlay = m_CurrentModel.RightOverlay.resolvedStyle;
+            
+            var width = resolvedStyle.width - 
+                leftOverlay.width - 
+                leftOverlay.marginLeft -
+                leftOverlay.marginRight -
+                rightOverlay.width -
+                rightOverlay.marginLeft -
+                rightOverlay.marginRight;
+            var height = resolvedStyle.height;
+            var x = leftOverlay.width + 
+                leftOverlay.marginLeft + 
+                leftOverlay.marginRight;
+            const int y = 0;
+            frameContainer = new Rect(x, y, width, height);
         }
 
         void SubscribeToModelEvents()
@@ -74,9 +176,22 @@ namespace Unity.Muse.Common
             m_CurrentModel.OnActiveToolChanged += OnActiveToolChanged;
             m_CurrentModel.OnFrameArtifactRequested += FrameArtifact;
             m_CurrentModel.OnDispose += UnSubscribeToModelEvents;
-            m_CurrentModel.OnCanvasRefineArtifact += OnCanvasRefineArtifact;
+            m_CurrentModel.OnCanvasRefineArtifact += OnRefineArtifact;
+            m_CurrentModel.OnRefineArtifact += OnRefineArtifact;
             m_CurrentModel.OnArtifactSelected += OnArtifactSelected;
             m_CurrentModel.OnFinishRefineArtifact += OnFinishRefineArtifact;
+            m_CurrentModel.OnLeftOverlayChanged += OnLeftOverlayChanged;
+            m_CurrentModel.OnRightOverlayChanged += OnRightOverlayChanged;
+        }
+
+        void OnLeftOverlayChanged(VisualElement overlay)
+        {
+            UpdateCanvasFrameContainer();
+        }
+        
+        void OnRightOverlayChanged(VisualElement overlay)
+        {
+            UpdateCanvasFrameContainer();
         }
 
         private void OnFinishRefineArtifact(Artifact obj)
@@ -91,10 +206,10 @@ namespace Unity.Muse.Common
                 return;
 
             OnActiveToolChanged(m_CurrentModel.ActiveTool);
-            OnCanvasRefineArtifact(artifact);
+            OnRefineArtifact(artifact);
         }
-
-        void OnCanvasRefineArtifact(Artifact artifact)
+        
+        void OnRefineArtifact(Artifact artifact)
         {
             if (m_CurrentModel == null)
                 return;
@@ -110,9 +225,12 @@ namespace Unity.Muse.Common
             m_CurrentModel.OnDispose -= OnModelDispose;
             m_CurrentModel.OnActiveToolChanged -= OnActiveToolChanged;
             m_CurrentModel.OnFrameArtifactRequested -= FrameArtifact;
-            m_CurrentModel.OnCanvasRefineArtifact -= OnCanvasRefineArtifact;
+            m_CurrentModel.OnCanvasRefineArtifact -= OnRefineArtifact;
+            m_CurrentModel.OnRefineArtifact -= OnRefineArtifact;
             m_CurrentModel.OnArtifactSelected -= OnArtifactSelected;
             m_CurrentModel.OnFinishRefineArtifact -= OnFinishRefineArtifact;
+            m_CurrentModel.OnLeftOverlayChanged -= OnLeftOverlayChanged;
+            m_CurrentModel.OnRightOverlayChanged -= OnRightOverlayChanged;
         }
 
         void OnModelDispose()
@@ -120,16 +238,30 @@ namespace Unity.Muse.Common
             SetModel(null);
         }
 
+        void OnPanChanged(bool panEnabled)
+        {
+            foreach (var item in m_Canvas.Children())
+            {
+                item.SetEnabled(!panEnabled);
+                item.pickingMode = panEnabled ? PickingMode.Ignore : PickingMode.Position;
+            }
+            
+            primaryManipulator = panEnabled ? AppUI.UI.CanvasManipulator.Pan : AppUI.UI.CanvasManipulator.None;
+        }
+
         void OnActiveToolChanged(ICanvasTool tool)
         {
             if (m_CurrentToolManipulator != null)
                 m_Canvas.RemoveManipulator(m_CurrentToolManipulator);
-
+            
+            OnPanChanged(tool is PanTool);
+            
             if (tool == null)
                 return;
 
             m_CurrentToolManipulator = tool.GetToolManipulator();
-            m_Canvas.AddManipulator(m_CurrentToolManipulator);
+            if (m_CurrentToolManipulator != null)
+                m_Canvas.AddManipulator(m_CurrentToolManipulator);
         }
 
         public void UpdateView()
@@ -143,8 +275,6 @@ namespace Unity.Muse.Common
                 artifact = refinedArtifact
             };
             Add(node);
-
-            schedule.Execute(FrameAll).ExecuteLater(32L);
         }
     }
 }

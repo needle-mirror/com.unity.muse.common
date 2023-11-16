@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.AppUI.Core;
+using Unity.Muse.Common.Account;
 using Unity.Muse.Common.Analytics;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Unity.Muse.Common
 {
@@ -27,6 +29,15 @@ namespace Unity.Muse.Common
     [Icon(IconHelper.assetIconPath)]
     public class Model : ScriptableObject, IContext, IEquatable<Model>
     {
+        enum Versions
+        {
+            Initial = 0,
+            MergedPrompts = 1,
+        }
+        static readonly int k_LatestVersion = (int)Versions.MergedPrompts;
+
+        int m_Version;
+
         /// <summary>
         /// Event raised when the model was modified.
         /// </summary>
@@ -39,7 +50,7 @@ namespace Unity.Muse.Common
         internal event Action<Artifact> OnArtifactSelected;
         internal event Action<ICanvasTool> OnActiveToolChanged;
         internal event Action OnUpdateToolState;
-        internal event Action<Texture2D> OnMaskPaintDone;
+        internal event Action<Texture2D, bool> OnMaskPaintDone;
         internal event Action<string> OnCurrentPromptChanged;
         internal event Action<IEnumerable<IOperator>, bool> OnOperatorUpdated;
         /// <summary>
@@ -59,14 +70,19 @@ namespace Unity.Muse.Common
         internal event Action<Artifact> OnCanvasRefineArtifact;
         internal event Action<Artifact> OnFinishRefineArtifact;
         internal event Action<Artifact> OnSetReferenceOperator;
+        internal event Action<VisualElement, int, ToolbarPosition> OnAddToolbar;
+        internal event Action<VisualElement> OnRemoveToolbar;
         internal event SetOperatorDefault OnSetOperatorDefaults;
-        internal event Action OnForbiddenAccess;
+        internal event Func<long, string, bool> OnServerError;
+        internal event Action<VisualElement> OnLeftOverlayChanged;
+        internal event Action<VisualElement> OnRightOverlayChanged;
 
         internal string guid = Guid.Empty.ToString();
 
         internal void Initialize()
         {
             guid = Guid.NewGuid().ToString();
+            m_Version = k_LatestVersion;
         }
 
         void OnEnable()
@@ -140,6 +156,10 @@ namespace Unity.Muse.Common
         internal Artifact RefinedArtifact => refinedArtifact;
 
         internal Artifact SelectedArtifact => selectedArtifact;
+
+        internal VisualElement LeftOverlay { get; private set; }
+
+        internal VisualElement RightOverlay { get; private set; }
 
         internal bool isRefineMode => refinedArtifact != null;
 
@@ -253,6 +273,18 @@ namespace Unity.Muse.Common
             }
         }
 
+        internal void SetLeftOverlay(VisualElement overlay)
+        {
+            LeftOverlay = overlay;
+            OnLeftOverlayChanged?.Invoke(overlay);
+        }
+
+        internal void SetRightOverlay(VisualElement overlay)
+        {
+            RightOverlay = overlay;
+            OnRightOverlayChanged?.Invoke(overlay);
+        }
+
         /// <summary>
         /// Sets the selected artifact.
         /// </summary>
@@ -311,6 +343,8 @@ namespace Unity.Muse.Common
             else
                 removeFromCache.AddRange(artifacts.SelectMany(a => a.history)); // Clear history when removing from generations
 
+            var next = artifacts.Max(a => AssetsData.FindIndex(ad => ad.Guid == a.Guid));
+
             // Delete from generation or refinement list (AssetsData)
             foreach (var artifact in artifacts)
             {
@@ -324,19 +358,22 @@ namespace Unity.Muse.Common
             if (isRefineMode && artifacts.Contains(refinedArtifact))
             {
                 // If we're deleting the root artifact, we need to set a new root artifact that will appear in the Generations list
-                if (refinedArtifact.history.Count <= 1)
+                if (refinedArtifact.history.Count < 1)
                 {
                     assetsData.RemoveAll(a => ReferenceEquals(a, refinedArtifact));
                     finishRefine = true;
                 }
                 else
                 {
-                    setAsThumbnail = AssetsData.Last();
+                    setAsThumbnail = refinedArtifact.history.Last();
                 }
             }
 
             if (artifacts.Contains(SelectedArtifact) && !finishRefine && AssetsData.Count > 0)
-                selected = AssetsData.Last();
+            {
+                // Select the closest artifact to the one we're deleting
+                selected = AssetsData[Mathf.Clamp(next, 0, AssetsData.Count - 1)];
+            }
 
             ArtifactCache.Delete(removeFromCache.Where(IsArtifactUnused));
 
@@ -392,9 +429,9 @@ namespace Unity.Muse.Common
             OnActiveToolChanged?.Invoke(ActiveTool);
         }
 
-        internal void MaskPaintDone(Texture2D texture)
+        internal void MaskPaintDone(Texture2D texture, bool isClear)
         {
-            OnMaskPaintDone?.Invoke(texture);
+            OnMaskPaintDone?.Invoke(texture, isClear);
         }
 
         internal void SetMaskSeamless(bool seamless)
@@ -432,6 +469,7 @@ namespace Unity.Muse.Common
 
         internal void Dispose()
         {
+            ActiveTool = null;
             OnDispose?.Invoke();
         }
 
@@ -572,9 +610,9 @@ namespace Unity.Muse.Common
             OnAnalytics?.Invoke(eventName, parameters, version);
         }
 
-        internal void ForbiddenAccess()
+        internal void ServerError(long objResponseCode, string objRequestError)
         {
-            OnForbiddenAccess?.Invoke();
+            OnServerError?.Invoke(objResponseCode, objRequestError);
         }
 
         /// <summary>
@@ -601,18 +639,24 @@ namespace Unity.Muse.Common
             if (obj.GetType() != this.GetType()) return false;
             return Equals((Model)obj);
         }
-        
+
         /// <summary>
         /// Equality operator between Models
         /// </summary>
+        /// <param name="lhs">first model</param>
+        /// <param name="rhs">second model</param>
+        /// <returns> true if models are equal</returns>
         public static bool operator ==(Model lhs, Model rhs)
         {
             return ReferenceEquals(lhs, rhs) || (lhs != null) && lhs.Equals(rhs);
         }
-        
+
         /// <summary>
         /// Inequality operator between Models
         /// </summary>
+        /// <param name="lhs">first model</param>
+        /// <param name="rhs">second model</param>
+        /// <returns> true if models are not equal</returns>
         public static bool operator !=(Model lhs, Model rhs)
         {
             return ((object)lhs != null) && !lhs.Equals(rhs);
@@ -623,6 +667,76 @@ namespace Unity.Muse.Common
         {
             return HashCode.Combine(base.GetHashCode(), guid);
         }
+
+        internal void AddToToolbar(VisualElement element, int index, ToolbarPosition position)
+        {
+            OnAddToolbar?.Invoke(element, index, position);
+        }
+
+        internal void RemoveToolbar(VisualElement element)
+        {
+            OnRemoveToolbar?.Invoke(element);
+        }
+
+        internal bool CheckForUpgrade()
+        {
+            if (m_Version < k_LatestVersion)
+            {
+                UpgradeFromVersion(m_Version); //upgrade derived classes
+                m_Version = k_LatestVersion;
+                return true;
+            }
+
+            return false;
+        }
+
+        void UpgradeFromVersion(int oldVersion)
+        {
+            if (oldVersion < (int)Versions.MergedPrompts)
+                ConvertToMergedPromptsVersion();
+        }
+
+        private void ConvertToMergedPromptsVersion()
+        {
+            foreach (var artifact in assetsData)
+            {
+                var negPromptOp = artifact.GetOperator<NegativePromptOperator>();
+                var promptOp = artifact.GetOperator<PromptOperator>();
+                if (promptOp != null)
+                {
+                    promptOp.UpgradeVersion();
+                    if (negPromptOp != null)
+                        promptOp.SetNegativePrompt(negPromptOp.GetOperatorData().settings[0]);
+                }
+                artifact.RemoveOperator<NegativePromptOperator>();
+
+                if (artifact == null || artifact.history == null)
+                    return;
+                foreach (var subArtifact in artifact.history)
+                {
+                    var negPrompts = subArtifact.GetOperator<NegativePromptOperator>();
+                    var prompts = subArtifact.GetOperator<PromptOperator>();
+                    if (prompts != null)
+                    {
+                        prompts.UpgradeVersion();
+                        if (negPrompts != null)
+                            prompts.SetNegativePrompt(negPrompts.GetOperatorData().settings[0]);
+                    }
+                    subArtifact.RemoveOperator<NegativePromptOperator>();
+                }
+            }
+            m_Operators.Remove( m_Operators.GetOperator<NegativePromptOperator>());
+            m_PreRefineOperators.Remove(m_PreRefineOperators.GetOperator<NegativePromptOperator>());
+        }
+
+        // Debouncing the usage update to avoid spamming the server since we send multiple requests at once
+        // when generating batches of artifacts.
+        Action m_UpdateUsage;
+
+        internal void ArtifactGenerationDone(Artifact artifact)
+        {
+            m_UpdateUsage ??= EventServices.IntervalDebounce(AccountInfo.Instance.UpdateUsage, 4f);
+            m_UpdateUsage();
+        }
     }
 }
-

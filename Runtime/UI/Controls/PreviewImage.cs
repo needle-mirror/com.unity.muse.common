@@ -25,7 +25,7 @@ namespace Unity.Muse.Common
             {
                 m_CurrentArtifact.RetryGenerate(this.GetContext<Model>());
             }
-            
+
             SetAsset(m_CurrentArtifact);
         }
 
@@ -46,6 +46,7 @@ namespace Unity.Muse.Common
             else
             {
                 OnLoading();
+                artifact.OnGenerationDone -= OnArtifactGenerationDone;
                 artifact.OnGenerationDone += OnArtifactGenerationDone;
             }
         }
@@ -54,10 +55,23 @@ namespace Unity.Muse.Common
         {
             if (string.IsNullOrEmpty(error))
             {
+                var model = this.GetContext<Model>();
+                if (model)
+                {
+#if UNITY_EDITOR
+                    // Specific solution to ensure that the model is saved when the artifact is generated.
+                    // This is not general enough for every type of action (delete, modification, etc...)
+                    // which would require a more complex solution.
+                    UnityEditor.EditorUtility.SetDirty(model);
+                    UnityEditor.AssetDatabase.SaveAssetIfDirty(model);
+#endif
+                    model.ArtifactGenerationDone(artifact);
+                }
+
                 SetAsset(artifact);
                 return;
             }
-            
+
             OnError("Generation failed.");
         }
 
@@ -66,10 +80,10 @@ namespace Unity.Muse.Common
             if (string.IsNullOrEmpty(errorMessage))
             {
                 OnLoaded(artifactInstance);
-                OnLoadedPreview?.Invoke(); 
+                OnLoadedPreview?.Invoke();
                 return;
             }
-            
+
             OnError("Failed to retrieve artifact.");
         }
 

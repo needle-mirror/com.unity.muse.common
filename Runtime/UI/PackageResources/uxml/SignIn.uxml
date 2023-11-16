@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:UXML
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ui="UnityEngine.UIElements"
+    xmlns:appui="Unity.AppUI.UI"
+    xmlns:muse="Unity.Muse.Common"
+    xsi:noNamespaceSchemaLocation="../../../../../../../UIElementsSchema/UIElements.xsd"
+>
+    <Style src="../uss/SignIn.uss"/>
+    <Style src="../uss/Account.uss"/>
+    <muse:SignIn class="muse-signin" style="align-self:center">
+    </muse:SignIn>
+</ui:UXML>

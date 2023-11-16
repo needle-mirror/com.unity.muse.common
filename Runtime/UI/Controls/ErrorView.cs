@@ -31,11 +31,6 @@ namespace Unity.Muse.Common
         string m_Error;
 
         /// <summary>
-        /// Style sheet path
-        /// </summary>
-        const string k_StyleSheetPath = "uss/ErrorView";
-
-        /// <summary>
         /// Error Text Class
         /// </summary>
         const string k_ErrorTextClass = "muse-errorview--text";
@@ -80,7 +75,7 @@ namespace Unity.Muse.Common
         /// </summary>
         void InitializeView()
         {
-            var styleSheet = Resources.Load<StyleSheet>(k_StyleSheetPath);
+            var styleSheet = ResourceManager.Load<StyleSheet>(PackageResources.errorViewStyleSheet);
             styleSheets.Add(styleSheet);
 
             var errorText = new Text();

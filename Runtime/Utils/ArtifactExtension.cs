@@ -26,5 +26,23 @@ namespace Unity.Muse.Common
         {
             return operators?.FirstOrDefault(x => x.GetType() == typeof(T)) as T;
         }
+        
+        /// <summary>
+        /// Utility method to remove operators of a certain type from an artifact.
+        /// </summary>
+        /// <param name="artifact">Artifact to get operators from.</param>
+        /// <typeparam name="T">Type of operators to get.</typeparam>
+        /// <returns></returns>
+        public static bool RemoveOperator<T>(this Artifact artifact) where T: class, IOperator
+        {
+            T op =artifact?.GetOperators().GetOperator<T>();
+            if (op != null)
+            {
+                artifact.GetOperators().Remove(op);
+                return true;
+            }
+
+            return false;
+        }
     }
 }

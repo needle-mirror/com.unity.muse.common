@@ -4,6 +4,24 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-pre.1] - 2023-11-16
+
+### Added
+
+- Add deselect support from mouse click in the Generations grid.
+- Add card stack for refined artifacts
+- Add Ledger system
+
+### Changed
+
+- Use PointerEvent instead of MouseEvent during inpainting
+- Change styling on multiple components
+- Merge Prompt and Negative Prompt
+
+### Fixed
+
+- Fixed drop shadows styling.
+
 ## [0.4.1] - 2023-10-20
 
 ### Changed

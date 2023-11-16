@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Unity.AppUI.Core;
 using Unity.AppUI.UI;
 using UnityEngine;
+using UnityEngine.Scripting;
 using UnityEngine.UIElements;
 
 namespace Unity.Muse.Common
@@ -14,17 +16,17 @@ namespace Unity.Muse.Common
 
         static string[] k_ProvidedPatternsBase64Encoded =
         {
-            Convert.ToBase64String(Resources.Load<Texture2D>("Shapes/1").EncodeToPNG()),
-            Convert.ToBase64String(Resources.Load<Texture2D>("Shapes/2").EncodeToPNG()),
-            Convert.ToBase64String(Resources.Load<Texture2D>("Shapes/3").EncodeToPNG()),
-            Convert.ToBase64String(Resources.Load<Texture2D>("Shapes/4").EncodeToPNG()),
-            Convert.ToBase64String(Resources.Load<Texture2D>("Shapes/5").EncodeToPNG()),
-            Convert.ToBase64String(Resources.Load<Texture2D>("Shapes/6").EncodeToPNG()),
-            Convert.ToBase64String(Resources.Load<Texture2D>("Shapes/7").EncodeToPNG()),
-            Convert.ToBase64String(Resources.Load<Texture2D>("Shapes/8").EncodeToPNG()),
-            Convert.ToBase64String(Resources.Load<Texture2D>("Shapes/9").EncodeToPNG()),
-            Convert.ToBase64String(Resources.Load<Texture2D>("Shapes/10").EncodeToPNG()),
-            Convert.ToBase64String(Resources.Load<Texture2D>("Shapes/11").EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape01).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape02).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape03).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape04).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape05).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape06).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape07).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape08).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape09).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape10).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape11).EncodeToPNG()),
         };
 
         static readonly Texture2D[] k_PatternTextures = k_ProvidedPatternsBase64Encoded.Select(guid =>
@@ -74,6 +76,21 @@ namespace Unity.Muse.Common
 
         Text m_DropzoneMessage;
 
+        ActionButton m_PickColorButton;
+
+        Color? m_PickedColor;
+
+        Texture2D m_PickingTex;
+
+        Popover m_PickerPopup;
+
+        ColorPicker m_Picker;
+
+        static Color s_LastPickedColor = Color.red;
+        
+        const int k_MaxTextureSize = 512;
+
+        [Preserve]
         static ReferenceOperatorView()
         {
             // load textures
@@ -97,7 +114,7 @@ namespace Unity.Muse.Common
 
         void CreateGUI()
         {
-            passMask = Passes.Clear | Passes.OutsetShadows;
+            passMask = Passes.Clear | Passes.OutsetShadows | Passes.BackgroundColor;
 
             AddToClassList("muse-node");
             AddToClassList("appui-elevation-8");
@@ -139,9 +156,18 @@ namespace Unity.Muse.Common
             m_PatternsButton.label = "Patterns";
             m_PatternsButton.clicked += OnPatternsButtonClicked;
             row.Add(m_PatternsButton);
+            
+            m_PickColorButton = new ActionButton();
+            m_PickColorButton.icon = "paint-bucket";
+            m_PickColorButton.AddToClassList("right-gap");
+            m_PickColorButton.clicked += OnPickColorButtonClicked;
+#if !USE_APPUI_COLORPICKER
+            m_PickColorButton.SetEnabled(Application.isEditor);
+#endif
+            row.Add(m_PickColorButton);
 
             m_ClearButton = new ActionButton();
-            m_ClearButton.icon = "x";
+            m_ClearButton.icon = "delete";
             m_ClearButton.clicked += OnClearButtonClicked;
             row.Add(m_ClearButton);
 
@@ -199,9 +225,9 @@ namespace Unity.Muse.Common
 
             m_StrengthSlider = new TouchSliderInt();
             m_StrengthSlider.label = "Strength";
-            m_StrengthSlider.lowValue = 0;
-            m_StrengthSlider.highValue = 100;
-            m_StrengthSlider.value = 50;
+            m_StrengthSlider.lowValue = 10;
+            m_StrengthSlider.highValue = 90;
+            m_StrengthSlider.value = 20;
             m_StrengthSlider.AddToClassList("bottom-gap");
             m_StrengthSlider.RegisterValueChangedCallback(OnIntValueChanged);
             m_ColorToolbar.Add(m_StrengthSlider);
@@ -220,7 +246,8 @@ namespace Unity.Muse.Common
             m_PatternsView.makeItem = MakePatternItemView;
             m_PatternsView.bindItem = BindPatternItemView;
             m_PatternsView.itemsSource = k_PatternTextures;
-            m_PatternsView.itemsChosen += OnPatternChosen;
+            m_PatternsView.itemsChosen += (indices) => OnPatternChosen(indices, true);
+            m_PatternsView.selectionChanged += (indices) => OnPatternChosen(indices, false);
         }
 
         void OnDropZonePointerDown(PointerDownEvent evt)
@@ -409,24 +436,24 @@ namespace Unity.Muse.Common
                 RuntimePlatform.OSXPlayer or
                 RuntimePlatform.OSXServer ? "Cmd" : "Ctrl";
 
-        void OnPatternChosen(IEnumerable<object> selection)
+        void OnPatternChosen(IEnumerable<object> selection, bool dismissPopup)
         {
             using var selectionEnumerator = selection.GetEnumerator();
 
-            // TODO: Use Artifact instead of plain textures
             if (selectionEnumerator.MoveNext() && selectionEnumerator.Current is Texture2D tex2D)
             {
-                SetGuidWithoutNotify(null); // artifact.Guid
-                OnChosenItemLoaded(tex2D, null, null); // artifact.GetPreview(OnChosenItemLoaded, true);
+                SetGuidWithoutNotify(null);
+                OnChosenItemLoaded(tex2D, dismissPopup);
             }
         }
 
-        void OnChosenItemLoaded(Texture2D preview, byte[] rawData, string errorMessage)
+        void OnChosenItemLoaded(Texture2D preview, bool dismissPopup)
         {
             SetShapeImageWithoutNotify(preview);
             dataChanged?.Invoke();
 
-            m_PatternsPopover?.Dismiss(DismissType.Action);
+            if (dismissPopup)
+                m_PatternsPopover?.Dismiss(DismissType.Action);
         }
 
         void OnPatternsButtonClicked()
@@ -473,13 +500,94 @@ namespace Unity.Muse.Common
         {
             dataChanged?.Invoke();
         }
+        
+#if USE_APPUI_COLORPICKER
+        void OnPickColorButtonClicked()
+        {
+            m_PickerPopup?.Dismiss(DismissType.Consecutive);
+            
+            m_Picker ??= new ColorPicker();
+            
+            var previousValue = m_PickedColor ?? s_LastPickedColor;   
+            m_Picker.previousValue = previousValue;
+            m_Picker.SetValueWithoutNotify(previousValue);
+
+            m_Picker.RegisterValueChangedCallback(OnPicking);
+
+            m_PickerPopup = Popover.Build(m_PickColorButton, m_Picker);
+            m_PickerPopup.dismissed += OnPickerPopupDismissed;
+            m_PickerPopup.SetPlacement(PopoverPlacement.EndTop);
+            
+            m_PickerPopup.Show();
+            
+            OnPicking(previousValue);
+        }
+
+        void OnPickerPopupDismissed(Popover popup, DismissType reason)
+        {
+            popup.dismissed -= OnPickerPopupDismissed;
+            
+            if (m_Picker != null)
+            {
+                s_LastPickedColor = m_Picker.value;
+                m_Picker.UnregisterValueChangedCallback(OnPicking);
+            }
+        }
+
+        void OnPicking(ChangeEvent<Color> evt)
+        {
+            OnPicking(evt.newValue);
+        }
+#else
+        void OnPickColorButtonClicked()
+        {
+#if UNITY_EDITOR
+            // Find UnityEditor.ColorPicker.Show(GUIView viewToUpdate, Action<Color> colorChangedCallback, Color col, bool showAlpha, bool hdr) using C# Reflection
+            var colorPickerType = typeof(UnityEditor.EditorWindow).Assembly.GetType("UnityEditor.ColorPicker");
+            foreach (var methodInfo in colorPickerType.GetMethods(BindingFlags.NonPublic | BindingFlags.Static))
+            {
+                if (methodInfo.Name == "Show" && methodInfo.GetParameters().Length == 5)
+                {
+                    var colorChangedCallback = (Action<Color>)Delegate.CreateDelegate(typeof(Action<Color>), this, nameof(OnColorPickerColorChanged));
+                    methodInfo.Invoke(null, new object[] { null, colorChangedCallback, s_LastPickedColor, false, false });
+                    break;
+                }
+            }
+#endif
+        }
+
+        void OnColorPickerColorChanged(Color color)
+        {
+            s_LastPickedColor = color;
+            OnPicking(color);
+        }
+        
+#endif
+        
+        void OnPicking(Color color)
+        {
+            m_PickedColor = color;
+            
+            if (!m_PickingTex)
+                m_PickingTex = new Texture2D(512, 512);
+            m_PickingTex.SetPixels(Enumerable.Repeat(color, 512 * 512).ToArray());
+            m_PickingTex.Apply();
+            
+            SetColorImageWithoutNotify(m_PickingTex);
+            dataChanged?.Invoke();
+        }
 
         void OnClearButtonClicked()
         {
             if (m_Mode == ReferenceOperator.Mode.Color)
+            {
+                m_PickedColor = null;
                 SetColorImageWithoutNotify(null);
+            }
             else
+            {
                 SetShapeImageWithoutNotify(null);
+            }
             dataChanged?.Invoke();
         }
 
@@ -500,6 +608,7 @@ namespace Unity.Muse.Common
             m_ShapeToolbar.EnableInClassList(Styles.hiddenUssClassName, m_Mode != ReferenceOperator.Mode.Shape);
             m_ModeGroup.SetSelectionWithoutNotify(new []{(int)m_Mode});
             m_PatternsButton.EnableInClassList(Styles.hiddenUssClassName, m_Mode != ReferenceOperator.Mode.Shape);
+            m_PickColorButton.EnableInClassList(Styles.hiddenUssClassName, m_Mode != ReferenceOperator.Mode.Color);
             RefreshPreview();
         }
 
@@ -518,8 +627,56 @@ namespace Unity.Muse.Common
             if (!Validate(img))
                 return;
 
-            m_ColorImage = img;
+            m_ColorImage = Resize(img);
+
             RefreshPreview();
+        }
+
+        static Texture2D Resize(Texture2D texture2D)
+        {
+            if (texture2D == null)
+                return null;
+
+            // If the image is square at 512x152 or smaller it should remain as is.
+            if (texture2D.IsSquare() && texture2D.width <= k_MaxTextureSize)
+            {
+                return texture2D;
+            }
+
+            //If the image is square but at a higher resolution it should be downscaled to 512x512
+            if (texture2D.IsSquare())
+            {
+                return texture2D.ResizeTexture(k_MaxTextureSize, k_MaxTextureSize);
+            }
+
+            var minSize = Math.Min(texture2D.width, texture2D.height);
+
+            //If the image is not square with its smaller dimension less or equal to 512,
+            //it should be center cropped to be square using it smaller dimension.
+            if (minSize <= k_MaxTextureSize)
+            {
+                return texture2D.CropTextureCenter(minSize, minSize);
+            }
+
+            // If the image is not square with its smaller dimension greater than 512,
+            // it should be first downscaled so that its smaller dimension is 512 than center cropped
+            //     to be square at 512x512.
+
+            var ratio = (float)texture2D.width / texture2D.height;
+            var textureWidth = k_MaxTextureSize;
+            var textureHeight = k_MaxTextureSize;
+
+            if (ratio < 1)
+            {
+                textureHeight = (int)(texture2D.height * ratio);
+            }
+            else
+            {
+                textureWidth = (int)(texture2D.width * ratio);
+            }
+
+            var texture2DResized = texture2D.ResizeTexture(textureWidth, textureHeight);
+            return texture2DResized.CropTextureCenter(k_MaxTextureSize, k_MaxTextureSize);
         }
 
         internal void SetShapeImageWithoutNotify(Texture2D img)

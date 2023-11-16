@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace Unity.Muse.Common
 {
@@ -28,6 +29,7 @@ namespace Unity.Muse.Common
     {
         static readonly Dictionary<string, ModeStruct> k_Modes = new Dictionary<string, ModeStruct>();
 
+        [Preserve]
         static ModesFactory()
         {
             LoadMuseModes();
@@ -46,13 +48,13 @@ namespace Unity.Muse.Common
         internal static void LoadMuseModes()
         {
             k_Modes.Clear();
-            var modeAssets = Resources.LoadAll<MuseModeAsset>("");
+            var modeAssets = ResourceManager.LoadAll<MuseModeAsset>("");
             foreach (var modeAsset in modeAssets)
             {
                 var modes = modeAsset.modes.modes.Where(m => m.enabled);
                 foreach (var mode in modes)
                 {
-                    k_Modes.Add(mode.type, mode);
+                    k_Modes[mode.type] = mode;
                 }
             }
         }

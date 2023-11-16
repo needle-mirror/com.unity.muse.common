@@ -7,8 +7,8 @@ namespace Unity.Muse.Common
 {
     internal class LoadableImage : Image
     {
-        const string k_StylePath = "uss/LoadableImageStyle";
         const string k_ClassStatusElement = "li-element";
+        const string k_ResolutionClassName = "li-resolution-chip";
 
         internal readonly GenericLoader GenericLoader;
         readonly Chip m_ResolutionChip;
@@ -17,7 +17,7 @@ namespace Unity.Muse.Common
 
         protected LoadableImage(bool autoLoading = true)
         {
-            styleSheets.Add(Resources.Load<StyleSheet>(k_StylePath));
+            styleSheets.Add(ResourceManager.Load<StyleSheet>(PackageResources.loadableImageStyleSheet));
             AddToClassList(k_ClassStatusElement);
 
             GenericLoader = new GenericLoader(autoLoading ? GenericLoader.State.Loading : GenericLoader.State.None)
@@ -32,22 +32,33 @@ namespace Unity.Muse.Common
 
             Add(GenericLoader);
 
+            var resolutionChipContainer = new VisualElement
+            {
+                style =
+                {
+                   flexDirection = FlexDirection.ColumnReverse,
+                   position = Position.Absolute,
+                   width = Length.Percent(100),
+                   height = Length.Percent(100)
+                },
+                pickingMode = PickingMode.Ignore
+            };
+
+            Add(resolutionChipContainer);
+
             m_ResolutionChip = new Chip
             {
                 variant = Chip.Variant.Filled,
                 label = "2K",
                 style =
                 {
-                   position = Position.Absolute,
-                   alignSelf = Align.FlexEnd,
-                   right = 8,
-                   top = 8,
-                   opacity = 0.8f,
                    display = DisplayStyle.None
                 }
             };
 
-            Add(m_ResolutionChip);
+            m_ResolutionChip.AddToClassList(k_ResolutionClassName);
+
+            resolutionChipContainer.Add(m_ResolutionChip);
         }
 
         protected void OnLoaded(UnityEngine.Texture texture)

@@ -3,23 +3,45 @@ using Unity.AppUI.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Button = Unity.AppUI.UI.Button;
-
+#if UNITY_EDITOR
+using Unity.Muse.Common.Account;
+using UnityEditor;
+#endif
 namespace Unity.Muse.Common
 {
     internal class SignIn : ExVisualElement, IControl
     {
 #if UNITY_EDITOR
         bool m_Initialized;
-        Button m_SignInBtn;
 
         ChangeInfo m_Info = new ChangeInfo();
         Model m_CurrentModel;
         MainUI m_MainUI;
         bool? m_LoggedIn;
+        Modal m_SigninDialog;
 
         public SignIn()
         {
             this.RegisterContextChangedCallback<Model>(context => SetModel(context.context));
+            RegisterCallback<AttachToPanelEvent>(AttachToPanel);
+        }
+
+        void AttachToPanel(AttachToPanelEvent evt)
+        {
+            RefreshSignInDialog();
+        }
+
+        void RefreshSignInDialog()
+        {
+            if (m_LoggedIn is not null && !m_LoggedIn.Value)
+            {
+                m_SigninDialog ??= AccountUtility.DisplaySigninDialog(this);
+            }
+            else
+            {
+                m_SigninDialog?.Dismiss();
+                m_SigninDialog = null;
+            }
         }
 
         public void SetModel(Model model)
@@ -41,11 +63,7 @@ namespace Unity.Muse.Common
             if(m_Initialized) return;
             m_Initialized = true;
 
-            m_SignInBtn = this.Q<Button>("SignInBtn");
-            m_SignInBtn.clicked += () =>
-            {
-                UnityConnectProxy.instance.ShowLogin();
-            };
+            RefreshSignInDialog();
             m_Info.eventDelegate = UnityConnectUtils.RegisterConnectStateChangedEvent(connectInfo => StateSignOnChange(m_Info));
         }
 
@@ -57,6 +75,7 @@ namespace Unity.Muse.Common
             m_LoggedIn = loggedIn;
             m_CurrentModel.LoggedInStateChanged(loggedIn);
             parent.style.display = loggedIn ? DisplayStyle.None : DisplayStyle.Flex;
+            RefreshSignInDialog();
         }
 
         void StateSignOnChange(object parameters)
@@ -74,7 +93,7 @@ namespace Unity.Muse.Common
         }
 
         #endif
-        public new class UxmlFactory : UxmlFactory<SignIn, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<SignIn, UxmlTraits> { }
 
 
     }

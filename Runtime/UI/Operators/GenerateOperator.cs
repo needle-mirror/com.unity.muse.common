@@ -1,15 +1,7 @@
-using Unity.AppUI.UI;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Text = Unity.AppUI.UI.Text;
-using TouchSliderInt = Unity.AppUI.UI.TouchSliderInt;
-using Button = Unity.AppUI.UI.Button;
-#if UNITY_WEBGL && !UNITY_EDITOR
-using Dropdown = Unity.AppUI.UI.Dropdown;
-#endif
 
 namespace Unity.Muse.Common
 {
@@ -17,16 +9,16 @@ namespace Unity.Muse.Common
     internal class GenerateOperator : IOperator
     {
         public string OperatorName => "GenerateOperator";
+
         /// <summary>
         /// Human-readable label for the operator.
         /// </summary>
         public string Label => "Generate";
+
         event Action OnDataUpdate;
 
         [SerializeField]
         OperatorData m_OperatorData;
-
-        internal CooldownManipulator<PointerDownEvent> m_GenerateButtonCooldown;
 
         public GenerateOperator()
         {
@@ -64,8 +56,11 @@ namespace Unity.Muse.Common
         /// <summary>
         /// Get the settings view for this operator.
         /// </summary>
+        /// <param name="model">Current Model</param>
+        /// <param name="isCustomSection">This VisualElement will override the whole operator section used by the generation settings</param>
+        /// /// <param name="dismissAction">Action to trigger on dismiss</param>
         /// <returns> UI for the operator. Set to Null if the operator should not be displayed in the settings view. Disable the returned VisualElement if you want it to be displayed but not usable.</returns>
-        public VisualElement GetSettingsView()
+        public VisualElement GetSettingsView(Model model, ref bool isCustomSection, Action dismissAction)
         {
             return null;
         }
@@ -121,112 +116,5 @@ namespace Unity.Muse.Common
         public void RegisterToEvents(Model model) { }
 
         public void UnregisterFromEvents(Model model) { }
-
-        class GenerateOperatorUI : ExVisualElement
-        {
-            Model m_CurrentModel;
-            Button m_CurrentGenerateButton;
-
-            public GenerateOperatorUI(Model model, OperatorData operatorData, Action OnDataUpdate)
-            {
-                m_CurrentModel = model;
-                passMask = ExVisualElement.Passes.Clear | ExVisualElement.Passes.OutsetShadows;
-
-                AddToClassList("muse-node");
-                name = "generate-node";
-                var text = new Text();
-                text.text = "Generation";
-                text.AddToClassList("muse-node__title");
-                text.AddToClassList("bottom-gap");
-                Add(text);
-
-                //Dropdown
-                var modes = ModesFactory.GetModes();
-#if UNITY_WEBGL && !UNITY_EDITOR
-                var dropdown = new Dropdown();
-                dropdown.name = "generation-type-dropdown";
-                dropdown.AddToClassList("bottom-gap");
-
-                //Need to get Labels...
-                dropdown.bindItem = (item, i) => item.label = modes[i];
-                dropdown.sourceItems = modes;
-                dropdown.SetValueWithoutNotify(new[] {ModesFactory.GetModeIndexFromKey(operatorData.settings[0])});
-                dropdown.RegisterValueChangedCallback((evt) =>
-                {
-                    operatorData.settings[0] = ModesFactory.GetModeKeyFromIndex(evt.newValue.FirstOrDefault());
-                    model.ModeChanged(evt.newValue.FirstOrDefault());
-                });
-
-                Add(dropdown);
-#endif
-
-                var imageCountSlider = new TouchSliderInt { tooltip = TextContent.operatorGenerateNumberTooltip };
-                imageCountSlider.name = "image-count-slider";
-                imageCountSlider.AddToClassList("bottom-gap");
-                imageCountSlider.label = "Images";
-                imageCountSlider.lowValue = 1;
-                imageCountSlider.highValue = 10;
-                imageCountSlider.value = int.Parse(operatorData.settings[1]);
-                imageCountSlider.RegisterValueChangedCallback(evt =>
-                {
-                    operatorData.settings[1] = evt.newValue.ToString();
-                });
-                Add(imageCountSlider);
-
-                m_CurrentGenerateButton = new Button();
-                m_CurrentGenerateButton.name = "generate-button";
-                m_CurrentGenerateButton.title = "Generate";
-
-                var m_GenerateButtonCooldown = new CooldownManipulator<PointerDownEvent>(true, NodesList.GenerateCooldownTime);
-                m_CurrentGenerateButton.AddManipulator(m_GenerateButtonCooldown);
-
-                model.OnGenerateButtonClicked += m_GenerateButtonCooldown.ForceCooldown;
-
-                m_CurrentGenerateButton.AddToClassList("muse-node__button");
-                m_CurrentGenerateButton.primary = true;
-
-                m_CurrentGenerateButton.clicked += model.GenerateButtonClicked;
-
-                m_CurrentGenerateButton.SetEnabled(false);
-
-                Add(m_CurrentGenerateButton);
-
-                OnDataUpdate += () =>
-                {
-#if UNITY_WEBGL && !UNITY_EDITOR
-                if (operatorData.settings[0] != "")
-                {
-                    dropdown.SetValueWithoutNotify(new[] {ModesFactory.GetModeIndexFromKey(operatorData.settings[0])});
-                }
-#endif
-
-                    if (operatorData.settings[1] != "")
-                    {
-                        imageCountSlider.value = int.Parse(operatorData.settings[1]);
-                    }
-                };
-
-                RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
-                RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
-            }
-
-            void OnDetachFromPanel(DetachFromPanelEvent evt)
-            {
-                m_CurrentModel.OnCurrentPromptChanged -= OnPromptChanged;
-            }
-
-            void OnAttachToPanel(AttachToPanelEvent evt)
-            {
-                m_CurrentModel.OnCurrentPromptChanged += OnPromptChanged;
-            }
-
-            void OnPromptChanged(string prompt)
-            {
-                if (string.IsNullOrWhiteSpace(prompt))
-                    m_CurrentGenerateButton?.SetEnabled(false);
-                else
-                    m_CurrentGenerateButton?.SetEnabled(prompt.Length >= PromptOperator.MinimumPromptLength);
-            }
-        }
     }
 }

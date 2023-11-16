@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Unity.AppUI.UI;
+using Unity.Muse.Common.Account;
 using Unity.Muse.Common.Utils;
 using Dragger = Unity.Muse.Common.Baryon.UI.Manipulators.Dragger;
 
@@ -16,6 +17,7 @@ namespace Unity.Muse.Common
         const string k_ContentUssClassName = k_USSClassName + "__content";
 
         VisualElement m_Container;
+        public VisualElement content => m_Container;
         ScrollView m_ScrollView;
 
         Dictionary<IOperator, VisualElement> m_OperatorMap = new(); // Maps operator to their UI
@@ -31,7 +33,8 @@ namespace Unity.Muse.Common
         int m_CurrentMode;
 
         public event Action OnResized;
-        public new class UxmlFactory : UxmlFactory<NodesList, UxmlTraits> { }
+
+        internal new class UxmlFactory : UxmlFactory<NodesList, UxmlTraits> { }
 
         private DateTime? m_LastGenerateTime;
 
@@ -42,7 +45,7 @@ namespace Unity.Muse.Common
 
         public NodesList()
         {
-            this.ApplyTemplate("uxml/NodesList");
+            this.ApplyTemplate(PackageResources.nodesListTemplate);
             Init();
         }
 
@@ -77,6 +80,9 @@ namespace Unity.Muse.Common
             m_CurrentModel.OnGenerateButtonClicked += OnGenerateButtonClicked;
             m_CurrentModel.OnModeChanged += OnModeChanged;
             m_CurrentModel.OnSetReferenceOperator += OnSetReferenceOperator;
+            AccountInfo.Instance.OnOrganizationChanged += OnOrganizationChanged;
+            AccountInfo.Instance.OnClientStatusChanged += OnClientStatusChanged;
+            RefreshOperatorEnableState();
         }
 
         void UnsubscribeFromEvents()
@@ -90,11 +96,29 @@ namespace Unity.Muse.Common
             m_CurrentModel.OnGenerateButtonClicked -= OnGenerateButtonClicked;
             m_CurrentModel.OnModeChanged -= OnModeChanged;
             m_CurrentModel.OnSetReferenceOperator -= OnSetReferenceOperator;
+            AccountInfo.Instance.OnOrganizationChanged -= OnOrganizationChanged;
+            AccountInfo.Instance.OnClientStatusChanged -= OnClientStatusChanged;
         }
 
         void OnModelDispose()
         {
             SetModel(null);
+        }
+
+        void OnClientStatusChanged(ClientStatusResponse _)
+        {
+            RefreshOperatorEnableState();
+        }
+
+        void OnOrganizationChanged()
+        {
+            RefreshOperatorEnableState();
+        }
+
+        void RefreshOperatorEnableState()
+        {
+            foreach (var item in m_OperatorMap)
+                SetOperatorEnableState(item.Value);
         }
 
         void OnPointerLeave(PointerLeaveEvent evt)
@@ -144,6 +168,7 @@ namespace Unity.Muse.Common
             {
                 op.UnregisterFromEvents(m_CurrentModel);
             }
+
             var previousScrollOffset = m_ScrollView.scrollOffset;
             m_Operators.Clear();
             m_Container.Clear();
@@ -177,11 +202,23 @@ namespace Unity.Muse.Common
             if (!op.Enabled() || op.Hidden)
                 return;
             if (insertAtIndex == -1)
-                insertAtIndex = m_Container.childCount;         // Insert at the end by default
+                insertAtIndex = m_Container.childCount; // Insert at the end by default
 
             var operatorView = op.GetOperatorView(m_CurrentModel);
-            m_OperatorMap[op] = operatorView;
-            m_Container.Insert(insertAtIndex, operatorView);
+            if (operatorView != null)
+            {
+                m_OperatorMap[op] = operatorView;
+                m_Container.Insert(insertAtIndex, operatorView);
+                SetOperatorEnableState(operatorView);
+            }
+        }
+
+        void SetOperatorEnableState(VisualElement operatorView)
+        {
+            if (operatorView is GenerateOperatorUI generateUI)
+                generateUI.UpdateEnableState();
+            else
+                operatorView.SetEnabled(AccountInfo.Instance.IsClientUsable);
         }
 
         void RemoveOperator(IOperator op, out int foundIndex, out int removedAtIndex)
@@ -214,11 +251,25 @@ namespace Unity.Muse.Common
             SetView();
         }
 
+        public static bool IsVariation(IEnumerable<IOperator> operators)
+        {
+            var referenceOperator = operators.GetOperator<ReferenceOperator>();
+            var isReferenceOperatorEnabled = referenceOperator != null && referenceOperator.Enabled();
+            var isColorMode = isReferenceOperatorEnabled &&
+                referenceOperator.GetSettingEnum<ReferenceOperator.Mode>(ReferenceOperator.Setting.Mode) == ReferenceOperator.Mode.Color;
+            var isVariationFromArtifact =
+                isColorMode && !string.IsNullOrEmpty(referenceOperator.GetSettingString(ReferenceOperator.Setting.Guid));
+            var isVariationFromTexture = isColorMode && referenceOperator.GetSettingTex(ReferenceOperator.Setting.Image);
+
+            return isVariationFromArtifact || isVariationFromTexture;
+        }
+
         void OnGenerateButtonClicked()
         {
             var currentTime = DateTime.Now;
 
-            if(m_LastGenerateTime != null && (currentTime - m_LastGenerateTime.Value).TotalSeconds < GenerateCooldownTime)
+            Cooldown();
+            if (m_LastGenerateTime != null && (currentTime - m_LastGenerateTime.Value).TotalSeconds < GenerateCooldownTime)
                 return;
 
             m_LastGenerateTime = currentTime;
@@ -227,59 +278,74 @@ namespace Unity.Muse.Common
             var promptOperator = m_Operators.GetOperator<PromptOperator>();
             var referenceOperator = m_Operators.GetOperator<ReferenceOperator>();
             var isReferenceOperatorEnabled = referenceOperator != null && referenceOperator.Enabled();
-            var isColorMode = isReferenceOperatorEnabled &&
-                referenceOperator.GetSettingEnum<ReferenceOperator.Mode>(ReferenceOperator.Setting.Mode) == ReferenceOperator.Mode.Color;
-            var isVariationFromArtifact =
-                isColorMode && !string.IsNullOrEmpty(referenceOperator.GetSettingString(ReferenceOperator.Setting.Guid));
-            var isVariationFromTexture = isColorMode && referenceOperator.GetSettingTex(ReferenceOperator.Setting.Image);
             var isShape = isReferenceOperatorEnabled &&
                 referenceOperator.GetSettingTex(ReferenceOperator.Setting.Image) &&
                 referenceOperator.GetSettingEnum<ReferenceOperator.Mode>(ReferenceOperator.Setting.Mode) ==
                 ReferenceOperator.Mode.Shape;
+            var isVariation = IsVariation(m_Operators);
 
             if (!promptOperator.IsPromptValid())
                 return;
 
+            var operators = m_Operators.Select(x => x.Clone()).ToList();
+
             var modeType = ModesFactory.GetModeKeyFromIndex(m_CurrentMode);
             var groupArtifact = ArtifactFactory.CreateArtifact(modeType);
-            groupArtifact.SetOperators(m_Operators);
+            groupArtifact.SetOperators(operators);
             groupArtifact.StartGenerate(m_CurrentModel);
 
+            var generatedArtifacts = new List<Artifact>();
             for (var i = 0; i < generateOperator?.GetCount(); i++)
             {
                 var artifact = ArtifactFactory.CreateArtifact(modeType);
-                artifact.SetOperators(m_Operators);
+                artifact.SetOperators(operators);
 
-                if (isVariationFromArtifact || isVariationFromTexture)
+                if (isVariation)
                 {
-                    artifact.Variate(m_Operators);
+                    artifact.Variate(operators);
                 }
                 else if (isShape)
                 {
-                    artifact.Shape(m_Operators);
+                    artifact.Shape(operators);
                 }
                 else
                 {
                     artifact.Generate(m_CurrentModel);
                 }
 
-                m_CurrentModel.AddAsset(artifact);
+                generatedArtifacts.Add(artifact);
             }
+
+            // Add new artifacts after sending generate calls as adding artifact can change selection
+            foreach(var artifact in generatedArtifacts)
+                m_CurrentModel.AddAsset(artifact);
 
             // Cancel inpainting mode after generation settings have been sent, otherwise the inpainting mask would not be part of the generation
             m_CurrentModel.SetActiveTool(null);
         }
 
+        void Cooldown()
+        {
+            if (m_CurrentModel == null)
+                return;
+
+            var buttonData = m_CurrentModel.GetData<GenerateButtonData>();
+            if (!buttonData.isEnabled)
+                return;
+
+            buttonData.SetCooldown(this, GenerateCooldownTime);
+        }
+
         public void SetModel(Model model)
         {
-            if(model == m_CurrentModel)
+            if (model == m_CurrentModel)
                 return;
 
             UnsubscribeFromEvents();
 
             m_CurrentModel = model;
 
-            if(m_CurrentModel == null)
+            if (m_CurrentModel == null)
                 return;
 
             var currentMode = ModesFactory.GetModeIndexFromKey(model.CurrentMode);
@@ -325,6 +391,7 @@ namespace Unity.Muse.Common
                 referenceOp = new ReferenceOperator();
                 m_Operators.Add(referenceOp);
             }
+
             referenceOp.SetColorImage(artifact as Artifact<Texture2D>);
             m_CurrentModel.UpdateOperators(referenceOp);
             m_CurrentModel.SetActiveTool(null);

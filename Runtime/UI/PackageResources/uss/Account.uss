@@ -1,0 +1,189 @@
+:root {
+    --muse-subscription-dialog-dark: #3B0A2A;
+    --muse-subscription-dialog-light: #EB417A;
+    --muse-subscription-dialog-pressed: #9a2a50;
+}
+
+.muse-subscription-modal #appui-modal__content,
+.muse-subscription-modal #appui-modal {
+    --background-color: var(--muse-subscription-dialog-dark);
+    border-radius: var(--appui-sizing-700); /* Note: Needed to double Figma's to match design for unknown reason */
+}
+
+.muse-subscription-message Button.appui-dialog__primary-action,
+.muse-subscription-message Button.appui-button--accent {
+    background-color: var(--muse-subscription-dialog-light);
+    border-color: rgba(0,0,0,0);
+}
+
+.muse-subscription-dialog Button.appui-dialog__cancel-action {
+    background-color: rgba(0,0,0,0);
+    border-color: rgba(0,0,0,0);
+    cursor: link;
+}
+
+.muse-subscription-dialog #muse-dialog-description-container {
+    flex-direction: row;
+    align-items: center;
+}
+
+.muse-subscription-dialog {
+    min-width: 530px;
+    max-width: 670px;
+    width: 670px;
+    min-height: 330px;
+    max-height: 330px;
+    justify-content: space-between;
+}
+
+.muse-subscription-dialog.muse-subscription-dialog-started {
+    min-height: 400px;
+    max-height: 400px;
+}
+
+.muse-subscription-dialog Image {
+    min-height: 213px;
+    min-width: 182px;
+    max-height: 213px;
+    max-width: 182px;
+    -unity-background-scale-mode: stretch-to-fill;
+    flex-grow: 1;
+}
+
+.muse-subscription-dialog #muse-dialog-description-group {
+    flex-shrink: 1;
+    margin-left: var(--appui-static-spacing-300)
+}
+
+.muse-subscription-dialog #muse-description-title {
+    font-size: var(--appui-font-sizes-700);
+    -unity-font-style: bold;
+    color: var(--appui-primary-1300);
+}
+
+.muse-subscription-dialog #muse-description-secondary {
+    color: rgba(255, 255, 255, 0.48);
+    font-size: var(--appui-font-sizes-75);
+}
+
+.muse-subscription-dialog-start #muse-description-secondary {
+    margin-bottom: var(--appui-static-spacing-150);
+    margin-top: var(--appui-static-spacing-150);
+}
+
+.muse-subscription-message .muse-description-content-start {
+    margin-top: var(--appui-static-spacing-150);
+}
+
+.muse-subscription-message .muse-description-content-end {
+    margin-bottom: var(--appui-static-spacing-150);
+}
+
+.muse-subscription-dialog #muse-description-primary {
+    font-size: var(--appui-font-sizes-100);
+    -unity-font-style: bold;
+    color: rgba(255, 255, 255, 0.82);
+    min-height: 24px;
+}
+
+.muse-subscription-dialog #muse-description-3 {
+    font-size: var(--appui-font-sizes-100);
+    color: rgba(255, 255, 255, 0.82);
+    min-height: 24px;
+}
+
+.muse-subscription-dialog .appui-dialog__content {
+    margin-top: 0;
+}
+
+#muse-dropdown-logo {
+    min-height: 16px;
+    max-height: 16px;
+    min-width: 16px;
+    max-width: 16px;
+}
+
+AccountDropdown Button {
+    padding-right: var(--appui-spacing-100);
+    padding-left: var(--appui-spacing-100);
+}
+
+.muse-subscription-start-message {
+    width: 250px;
+    height: 182px;
+    padding: var(--appui-static-spacing-200);
+    justify-content: space-between;
+}
+
+.muse-subscription-start-message #muse-message-title {
+    -unity-font-style: bold;
+    color: var(--appui-primary-1300);
+    font-size: var(--appui-font-sizes-300);
+    margin-bottom: var(--appui-static-spacing-125);
+    flex-shrink: 1;
+}
+
+.muse-subscription-start-message #muse-message-description {
+    margin-bottom: var(--appui-static-spacing-250);
+    font-size: var(--appui-font-sizes-100);
+}
+
+.muse-subscription-start-message #muse-message-title-row {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.muse-subscription-start-popover #appui-popover__shadow-element {
+    border-radius: var(--appui-sizing-320);
+}
+
+.muse-subscription-start-popover .appui-popover__container {
+    background-color: rgb(0,0,0);
+    border-width: 1px;
+    border-color: var(--muse-subscription-dialog-light);
+    border-radius: var(--appui-sizing-320);
+}
+
+.muse-subscription-start-popover #appui-popover__shadow-element {
+    --background-color: rgba(0,0,0, 1);
+    border-radius: var(--appui-sizing-700);
+}
+
+.muse-account-settings {
+    width: 300px;
+    padding: var(--appui-spacing-300);
+    padding-bottom: var(--appui-spacing-125)
+}
+
+.muse-account-settings .row {
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--appui-spacing-125);
+}
+
+#muse-account-usage-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+#muse-account-usage-row .usage {
+    -unity-font-style: bold;
+    margin-left: var(--appui-spacing-125);
+}
+
+#muse-account-usage-group .muse-usage-progress {
+    margin-top: var(--appui-spacing-125);
+}
+
+#muse-account-usage-group #muse-usage-exceeded {
+    padding: var(--appui-spacing-200);
+    background-color: var(--appui-primary-400);
+    border-radius: var(--appui-spacing-100);
+    margin-bottom: var(--appui-spacing-100);
+}
+
+#muse-account-organization-dropdown {
+    margin-top: var(--appui-spacing-125);
+    margin-bottom: var(--appui-spacing-125);
+}

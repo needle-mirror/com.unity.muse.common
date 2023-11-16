@@ -96,6 +96,15 @@ namespace Unity.Muse.Common
             else
                 s_Shortcuts[keyCode] = new List<MuseShortcut> { shortcut };
         }
+        
+        public static void AddShortcuts(IEnumerable<MuseShortcut> shortcuts)
+        {
+            if (shortcuts == null)
+                return;
+
+            foreach (var shortcut in shortcuts)
+                AddShortcut(shortcut);
+        }
 
         public static void RemoveShortcut(MuseShortcut shortcut)
         {
@@ -108,6 +117,15 @@ namespace Unity.Muse.Common
                 if (s_Shortcuts[keyCode] != null)
                     s_Shortcuts[keyCode].Remove(shortcut);
             }
+        }
+        
+        public static void RemoveShortcuts(IEnumerable<MuseShortcut> shortcuts)
+        {
+            if (shortcuts == null)
+                return;
+
+            foreach (var shortcut in shortcuts)
+                RemoveShortcut(shortcut);
         }
     }
 }

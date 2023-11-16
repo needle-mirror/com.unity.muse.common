@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine.Scripting;
 
 #if !UNITY_EDITOR
 using UnityEngine;
@@ -31,12 +32,12 @@ namespace Unity.Muse.Common
 #if !UNITY_EDITOR
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
 #endif
+        [Preserve]
         public static void RegisterDefaultOperators()
         {
             RegisterOperator<GenerateOperator>();
             RegisterOperator<LoraOperator>();
             RegisterOperator<MaskOperator>();
-            RegisterOperator<NegativePromptOperator>();
             RegisterOperator<PromptOperator>();
             RegisterOperator<ReferenceOperator>();
             RegisterOperator<UpscaleOperator>();

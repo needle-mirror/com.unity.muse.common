@@ -32,16 +32,9 @@ namespace Unity.Muse.Common
         public void ActivateOperators();
         
         /// <summary>
-        /// Get the Tool Button Data
+        /// Returning the Tool View
         /// </summary>
-        /// <returns>Tool Button Data</returns>
-        public ToolButtonData GetToolData();
-        
-        /// <summary>
-        /// Get the Settings Visual Element
-        /// </summary>
-        /// <returns> Settings Visual Element</returns>
-        public VisualElement GetSettings();
+        public VisualElement GetToolView();
        
        /// <summary>
        /// Tool button data

@@ -14,8 +14,10 @@ namespace Unity.Muse.Common
             get
             {
                 #if UNITY_EDITOR
-                if (s_WindowIcon == null)
-                    s_WindowIcon = UnityEditor.EditorGUIUtility.isProSkin ? Resources.Load<Texture2D>("Icons/d_Muse") : Resources.Load<Texture2D>("Icons/Muse");
+                if (!s_WindowIcon)
+                    s_WindowIcon = UnityEditor.EditorGUIUtility.isProSkin 
+                        ? ResourceManager.Load<Texture2D>(PackageResources.darkMuseIcon) 
+                        : ResourceManager.Load<Texture2D>(PackageResources.museIcon);
                 #endif
                 return s_WindowIcon;
             }
@@ -25,8 +27,8 @@ namespace Unity.Muse.Common
         {
             get
             {
-                if (s_AssetIcon == null)
-                    s_AssetIcon = Resources.Load<Texture2D>("Icons/MuseAssetIcon");
+                if (!s_AssetIcon)
+                    s_AssetIcon = ResourceManager.Load<Texture2D>(PackageResources.museAssetIcon);
                 return s_AssetIcon;
             }
         }

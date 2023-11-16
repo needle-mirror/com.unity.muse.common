@@ -11,14 +11,15 @@ namespace Unity.Muse.Common
         public string mask_type;
         public string guid;
 
-        public InpaintingItemRequest(string prompt, string sourceGuid, Texture2D mask, MaskType masktype, TextToImageRequest settings, string accessToken) : base(prompt, settings, accessToken)
+        public InpaintingItemRequest(string prompt, string sourceGuid, Texture2D mask, MaskType masktype, TextToImageRequest settings)
+            : base(prompt, settings)
         {
             mask_type = masktype.GetDescription();
             mask_image_b64 = Convert.ToBase64String(mask.EncodeToPNG());
             guid = sourceGuid;
         }
     }
-    internal enum MaskType
+    enum MaskType
     {
         [Description("user_defined")]
         UserDefined,
@@ -26,7 +27,7 @@ namespace Unity.Muse.Common
         InpaintVariation
     }
 
-    internal static class EnumHelper
+    static class EnumHelper
      {
         public static string GetDescription(this Enum value)
         {

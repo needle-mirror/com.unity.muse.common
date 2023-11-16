@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using UltraLiteDB;
 using Unity.Muse.Common.Cache.LiteDb;
@@ -168,11 +169,9 @@ namespace Unity.Muse.Common
         {
             try
             {
-                foreach (var artifact in artifacts)
-                {
-                    var query = Query.Where("Guid", value => value.AsString == artifact.Guid);
-                    collection.Delete(query);
-                }
+                var guids = artifacts.Where(artifact => artifact != null).Select(artifact => artifact.Guid);
+                var query = Query.Where("Guid", value => guids.Any(guid => guid == value.AsString));
+                collection.Delete(query);
             }
             catch (Exception e)
             {
