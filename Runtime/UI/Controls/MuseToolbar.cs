@@ -30,7 +30,7 @@ namespace Unity.Muse.Common
         /// Size Slider
         /// </summary>
         public TouchSliderFloat SizeSlider { get; private set; }
-        
+
         const string k_SelectedClassName = "muse-toolbar--selected";
 
         public MuseToolbar()
@@ -79,13 +79,6 @@ namespace Unity.Muse.Common
 
             Add(actionGroup);
 
-            DeleteBtn = new IconButton("delete--regular")
-            {
-                tooltip = "Clear"
-            };
-            
-            Add(DeleteBtn);
-
             SizeSlider = new TouchSliderFloat()
             {
                 label = "Size",
@@ -96,16 +89,23 @@ namespace Unity.Muse.Common
                 {
                     width = 138
                 }
-            }; 
+            };
             Add(SizeSlider);
-            
+
+            DeleteBtn = new IconButton("delete--regular")
+            {
+                tooltip = "Clear"
+            };
+
+            Add(DeleteBtn);
+
             PanBtn.clickable.clicked += OnPanClicked;
             PaintBtn.clickable.clicked += OnPaintClicked;
             EraseBtn.clickable.clicked += OnEraseClicked;
 
             SelectButton(PanBtn);
         }
-        
+
         /// <summary>
         /// Set the button's selected state
         /// </summary>
@@ -115,7 +115,7 @@ namespace Unity.Muse.Common
             PaintBtn.EnableInClassList(k_SelectedClassName, button == PaintBtn);
             EraseBtn.EnableInClassList(k_SelectedClassName, button == EraseBtn);
             PanBtn.EnableInClassList(k_SelectedClassName, button == PanBtn);
-            
+
             DeleteBtn.SetEnabled(button == PaintBtn || button == EraseBtn);
             SizeSlider.SetEnabled(button == PaintBtn || button == EraseBtn);
         }
@@ -129,7 +129,7 @@ namespace Unity.Muse.Common
         {
             SelectButton(EraseBtn);
         }
-        
+
         void OnPanClicked()
         {
             SelectButton(PanBtn);

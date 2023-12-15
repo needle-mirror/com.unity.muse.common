@@ -4,6 +4,17 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-pre.3] - 2023-12-15
+
+### Fixed
+
+- Fix error when trying to build a Unity Project.
+
+### Changed
+
+- Brush tool order in the Refinement mode.
+- Doodle pad's cursor color in light mode.
+
 ## [1.0.0-pre.2] - 2023-11-16
 
 ## [1.0.0-pre.1] - 2023-11-16

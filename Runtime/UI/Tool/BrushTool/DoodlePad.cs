@@ -1,6 +1,5 @@
 using System;
 using Unity.AppUI.UI;
-using Unity.Muse.Common;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -20,10 +19,13 @@ namespace Unity.Muse.Common.Tools
 
         const float k_LineWidth = 1.0f;
         const float k_SegmentLength = 10.0f;
-        static readonly Color k_LineColor = Color.white;
+        readonly Color k_LineColor = Color.white;
 
         public DoodleCursorOverlay()
         {
+#if UNITY_EDITOR
+            k_LineColor = UnityEditor.EditorGUIUtility.isProSkin ? Color.white : Color.black;
+#endif
             pickingMode = PickingMode.Ignore;
             generateVisualContent += GenerateVisualContent;
         }
