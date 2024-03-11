@@ -5,8 +5,6 @@ namespace Unity.Muse.Common
 {
     internal class ContextMenu : VisualElement, IControl
     {
-        internal new class UxmlFactory : UxmlFactory<ContextMenu, UxmlTraits> { }
-
         public void SetModel(Model model)
         {
            // throw new System.NotImplementedException();

@@ -2,18 +2,26 @@ using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Unity.AppUI.UI;
+using Unity.Muse.Common.Utils;
 
 namespace Unity.Muse.Common
 {
-    internal class LoadableImage : Image
+#if ENABLE_UXML_SERIALIZED_DATA
+    [UxmlElement]
+#endif
+    internal partial class LoadableImage : Image
     {
         const string k_ClassStatusElement = "li-element";
         const string k_ResolutionClassName = "li-resolution-chip";
 
         internal readonly GenericLoader GenericLoader;
         readonly Chip m_ResolutionChip;
+        readonly VisualElement m_ResolutionChipContainer;
 
         internal GenericLoader.State LoadingState => GenericLoader.LoadingState;
+        
+        public LoadableImage()
+            : this(true) { }
 
         protected LoadableImage(bool autoLoading = true)
         {
@@ -29,10 +37,15 @@ namespace Unity.Muse.Common
                     height = Length.Percent(100)
                 }
             };
+            GenericLoader.SetDisplay(this, autoLoading);
 
-            Add(GenericLoader);
+            m_ResolutionChip = new Chip
+            {
+                variant = Chip.Variant.Filled,
+                label = "2K"
+            };
 
-            var resolutionChipContainer = new VisualElement
+            m_ResolutionChipContainer = new VisualElement
             {
                 style =
                 {
@@ -44,27 +57,16 @@ namespace Unity.Muse.Common
                 pickingMode = PickingMode.Ignore
             };
 
-            Add(resolutionChipContainer);
-
-            m_ResolutionChip = new Chip
-            {
-                variant = Chip.Variant.Filled,
-                label = "2K",
-                style =
-                {
-                   display = DisplayStyle.None
-                }
-            };
-
             m_ResolutionChip.AddToClassList(k_ResolutionClassName);
 
-            resolutionChipContainer.Add(m_ResolutionChip);
+            m_ResolutionChipContainer.Add(m_ResolutionChip);
         }
 
-        protected void OnLoaded(UnityEngine.Texture texture)
+        protected void OnLoaded(Texture texture)
         {
             image = texture;
             GenericLoader.SetState(GenericLoader.State.None);
+            GenericLoader.SetDisplay(this, false);
 
             UpdateResolutionChip(texture);
         }
@@ -72,16 +74,19 @@ namespace Unity.Muse.Common
         public void OnError(string error)
         {
             GenericLoader.SetState(GenericLoader.State.Error, error);
+            GenericLoader.SetDisplay(this, true);
         }
 
         protected void OnLoading()
         {
             image = null;
             GenericLoader.SetState(GenericLoader.State.Loading);
+            GenericLoader.SetDisplay(this, true);
         }
 
-        void UpdateResolutionChip(UnityEngine.Texture texture)
+        void UpdateResolutionChip(Texture texture)
         {
+
             if (texture)
             {
                 m_ResolutionChip.label = texture.width switch
@@ -91,12 +96,13 @@ namespace Unity.Muse.Common
                     8192 => "8K",
                     _ => string.Empty
                 };
-                m_ResolutionChip.style.display = string.IsNullOrEmpty(m_ResolutionChip.label) ? DisplayStyle.None : DisplayStyle.Flex;
             }
             else
             {
-                m_ResolutionChip.style.display = DisplayStyle.None;
+                m_ResolutionChip.label = string.Empty;
             }
+
+            m_ResolutionChipContainer.SetDisplay(this, !string.IsNullOrEmpty(m_ResolutionChip.label));
         }
     }
 }

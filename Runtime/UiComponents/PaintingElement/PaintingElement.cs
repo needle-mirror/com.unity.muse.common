@@ -4,8 +4,11 @@ using UnityEngine.UIElements;
 
 namespace Unity.Muse.Common
 {
-    internal partial class PaintingElement : Image, IDisposable
+    internal class PaintingElement : Image, IDisposable
     {
+        public const string rootClass = "ng-paintelement-image-root";
+        public const string maskClass = "ng-paintelement-image-mask";
+        
         bool Seamless { get; set; }
         public bool WrapAround { get; set; }
 

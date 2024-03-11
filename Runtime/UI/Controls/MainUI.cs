@@ -6,14 +6,20 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using Button = Unity.AppUI.UI.Button;
 
+#pragma warning disable 0067
+
 namespace Unity.Muse.Common
 {
-    internal class MainUI : VisualElement, IControl
+#if ENABLE_UXML_SERIALIZED_DATA
+    [UxmlElement]
+#endif
+    internal partial class MainUI : VisualElement, IControl
     {
         [Serializable]
         class UISize : IModelData
         {
             public event Action OnModified;
+            public event Action OnSaveRequested;
 
             [SerializeField]
             float m_NodeListWidth = k_NodeListMinWidth;
@@ -55,7 +61,9 @@ namespace Unity.Muse.Common
             }
         }
 
+#if ENABLE_UXML_TRAITS
         internal new class UxmlFactory : UxmlFactory<MainUI, UxmlTraits> { }
+#endif
 
         bool m_Initialized;
         Canvas m_Canvas;
@@ -63,7 +71,6 @@ namespace Unity.Muse.Common
         NodesList m_NodesList;
         AssetsList m_AssetsList;
         ScopeToolbar m_ScopeToolbar;
-        SignIn m_SignIn;
         AccountDropdown m_AccountDropdown;
 
         int m_Mode;
@@ -94,36 +101,14 @@ namespace Unity.Muse.Common
 #endif
         }
 
-        void OnOrganizationChanged()
-        {
-            if (panel is null)
-                return;
-
-            if (AccountInfo.Instance.IsSubscribed)
-            {
-                AccountUtility.DismissSubscriptionDialog(this);
-                m_AccountDropdown?.ShowSubscriptionStartMessage();
-            }
-            else
-            {
-                TryDisplaySubscriptionDialog();
-            }
-        }
-
-        void TryDisplaySubscriptionDialog()
-        {
-            AccountUtility.TryDisplaySubscriptionDialog(model, this);
-        }
-
         void CreateAccountDropdown()
         {
             if (model is null || m_AccountDropdown is not null)
                 return;
 
-            m_AccountDropdown = new AccountDropdown(this);
+            m_AccountDropdown = new AccountDropdown();
             model.AddToToolbar(m_AccountDropdown, 1, ToolbarPosition.Right);
         }
-
 
         public void SetModel(Model model)
         {
@@ -132,7 +117,6 @@ namespace Unity.Muse.Common
 
             Init();
             this.model = model;
-            this.model.OnLoggedInStateChanged += OnLoggedInStateChanged;
             this.model.OnModeChanged += OnModeChanged;
             model.ModeChanged(ModesFactory.GetModeIndexFromKey(model.CurrentMode));
             schedule.Execute(CreateAccountDropdown); // Wait until the controltoolbar is hooked up to the model events
@@ -207,7 +191,6 @@ namespace Unity.Muse.Common
             m_NodesList = this.Q<NodesList>();
             m_AssetsList = this.Q<AssetsList>();
             m_ScopeToolbar = this.Q<ScopeToolbar>();
-            m_SignIn = this.Q<SignIn>();
             m_Initialized = true;
         }
 
@@ -217,13 +200,9 @@ namespace Unity.Muse.Common
             model.OnFinishRefineArtifact += OnFinishRefineArtifact;
             model.OnDispose += OnDispose;
             model.OnArtifactSelected += OnArtifactSelected;
-            model.OnLoggedInStateChanged += OnLoggedInStateChanged;
             model.OnModeChanged += OnModeChanged;
             model.OnServerError += OnServerError;
-            RegisterCallback<AttachToPanelEvent>(AttachToPanel);
             GenerativeAIBackend.OnServerError += OnServerError;
-            AccountInfo.Instance.OnOrganizationChanged += OnOrganizationChanged;
-            TryDisplaySubscriptionDialog();
         }
 
         void RemoveModelListeners()
@@ -232,27 +211,9 @@ namespace Unity.Muse.Common
             model.OnFinishRefineArtifact -= OnFinishRefineArtifact;
             model.OnDispose -= OnDispose;
             model.OnArtifactSelected -= OnArtifactSelected;
-            model.OnLoggedInStateChanged -= OnLoggedInStateChanged;
             model.OnModeChanged -= OnModeChanged;
             model.OnServerError -= OnServerError;
-            UnregisterCallback<AttachToPanelEvent>(AttachToPanel);
             GenerativeAIBackend.OnServerError -= OnServerError;
-            AccountInfo.Instance.OnOrganizationChanged -= OnOrganizationChanged;
-        }
-
-        void AttachToPanel(AttachToPanelEvent evt)
-        {
-            TryDisplaySubscriptionDialog();
-        }
-
-        void OnLoggedInStateChanged(bool show)
-        {
-            m_SignIn.style.display = show ? DisplayStyle.None : DisplayStyle.Flex;
-            m_ControlToolbar.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
-            m_NodesList.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
-            m_AssetsList.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
-
-            UpdateCanvasVisibility();
         }
 
         void OnMainUIGeometryChanged(GeometryChangedEvent evt)

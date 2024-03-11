@@ -8,8 +8,11 @@ namespace Unity.Muse.Common.Tools
     {
         protected Model m_CurrentModel;
         PaintCanvasToolManipulator<T> m_CurrentManipulator;
+        protected PanTool m_PanTool;
         PaintingManipulatorSettings<T> m_Settings;
         MuseToolbar m_Toolbar;
+
+        public DoodleModifierState currentState => m_CurrentManipulator.currentState;
 
         public CanvasManipulator GetToolManipulator()
         {
@@ -26,8 +29,17 @@ namespace Unity.Muse.Common.Tools
 
         protected virtual void Initialize()
         {
+            m_PanTool ??= new PanTool();
             m_CurrentManipulator ??= new PaintCanvasToolManipulator<T>(m_CurrentModel, new Vector2Int(2, 2));
-            m_Settings ??= new PaintingManipulatorSettings<T>(this, m_CurrentManipulator);
+            m_Settings ??= new PaintingManipulatorSettings<T>(m_PanTool, this, m_CurrentManipulator);
+            m_CurrentModel.OnArtifactSelected += OnArtifactSelected;
+            m_CurrentModel.SetDefaultRefineTool(m_PanTool);
+        }
+
+        protected virtual void OnArtifactSelected(Artifact artifact)
+        {
+            if (m_CurrentModel)
+                m_CurrentModel.SetActiveTool(m_CurrentModel.isRefineMode ? m_PanTool : null);
         }
 
         public virtual bool EvaluateEnableState(Artifact artifact)
@@ -89,8 +101,9 @@ namespace Unity.Muse.Common.Tools
 
     internal class PaintingManipulatorSettings<T> where T: class, IMaskOperator
     {
-        MuseToolbar m_Root;
+        MuseToolbar m_MuseToolbar;
         BrushTool<T> m_BrushTool;
+        PanTool m_PanTool;
         PaintCanvasToolManipulator<T> m_ToolManipulator;
         bool m_IsInitialized;
         List<MuseShortcut> m_Shortcuts;
@@ -98,8 +111,9 @@ namespace Unity.Muse.Common.Tools
 
         private PaintingManipulatorSettings() { }
 
-        public PaintingManipulatorSettings(BrushTool<T> brushTool, PaintCanvasToolManipulator<T> paintManipulator)
+        public PaintingManipulatorSettings(PanTool panTool, BrushTool<T> brushTool, PaintCanvasToolManipulator<T> paintManipulator)
         {
+            m_PanTool = panTool;
             m_BrushTool = brushTool;
             m_ToolManipulator = paintManipulator;
             Init();
@@ -115,60 +129,32 @@ namespace Unity.Muse.Common.Tools
             if (m_IsInitialized)
                 return;
 
-            m_Root = new MuseToolbar();
+            m_MuseToolbar = new MuseToolbar();
 
-            m_Root.SizeSlider.label = "Radius";
-            m_Root.SizeSlider.tooltip = TextContent.controlMaskBrushSizeTooltip;
-            m_Root.SizeSlider.incrementFactor = 0.1f;
-            m_Root.SizeSlider.formatString = "F1";
-            m_Root.SizeSlider.lowValue = 3.0f;
-            m_Root.SizeSlider.highValue = 50.0f;
-            m_Root.SizeSlider.value = m_BrushTool.radius;
-            m_Root.SizeSlider.style.width = 150.0f;
+            m_MuseToolbar.SizeSlider.label = "Radius";
+            m_MuseToolbar.SizeSlider.tooltip = TextContent.controlMaskBrushSizeTooltip;
+            m_MuseToolbar.SizeSlider.incrementFactor = 0.1f;
+            m_MuseToolbar.SizeSlider.formatString = "F1";
+            m_MuseToolbar.SizeSlider.lowValue = 3.0f;
+            m_MuseToolbar.SizeSlider.highValue = 50.0f;
+            m_MuseToolbar.SizeSlider.value = m_BrushTool.radius;
+            m_MuseToolbar.SizeSlider.style.width = 150.0f;
 
-            m_Root.SizeSlider.RegisterValueChangedCallback(evt =>
+            m_MuseToolbar.SizeSlider.RegisterValueChangedCallback(evt =>
             {
                 m_BrushTool.radius = evt.newValue;
             });
 
-            m_Root.EraseBtn.clickable.clicked += () =>
-            {
-                if (m_CurrentModel != null)
-                    m_CurrentModel.SetActiveTool(m_BrushTool);
+            m_MuseToolbar.EraseBtn.clickable.clicked += SelectEraser;
 
-                m_BrushTool.SetEraserMode(true);
+            m_MuseToolbar.PaintBtn.clickable.clicked += SelectPaintBrush;
 
-                m_BrushTool.ActivateOperators();
-                m_BrushTool.radius = m_Root.SizeSlider.value;
-            };
+            m_MuseToolbar.DeleteBtn.clickable.clicked += ClearDoodle;
 
-            m_Root.PaintBtn.clickable.clicked += () =>
-            {
-                if (m_CurrentModel != null)
-                    m_CurrentModel.SetActiveTool(m_BrushTool);
+            m_MuseToolbar.PanBtn.clickable.clicked += SelectPan;
 
-                m_BrushTool.SetEraserMode(false);
-
-               m_BrushTool.ActivateOperators();
-               m_BrushTool.radius = m_Root.SizeSlider.value;
-            };
-
-            m_Root.DeleteBtn.clickable.clicked += () =>
-            {
-                m_BrushTool.Clear();
-                m_BrushTool.radius = m_Root.SizeSlider.value;
-            };
-
-            m_Root.PanBtn.clickable.clicked += () =>
-            {
-                m_BrushTool.SetEraserMode(false);
-
-                if (m_CurrentModel != null)
-                    m_CurrentModel.SetActiveTool(null);
-            };
-
-            m_Root.RegisterCallback<AttachToPanelEvent>(OnAttach);
-            m_Root.RegisterCallback<DetachFromPanelEvent>(OnDetach);
+            m_MuseToolbar.RegisterCallback<AttachToPanelEvent>(OnAttach);
+            m_MuseToolbar.RegisterCallback<DetachFromPanelEvent>(OnDetach);
 
             m_IsInitialized = true;
         }
@@ -178,14 +164,13 @@ namespace Unity.Muse.Common.Tools
             m_CurrentModel.OnActiveToolChanged += OnActiveToolChanged;
         }
 
-        internal virtual void OnActiveToolChanged(ICanvasTool obj)
+        internal virtual void OnActiveToolChanged(ICanvasTool canvasTool)
         {
-            if (obj is BrushTool<T>)
-                AddShortcuts();
-            else
+            AddShortcuts();
+            if (canvasTool is not BrushTool<T>)
             {
-                RemoveShortcuts();
-                m_Root.SelectButton(m_Root.PanBtn);
+                m_MuseToolbar.SelectButton(m_MuseToolbar.PanBtn);
+                m_MuseToolbar.PanBtn.Focus();
             }
         }
 
@@ -200,34 +185,65 @@ namespace Unity.Muse.Common.Tools
         {
             RemoveShortcuts();
 
-            m_Shortcuts = new List<MuseShortcut>
-            {
-                new("Increase Brush Size", OnIncreaseBrushSize, KeyCode.RightBracket, source: m_Root),
-                new("Decrease Brush Size", OnDecreaseBrushSize, KeyCode.LeftBracket, source: m_Root),
-                new("Toggle Brush", ToggleBrush, KeyCode.B, source: m_Root),
-                new("Toggle Eraser", ToggleEraser, KeyCode.E, source: m_Root)
-            };
-            if (Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.OSXPlayer)
-                m_Shortcuts.Add(new MuseShortcut("Clear", ClearDoodle, KeyCode.Backspace, KeyModifier.Action, source: m_Root));
-            else
-                m_Shortcuts.Add(new MuseShortcut("Clear", ClearDoodle, KeyCode.Delete, source: m_Root));
+            m_Shortcuts = new List<MuseShortcut>();
 
-            foreach (var shortcut in m_Shortcuts)
-                MuseShortcuts.AddShortcut(shortcut);
+            if (m_CurrentModel.ActiveTool is BrushTool<T>)
+            {
+                m_Shortcuts.AddRange(GetBrushToolShortcuts());
+            }
+
+            m_Shortcuts.AddRange(GetCommonShortcuts());
+
+            MuseShortcuts.AddShortcuts(m_Shortcuts);
+        }
+
+        IEnumerable<MuseShortcut> GetCommonShortcuts()
+        {
+            var shortcuts = new List<MuseShortcut>()
+            {
+                new("Select Pan", SelectPan, KeyCode.Alpha1, source: m_MuseToolbar),
+                new("Select Pan", SelectPan, KeyCode.P, source: m_MuseToolbar),
+                new("Select Paint Brush", SelectPaintBrush, KeyCode.Alpha2, source: m_MuseToolbar),
+                new("Select Paint Brush", SelectPaintBrush, KeyCode.B, source: m_MuseToolbar),
+                new("Select Eraser", SelectEraser, KeyCode.Alpha3, source: m_MuseToolbar),
+                new("Select Eraser", SelectEraser, KeyCode.E, source: m_MuseToolbar)
+            };
+
+            return shortcuts;
+        }
+
+        IEnumerable<MuseShortcut> GetBrushToolShortcuts()
+        {
+            var shortcuts = new List<MuseShortcut>()
+            {
+                new("Increase Brush Size", OnIncreaseBrushSize, KeyCode.UpArrow, source: m_MuseToolbar),
+                new("Decrease Brush Size", OnDecreaseBrushSize, KeyCode.DownArrow, source: m_MuseToolbar)
+
+            };
+
+            if (Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.OSXPlayer)
+            {
+                shortcuts.Add(new MuseShortcut("Clear", ClearDoodle, KeyCode.Backspace, KeyModifier.Action, source: m_MuseToolbar));
+            }
+            else
+            {
+                shortcuts.Add(new MuseShortcut("Clear", ClearDoodle, KeyCode.Delete, source: m_MuseToolbar));
+            }
+
+            return shortcuts;
         }
 
         void RemoveShortcuts()
         {
             if (m_Shortcuts != null)
             {
-                foreach (var shortcut in m_Shortcuts)
-                    MuseShortcuts.RemoveShortcut(shortcut);
+                MuseShortcuts.RemoveShortcuts(m_Shortcuts);
             }
         }
 
         public VisualElement GetSettings()
         {
-            return m_Root;
+            return m_MuseToolbar;
         }
 
         void OnIncreaseBrushSize()
@@ -235,7 +251,7 @@ namespace Unity.Muse.Common.Tools
             if (!isFocused)
                 return;
 
-            m_Root.SizeSlider.value += k_RadiusStep;
+            m_MuseToolbar.SizeSlider.value += k_RadiusStep;
         }
 
         const float k_RadiusStep = 3f;
@@ -245,25 +261,53 @@ namespace Unity.Muse.Common.Tools
             if (!isFocused)
                 return;
 
-            m_Root.SizeSlider.value -= k_RadiusStep;
+            m_MuseToolbar.SizeSlider.value -= k_RadiusStep;
         }
 
-        void ToggleBrush()
+        void SelectPan()
         {
             if (!isFocused)
                 return;
 
-            m_Root.SelectButton(m_Root.PaintBtn);
+            m_MuseToolbar.SelectButton(m_MuseToolbar.PanBtn);
+
+            if (m_CurrentModel)
+                m_CurrentModel.SetActiveTool(m_PanTool);
+
             m_BrushTool.SetEraserMode(false);
         }
 
-        void ToggleEraser()
+        void SelectPaintBrush()
         {
             if (!isFocused)
                 return;
 
-            m_Root.SelectButton(m_Root.EraseBtn);
+            m_MuseToolbar.SelectButton(m_MuseToolbar.PaintBtn);
+
+            if (m_CurrentModel)
+                m_CurrentModel.SetActiveTool(m_BrushTool);
+
+            m_BrushTool.SetEraserMode(false);
+
+            m_BrushTool.ActivateOperators();
+            m_BrushTool.radius = m_MuseToolbar.SizeSlider.value;
+
+        }
+
+        void SelectEraser()
+        {
+            if (!isFocused)
+                return;
+
+            m_MuseToolbar.SelectButton(m_MuseToolbar.EraseBtn);
+
+            if (m_CurrentModel)
+                m_CurrentModel.SetActiveTool(m_BrushTool);
+
             m_BrushTool.SetEraserMode(true);
+
+            m_BrushTool.ActivateOperators();
+            m_BrushTool.radius = m_MuseToolbar.SizeSlider.value;
         }
 
         void ClearDoodle()
@@ -272,6 +316,7 @@ namespace Unity.Muse.Common.Tools
                 return;
 
             m_BrushTool.Clear();
+            m_BrushTool.radius = m_MuseToolbar.SizeSlider.value;
         }
 
         bool isFocused
@@ -279,7 +324,9 @@ namespace Unity.Muse.Common.Tools
             get
             {
                 var focusedElement = m_ToolManipulator?.target?.panel?.focusController?.focusedElement;
-                return focusedElement == m_ToolManipulator?.target;
+                var toolbarFocusedElement = m_MuseToolbar?.focusController?.focusedElement;
+
+                return (focusedElement == m_ToolManipulator?.target) || (focusedElement == toolbarFocusedElement);
             }
         }
     }

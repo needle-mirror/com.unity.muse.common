@@ -1,14 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Unity.AppUI.UI;
+using Unity.Muse.Common.Account;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Unity.Muse.Common.Editor
 {
-    internal class MuseEditor : EditorWindow
+    internal class MuseEditor : EditorWindow, IHasCustomMenu
     {
         public MainUI mainUI;
         IPanel m_Panel;
@@ -25,8 +27,14 @@ namespace Unity.Muse.Common.Editor
         Vector2 m_MinSizeWindow = new(500f, 350f);
 
         string defaultWindowTitle => TextContent.defaultAssetName(ModesFactory.GetModeData(m_Mode)?.title ?? "Muse Generator");
-        
+
         bool m_Maximized;
+
+        public void AddItemsToMenu(GenericMenu menu)
+        {
+            menu.AddItem(new GUIContent("Muse/Preferences"), false, () => SettingsService.OpenUserPreferences("Preferences/Muse"));
+            menu.AddItem(new GUIContent("Muse/Project Settings"), false, () => SettingsService.OpenProjectSettings("Project/Muse"));
+        }
 
         void OnEnable()
         {
@@ -38,6 +46,7 @@ namespace Unity.Muse.Common.Editor
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
             UpdateTitle();
             minSize = m_MinSizeWindow;
+            saveChangesMessage = TextContent.savePopupMessage;
         }
 
         void OnDisable()
@@ -91,9 +100,11 @@ namespace Unity.Muse.Common.Editor
             var mainui = ResourceManager.Load<VisualTreeAsset>(PackageResources.mainUITemplate);
             mainui.CloneTree(rootVisualElement);
             mainUI = rootVisualElement.Q<MainUI>();
+            rootVisualElement.styleSheets.Add(ResourceManager.Load<StyleSheet>(PackageResources.museTheme));
             var museRoot = rootVisualElement.Q<Panel>("muse-root");
-            museRoot.theme = EditorGUIUtility.isProSkin ? "dark" : "light";
+            museRoot.theme = EditorGUIUtility.isProSkin ? "editor-dark" : "editor-light";
             mainUI.AddToClassList("unity-editor");
+            AccountController.Register(this);
 
             if (!string.IsNullOrEmpty(m_Mode))
             {
@@ -350,12 +361,12 @@ namespace Unity.Muse.Common.Editor
         void CheckMaximized()
         {
             if (maximized == m_Maximized) return;
-            
+
             m_Maximized = maximized;
             mainUI?.UpdateView();
             if (!maximized)
             {
-                rootVisualElement.ProvideContext(CurrentModel); 
+                rootVisualElement.ProvideContext(CurrentModel);
             }
         }
     }

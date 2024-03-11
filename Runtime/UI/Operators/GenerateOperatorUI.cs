@@ -136,7 +136,7 @@ namespace Unity.Muse.Common
         {
             if (m_CurrentGenerateButton != null)
             {
-                var data = m_CurrentModel.GetData<GenerateButtonData>(); 
+                var data = m_CurrentModel.GetData<GenerateButtonData>();
                 SetGenerateButtonEnabled(data.isEnabled);
                 m_CurrentGenerateButton.tooltip = data.tooltip;
             }
@@ -146,21 +146,19 @@ namespace Unity.Muse.Common
         {
             m_DisableMessage.Clear();
 
-            var enableOperator = AccountInfo.Instance.IsClientUsable;
-            if (AccountUtility.ShowSubscriptionDialog(m_CurrentModel))
-                return;
+            var enableOperator = ClientStatus.Instance.IsClientUsable;
 
             m_Content.SetEnabled(enableOperator);
-            if (!AccountInfo.Instance.IsSubscribed)
+            if (AccountInfo.Instance.IsExpired)
             {
                 var textGroup = new VisualElement { name = "muse-node-disable-message-group" };
                 textGroup.Add(new Text { text = TextContent.subNoEntitlements, enableRichText = true });
                 textGroup.AddToClassList("muse-node-message-link");
-                textGroup.RegisterCallback<PointerUpEvent>(_ => AccountUtility.StartSubscription());
+                textGroup.RegisterCallback<PointerUpEvent>(_ => AccountLinks.StartSubscription());
                 m_DisableMessage.Add(textGroup);
             }
 
-            if (AccountInfo.Instance.Status.IsDeprecated)
+            if (ClientStatus.Instance.Status.IsDeprecated)
             {
                 var textGroup = new VisualElement { name = "muse-node-disable-message-group" };
                 textGroup.Add(new Text { text = TextContent.clientStatusDeprecatedMessage, enableRichText = true });
@@ -169,16 +167,16 @@ namespace Unity.Muse.Common
                 m_DisableMessage.Add(textGroup);
             }
 
-            if (AccountInfo.Instance.Status.WillBeDeprecated)
+            if (ClientStatus.Instance.Status.WillBeDeprecated)
             {
                 var textGroup = new VisualElement { name = "muse-node-disable-message-group" };
-                textGroup.Add(new Text { text = TextContent.clientStatusWillBeDeprecatedMessage(AccountInfo.Instance.Status.ObsoleteDate), enableRichText = true });
+                textGroup.Add(new Text { text = TextContent.ClientStatusWillBeDeprecatedMessage(ClientStatus.Instance.Status.ObsoleteDate), enableRichText = true });
                 textGroup.AddToClassList("muse-node-message-link");
                 textGroup.RegisterCallback<PointerUpEvent>(_ => AccountUtility.UpdateMusePackages());
                 m_DisableMessage.Add(textGroup);
             }
 
-            if (AccountInfo.Instance.Status.NeedsUpdate)
+            if (ClientStatus.Instance.Status.NeedsUpdate)
             {
                 var textGroup = new VisualElement { name = "muse-node-disable-message-group" };
                 textGroup.Add(new Text { text = TextContent.clientStatusUpdateMessage, enableRichText = true });

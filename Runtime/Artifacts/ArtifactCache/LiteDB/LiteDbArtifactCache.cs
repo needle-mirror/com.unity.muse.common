@@ -27,6 +27,7 @@ namespace Unity.Muse.Common.Cache
             else
                 m_DatabasePath = path;
         }
+
         public override void Initialize()
         {
             BsonMapper.Global.RegisterType<Artifact>(
@@ -67,6 +68,9 @@ namespace Unity.Muse.Common.Cache
 
         public override bool IsInCache(Artifact artifact)
         {
+            if (artifact == null)
+                return false;
+
             try
             {
                 return collection.FindOne(x => x.Guid == artifact.Guid) != null;
@@ -81,6 +85,9 @@ namespace Unity.Muse.Common.Cache
 
         public override void Write(Artifact artifact, byte[] value)
         {
+            if (artifact == null)
+                return;
+
             try
             {
                 var artifactObject = collection.FindOne(x => x.Guid == artifact.Guid) ?? new ArtifactDatabaseObject(artifact, value);
@@ -98,6 +105,9 @@ namespace Unity.Muse.Common.Cache
             try
             {
                 var dbObject = GetArtifactObject(artifact);
+                if (dbObject == null)
+                    return null;
+
                 switch (dbObject.FileExtension)
                 {
                     case "png":
@@ -125,23 +135,22 @@ namespace Unity.Muse.Common.Cache
             return GetArtifactObject(artifact)?.RawData;
         }
 
-        public override void Prune()
-        {
-        }
+        public override void Prune() { }
 
         public override void Delete(Artifact artifact)
         {
-           DeleteMany(new []{artifact});
+            DeleteMany(new[] { artifact });
         }
 
         public override void DeleteMany(IEnumerable<Artifact> artifacts)
         {
-            if(artifacts == null)
+            if (artifacts == null)
                 return;
 
             try
             {
-                var guids = artifacts.Where(artifact => artifact != null).Select(artifact => artifact.Guid);
+                var guids = artifacts.Where(artifact => artifact != null)
+                    .Select(artifact => artifact.Guid);
                 var deleted = collection.DeleteMany(x => guids.Any(guid => guid == x.Guid));
             }
             catch (Exception e)
@@ -153,6 +162,9 @@ namespace Unity.Muse.Common.Cache
 
         ArtifactDatabaseObject GetArtifactObject(Artifact artifact)
         {
+            if (artifact == null)
+                return null;
+
             try
             {
                 var colArtifact = collection.FindOne(x => x.Guid == artifact.Guid);
@@ -168,7 +180,7 @@ namespace Unity.Muse.Common.Cache
 
         void DropCollection()
         {
-           Clear();
+            Clear();
         }
     }
 }

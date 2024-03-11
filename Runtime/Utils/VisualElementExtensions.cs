@@ -52,5 +52,21 @@ namespace Unity.Muse.Common.Utils
         {
             element.ApplyTemplate(ResourceManager.Load<VisualTreeAsset>(resourcePath));
         }
+
+        /// <summary>
+        /// Sets the display of an element with better performance than <c>display:none</c>.
+        ///
+        /// The reason is setting <c>display:none</c> style results in a worse performance than adding/removing an element.
+        /// </summary>
+        public static void SetDisplay(this VisualElement element, VisualElement parent, bool display)
+        {
+            if (display)
+            {
+                if (parent != null && element.parent != parent)
+                    parent.Add(element);
+            }
+            else
+                element.RemoveFromHierarchy();
+        }
     }
 }

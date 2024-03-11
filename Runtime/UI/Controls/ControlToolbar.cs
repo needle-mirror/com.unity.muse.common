@@ -7,7 +7,10 @@ using UnityEngine.UIElements;
 
 namespace Unity.Muse.Common
 {
-    internal class ControlToolbar : VisualElement, IControl
+#if ENABLE_UXML_SERIALIZED_DATA
+    [UxmlElement]
+#endif
+    internal partial class ControlToolbar : VisualElement, IControl
     {
         const string k_USSClassName = "muse-controltoolbar";
         const string k_LeftContentContainerUssClassName = k_USSClassName + "__leftarea";
@@ -27,7 +30,9 @@ namespace Unity.Muse.Common
 
         private ActionButton m_CloseButton;
 
+#if ENABLE_UXML_TRAITS
         internal new class UxmlFactory : UxmlFactory<ControlToolbar, UxmlTraits> { }
+#endif
 
         public ControlToolbar()
         {

@@ -1,10 +1,8 @@
 using System;
 using System.Linq;
 using Unity.Muse.Common.Account;
-using Unity.Muse.Common.Editor;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace Unity.Muse.Common.EditorAccount
 {
@@ -19,14 +17,14 @@ namespace Unity.Muse.Common.EditorAccount
         [MenuItem("internal:" + s_ShowCloudInfoMenuItem)]
         static void CloudInfo()
         {
-            Debug.Log($"Organization Id: {CloudProjectSettings.organizationId} -- User Id: {CloudProjectSettings.userId} -- Access Token: {CloudProjectSettings.accessToken} -- Access token copied to clipboard!");
+            Debug.Log($"Organization Id: {CloudProjectSettings.organizationId} -- User Id: {CloudProjectSettings.userId} -- Access Token: {CloudProjectSettings.accessToken} -- Access token copied to clipboard! -- Organization Id: {AccountInfo.Instance.Organization.Id}");
             EditorGUIUtility.systemCopyBuffer = CloudProjectSettings.accessToken;
         }
 
         [MenuItem("internal:" + s_SubscribeMenuItem)]
         static void Subscribe()
         {
-            if (AccountInfo.Instance.IsSubscribed)
+            if (AccountInfo.Instance.IsEntitled)
                 AccountInfo.Instance.Organization = null;
             else
             {
@@ -38,7 +36,7 @@ namespace Unity.Muse.Common.EditorAccount
         [MenuItem("internal:" + s_SubscribeMenuItem, true)]
         static bool SubscribeValidate()
         {
-            Menu.SetChecked(s_SubscribeMenuItem, AccountInfo.Instance.IsSubscribed);
+            Menu.SetChecked(s_SubscribeMenuItem, AccountInfo.Instance.IsEntitled);
             return true;
         }
 
@@ -52,14 +50,14 @@ namespace Unity.Muse.Common.EditorAccount
             {
                 var deprecatedOptions = EditorUtility.DisplayDialog("Set client status", "Set the deprecation status you want.", "Set to deprecated", "Set to will be deprecated");
                 if (deprecatedOptions)
-                    AccountInfo.Instance.Status = new ClientStatusResponse {status = "Deprecated"};
+                    ClientStatus.Instance.Status = new ClientStatusResponse {status = "Deprecated"};
                 else
-                    AccountInfo.Instance.Status = new ClientStatusResponse {status = "Deprecated", obsolete_date = DateTime.Now.AddDays(10).ToString("yyyy-MM-dd")};
+                    ClientStatus.Instance.Status = new ClientStatusResponse {status = "Deprecated", obsolete_date = DateTime.Now.AddDays(10).ToString("yyyy-MM-dd")};
             }
             else if (options == 1)
-                AccountInfo.Instance.Status = new ClientStatusResponse {status = "Update"};
+                ClientStatus.Instance.Status = new ClientStatusResponse {status = "Update"};
             else if (options == 2)
-                AccountInfo.Instance.Status = new ClientStatusResponse {status = "Latest"};
+                ClientStatus.Instance.Status = new ClientStatusResponse {status = "Latest"};
         }
 
         [MenuItem("internal:" + s_ResetSettingsMenuItem)]
@@ -67,6 +65,12 @@ namespace Unity.Muse.Common.EditorAccount
         {
             GlobalPreferences.Delete<bool>(nameof(GlobalPreferences.subscriptionStartDisplayed));
             GlobalPreferences.Delete<UsageInfo>(nameof(GlobalPreferences.usage));
+        }
+
+        [MenuItem("internal:Muse/Internals/Update entitlements")]
+        static void UpdateEntitlements()
+        {
+            AccountInfo.Instance.UpdateEntitlements();
         }
 
         [MenuItem("internal:Muse/Internals/Set usage")]
@@ -110,25 +114,33 @@ namespace Unity.Muse.Common.EditorAccount
         [MenuItem("internal:" + s_ShowDialogsMenuItem)]
         static void ShowDialogs()
         {
-            var options = EditorUtility.DisplayDialogComplex("Show dialogs", "Choose the dialog you want to display.", "Sign in", "Subscription Started", "Trial Started");
+            var options2 = 0;
+            var options = EditorUtility.DisplayDialogComplex("Show dialogs", "Choose the dialog you want to display.", "Sign in", "Trial Confirm", "More");
+            if (options == 2)
+                options2 = EditorUtility.DisplayDialogComplex("Show dialogs", "Choose the dialog you want to display.", "Start trial", "Data opt-in", "Trial Started");
 
-            var editors = Resources.FindObjectsOfTypeAll<MuseEditor>();
-            foreach (var editor in editors)
+            foreach (var dialog in AccountController.controllers)
             {
-                if (editor.mainUI is not null)
+                if (!dialog.IsInvalid)
                 {
                     if (options == 0)
-                        AccountUtility.DisplaySigninDialog(editor.mainUI);
+                        AccountController.RunAll(controller => controller.DisplaySignIn());
                     if (options == 1)
-                        AccountUtility.TryDisplaySubscriptionStartedDialog(editor.mainUI);
+                        AccountController.RunAll(controller => controller.DisplayStartTrialConfirm());
                     if (options == 2)
                     {
-                        AccountInfo.Instance.SubscriptionStartDisplayed = false;
-                        editor.mainUI.Q<AccountDropdown>()?.ShowSubscriptionStartMessage();
+                        if (options2 == 0)
+                            AccountController.RunAll(controller => controller.DisplayStartTrial());
+                        if (options2 == 1)
+                            AccountController.RunAll(controller => controller.DisplayDataOptIn());
+                        if (options2 == 2)
+                        {
+                            AccountInfo.Instance.SubscriptionStartDisplayed = false;
+                            dialog.AccountDropdown?.ShowSubscriptionStartMessage();
+                        }
                     }
                 }
             }
         }
     }
 }
-

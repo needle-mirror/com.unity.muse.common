@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 using Unity.AppUI.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -12,11 +11,13 @@ namespace Unity.Muse.Common
     internal class PromptOperator : IOperator, ISerializationCallbackReceiver
     {
         public const int MinimumPromptLength = 1;
-        public string OperatorName  => "PromptOperator";
+        public string OperatorName => "PromptOperator";
+
         /// <summary>
         /// Human-readable label for the operator.
         /// </summary>
         public string Label => "Prompt";
+
         event Action OnDataUpdate;
 
         [SerializeField]
@@ -29,17 +30,17 @@ namespace Unity.Muse.Common
 
         private const int k_PromptIndex = 0;
         private const int k_NegPromptIndex = 1;
-        
+
         public PromptOperator()
         {
-            m_OperatorData = new OperatorData(OperatorName, "0.0.2",  new [] { "", "" }, false);
+            m_OperatorData = new OperatorData(OperatorName, "0.0.2", new[] { "", "" }, false);
         }
 
         public bool IsPromptValid()
         {
             return m_OperatorData.settings[k_PromptIndex].Length >= MinimumPromptLength;
         }
-        
+
         public bool IsSavable()
         {
             return true;
@@ -77,12 +78,14 @@ namespace Unity.Muse.Common
                 name = "prompt-inputfield",
                 placeholder = TextContent.promptPlaceholder,
                 autoResize = true,
+                maxLength = 1024
             };
+            UI.Add(new TextAreaCount(m_PromptField));
             m_LastKeyReturn = false;
 
             var ticks = DateTime.Now.Ticks;
             m_PromptField.userData = ticks;
-            m_PromptField.RegisterCallback<KeyDownEvent>(OnKeyDown,TrickleDown.TrickleDown);
+            m_PromptField.RegisterCallback<KeyDownEvent>(OnKeyDown, TrickleDown.TrickleDown);
 
             m_PromptField.SetValueWithoutNotify(m_OperatorData.settings[k_PromptIndex]);
             model.SetCurrentPrompt(m_PromptField.value);
@@ -101,12 +104,15 @@ namespace Unity.Muse.Common
             negPromptText.AddToClassList("muse-node__title");
             negPromptText.AddToClassList("bottom-gap");
             UI.Add(negPromptText);
-            
+
             m_NegPromptField = new TextArea
             {
                 name = "neg-prompt-inputfield",
                 autoResize = true,
+                maxLength = 1024
             };
+
+            UI.Add(new TextAreaCount(m_NegPromptField));
 
             var lastKeyReturn = false;
             m_NegPromptField.RegisterCallback((KeyDownEvent evt) =>
@@ -114,7 +120,9 @@ namespace Unity.Muse.Common
                 if ((evt.keyCode == KeyCode.Tab || evt.keyCode == KeyCode.None && evt.character == '\t') && !evt.shiftKey)
                 {
                     evt.StopImmediatePropagation();
+#if !UNITY_2023_2_OR_NEWER
                     evt.PreventDefault();
+#endif
                     if (evt.character != '\t')
                         m_NegPromptField.focusController.FocusNextInDirectionEx(m_NegPromptField, VisualElementFocusChangeDirection.right);
                     return;
@@ -129,13 +137,15 @@ namespace Unity.Muse.Common
                 if (evt.keyCode == KeyCode.None && lastKeyReturn)
                 {
                     evt.StopPropagation();
+#if !UNITY_2023_2_OR_NEWER
                     evt.PreventDefault();
+#endif
                     m_OperatorData.settings[k_NegPromptIndex] = m_NegPromptField.value;
                     TryGenerate();
                 }
 
                 lastKeyReturn = false;
-            },TrickleDown.TrickleDown);
+            }, TrickleDown.TrickleDown);
 
             m_NegPromptField.SetValueWithoutNotify(m_OperatorData.settings[k_NegPromptIndex]);
             m_NegPromptField.RegisterValueChangedCallback((evt) =>
@@ -144,7 +154,7 @@ namespace Unity.Muse.Common
             });
             m_NegPromptField.AddToClassList("muse-prompt-text-area");
             UI.Add(m_NegPromptField);
-            
+
             OnDataUpdate -= OnOnDataUpdate;
             OnDataUpdate += OnOnDataUpdate;
 
@@ -171,7 +181,9 @@ namespace Unity.Muse.Common
             if ((evt.keyCode == KeyCode.Tab || evt.keyCode == KeyCode.None && evt.character == '\t') && !evt.shiftKey)
             {
                 evt.StopImmediatePropagation();
+#if !UNITY_2023_2_OR_NEWER
                 evt.PreventDefault();
+#endif
                 if (evt.character != '\t') m_PromptField.focusController.FocusNextInDirectionEx(m_PromptField, VisualElementFocusChangeDirection.right);
                 return;
             }
@@ -185,13 +197,16 @@ namespace Unity.Muse.Common
             if (evt.keyCode == KeyCode.None && m_LastKeyReturn)
             {
                 evt.StopPropagation();
+#if !UNITY_2023_2_OR_NEWER
                 evt.PreventDefault();
+#endif
                 m_OperatorData.settings[k_PromptIndex] = m_PromptField.value;
                 TryGenerate();
             }
 
             m_LastKeyReturn = false;
         }
+
         /// <summary>
         /// Gets the operator data.
         /// </summary>
@@ -211,6 +226,7 @@ namespace Unity.Muse.Common
             if (data.settings == null || data.settings.Length != m_OperatorData.settings.Length)
                 return;
             m_OperatorData.settings = data.settings;
+
             OnDataUpdate?.Invoke();
         }
 
@@ -263,15 +279,13 @@ namespace Unity.Muse.Common
         /// Registers the operator to the model events.
         /// </summary>
         /// <param name="model"></param>
-        public void RegisterToEvents(Model model)
-        { }
+        public void RegisterToEvents(Model model) { }
 
         /// <summary>
         /// Unregisters the operator from the model events.
         /// </summary>
         /// <param name="model"></param>
-        public void UnregisterFromEvents(Model model)
-        { }
+        public void UnregisterFromEvents(Model model) { }
 
         /// <summary>
         /// Gets the prompt for this operator.
@@ -281,7 +295,7 @@ namespace Unity.Muse.Common
         {
             return m_OperatorData.settings[k_PromptIndex];
         }
-        
+
         /// <summary>
         /// Gets the negative prompt for this operator.
         /// </summary>
@@ -298,10 +312,15 @@ namespace Unity.Muse.Common
         public void SetPrompt(string promptText)
         {
             m_OperatorData.settings[k_PromptIndex] = promptText;
-            if(m_PromptField != null)
+            if (m_PromptField != null)
                 m_PromptField.value = promptText;
+
+            if(m_Model == null)
+                return;
+
+            m_Model.SetCurrentPrompt(promptText);
         }
-        
+
         /// <summary>
         /// Sets the negative prompt text.
         /// </summary>
@@ -309,7 +328,7 @@ namespace Unity.Muse.Common
         public void SetNegativePrompt(string negativePromptText)
         {
             m_OperatorData.settings[k_NegPromptIndex] = negativePromptText;
-            if(m_NegPromptField != null)
+            if (m_NegPromptField != null)
                 m_NegPromptField.value = negativePromptText;
         }
 
@@ -318,6 +337,7 @@ namespace Unity.Muse.Common
         /// </summary>
         /// <param name="model">Current Model</param>
         /// <param name="isCustomSection">This VisualElement will override the whole operator section used by the generation settings</param>
+        /// <param name="dismissAction">Action to call when the settings view is dismissed</param>
         /// <returns> UI for the operator. Set to Null if the operator should not be displayed in the settings view. Disable the returned VisualElement if you want it to be displayed but not usable.</returns>
         public VisualElement GetSettingsView(Model model, ref bool isCustomSection, Action dismissAction)
         {
@@ -333,26 +353,27 @@ namespace Unity.Muse.Common
                 {
                     currentPromptOperator?.CopyPrompt(this);
                     dismissAction?.Invoke();
-                })); 
+                }));
             }
 
             if (!string.IsNullOrEmpty(negativePrompt))
             {
-                container.Add(GenerationSettings.CreateView("Negative Prompt", new Text {text = negativePrompt},
+                container.Add(GenerationSettings.CreateView("Negative Prompt", new Text { text = negativePrompt },
                     () =>
                     {
                         currentPromptOperator?.CopyNegativePrompt(this);
                         dismissAction?.Invoke();
-                    })); 
+                    }));
             }
-            
+
             return container;
         }
-            
+
         void CopyPrompt(PromptOperator op)
         {
             SetPrompt(op.GetPrompt());
         }
+
         void CopyNegativePrompt(PromptOperator op)
         {
             SetNegativePrompt(op.GetNegativePrompt());
@@ -360,18 +381,18 @@ namespace Unity.Muse.Common
 
         void TryGenerate()
         {
-            if(m_Model == null)
+            if (m_Model == null)
                 return;
 
-            if(m_Model.GetData<GenerateButtonData>().isEnabled)
+            if (m_Model.GetData<GenerateButtonData>().isEnabled)
                 m_Model.GenerateButtonClicked();
         }
-        
+
         public void UpgradeVersion()
         {
             if (m_OperatorData.version == "0.0.1")
             {
-                m_OperatorData = new OperatorData(OperatorName, "0.0.2", new[] {m_OperatorData.settings[0], ""}, m_OperatorData.enabled);
+                m_OperatorData = new OperatorData(OperatorName, "0.0.2", new[] { m_OperatorData.settings[0], "" }, m_OperatorData.enabled);
             }
         }
 
@@ -382,6 +403,16 @@ namespace Unity.Muse.Common
         public void OnAfterDeserialize()
         {
             UpgradeVersion();
+        }
+
+        public void SetPromptFieldEnabled(bool enable)
+        {
+            m_PromptField?.SetEnabled(enable);
+        }
+
+        public void SetNegativePromptFieldEnabled(bool enable)
+        {
+            m_NegPromptField?.SetEnabled(enable);
         }
     }
 }

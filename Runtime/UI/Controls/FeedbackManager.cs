@@ -2,12 +2,15 @@ using System;
 using Unity.Muse.Common.Utils;
 using UnityEngine;
 
+#pragma warning disable 0067
+
 namespace Unity.Muse.Common
 {
     [Serializable]
     internal class FeedbackManager : IModelData
     {
         public event Action OnModified;
+        public event Action OnSaveRequested;
 
         public event Action<Artifact> OnLiked;
         public event Action<Artifact> OnDislike;

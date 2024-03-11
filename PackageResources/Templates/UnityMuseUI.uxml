@@ -5,7 +5,7 @@
     xmlns:appui="Unity.AppUI.UI"
     xsi:noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd"
 >
-    <appui:Panel class="muse-root">
+    <appui:Panel class="muse-root" scale="small">
 
         <!-- ScopeToolbar -->
         <ui:VisualElement class="muse-scopetoolbar">

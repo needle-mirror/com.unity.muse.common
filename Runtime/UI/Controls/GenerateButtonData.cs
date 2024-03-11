@@ -2,12 +2,15 @@ using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 
+#pragma warning disable 0067
+
 namespace Unity.Muse.Common
 {
     [Serializable]
     internal class GenerateButtonData : IModelData
     {
         public event Action OnModified;
+        public event Action OnSaveRequested;
 
         string m_Tooltip;
         bool m_IsEnabled;

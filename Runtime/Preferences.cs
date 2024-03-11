@@ -2,17 +2,27 @@ using System.Collections.Generic;
 using Unity.AppUI.UI;
 using UnityEngine;
 using UnityEngine.Scripting;
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.PackageManager;
+using UnityEditor.PackageManager.Requests;
+#endif
 
 namespace Unity.Muse.Common
 {
     internal static class Preferences
     {
         public const string keyPrefix = "Unity.Muse.Common.Preferences.";
+        public const string defaultImportFolderPath = "Assets";
+        
+        const string k_PackageName = "com.unity.muse.common";
+        const string k_PackageVersionKey = "Unity.Muse.Common.Version";
 
         static Dictionary<string, string> s_PlayerPreferences = new()
         {
             { nameof(resultsTraySize), keyPrefix + nameof(resultsTraySize) },
-            { nameof(autoSave), keyPrefix + nameof(autoSave) }
+            { nameof(autoSave), keyPrefix + nameof(autoSave) },
+            { nameof(lastImportFolderPath), keyPrefix + nameof(lastImportFolderPath) }
         };
 
 #if UNITY_EDITOR
@@ -41,6 +51,12 @@ namespace Unity.Muse.Common
             set => PlayerPrefs.SetInt(s_PlayerPreferences[nameof(autoSave)], value ? 1 : 0);
         }
 
+        public static string lastImportFolderPath
+        {
+            get => PlayerPrefs.GetString(s_PlayerPreferences[nameof(lastImportFolderPath)], defaultImportFolderPath);
+            set => PlayerPrefs.SetString(s_PlayerPreferences[nameof(lastImportFolderPath)], value);
+        }
+
         /// <summary>
         /// Preferences that last only for one session.
         /// </summary>
@@ -60,7 +76,77 @@ namespace Unity.Muse.Common
             public static void Init()
             {
                 ClearAllSessionKeys();
+#if UNITY_EDITOR
+                s_EditorUpdateFrames = 0;
+                EditorApplication.update += OnEditorUpdate;
+                EditorApplication.quitting += OnEditorQuit; // Subscribe to the quitting event
+#endif
             }
+
+#if UNITY_EDITOR
+            
+            static int s_EditorUpdateFrames = 0;
+            
+            private static void OnEditorUpdate()
+            {
+                if (s_EditorUpdateFrames < 10)
+                {
+                    s_EditorUpdateFrames++;
+                    return;
+                }
+                
+                EditorApplication.update -= OnEditorUpdate;
+                CheckPackageVersion();
+            }
+            
+            private static void CheckPackageVersion()
+            {
+                var request = Client.List(true, true);
+                
+                while (request.Status == StatusCode.InProgress)
+                {
+                    System.Threading.Tasks.Task.Delay(100).Wait();
+                }
+                
+                if (request.Status == StatusCode.Success && request.Result != null)
+                {
+                    foreach (var package in request.Result)
+                    {
+                        if (package.name == k_PackageName)
+                        {
+                            var version = package.version;
+                            if (PlayerPrefs.HasKey(k_PackageVersionKey)) 
+                            {
+                                var previousVersion = PlayerPrefs.GetString(k_PackageVersionKey);
+                                if (previousVersion != version)
+                                {
+                                    PlayerPrefs.SetString(k_PackageVersionKey, version);
+                                    OnPackageVersionChanged();
+                                }
+                            }
+                            else
+                            {
+                                PlayerPrefs.SetString(k_PackageVersionKey, version);
+                                OnPackageVersionChanged();
+                            }
+                            break;
+                        }
+                    }
+                }
+            } 
+
+            private static void OnPackageVersionChanged()
+            {
+                EditorUtility.RequestScriptReload();
+            }
+            
+            private static void OnEditorQuit()
+            {
+                EditorApplication.update -= OnEditorUpdate;
+                PlayerPrefs.SetString(k_PackageVersionKey, string.Empty);
+                PlayerPrefs.Save(); // Save PlayerPrefs when the editor is closing
+            }
+#endif
 
             public static void ClearAllSessionKeys()
             {

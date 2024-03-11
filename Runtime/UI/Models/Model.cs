@@ -18,6 +18,11 @@ namespace Unity.Muse.Common
         /// Event raised when the data was modified.
         /// </summary>
         event Action OnModified;
+
+        /// <summary>
+        /// Save the data.
+        /// </summary>
+        event Action OnSaveRequested;
     }
 
     delegate IEnumerable<IOperator> SetOperatorDefault(IEnumerable<IOperator> currentOperators);
@@ -49,6 +54,7 @@ namespace Unity.Muse.Common
         internal event Action<IEnumerable<Artifact>, Vector3> OnItemsDropped;
         internal event Action<Artifact> OnArtifactSelected;
         internal event Action<ICanvasTool> OnActiveToolChanged;
+        internal event Action<ICanvasTool> DefaultRefineToolChanged;
         internal event Action OnUpdateToolState;
         internal event Action<Texture2D, bool> OnMaskPaintDone;
         internal event Action<string> OnCurrentPromptChanged;
@@ -63,7 +69,6 @@ namespace Unity.Muse.Common
         internal event Action OnDeselectAll;
         internal event Action<bool> OnSetMaskSeamless;
         internal event Action<int> OnModeChanged;
-        internal event Action<bool> OnLoggedInStateChanged;
         internal event Action<Artifact> OnFrameArtifactRequested;
         internal event Action OnDispose;
         internal event Action<Artifact> OnRefineArtifact;
@@ -97,7 +102,7 @@ namespace Unity.Muse.Common
                 guid = Guid.NewGuid().ToString();
 
             foreach (var modelData in m_Data)
-                modelData.OnModified += () => OnModified?.Invoke();
+                modelData.OnSaveRequested += () => OnModified?.Invoke();
         }
 
         internal List<Artifact> AssetsData
@@ -115,6 +120,8 @@ namespace Unity.Muse.Common
         }
 
         internal ICanvasTool ActiveTool { get; private set; }
+
+        internal ICanvasTool DefaultRefineTool { get; private set; }
 
         internal void DeselectAll()
         {
@@ -171,7 +178,7 @@ namespace Unity.Muse.Common
                 data = new T();
                 m_Data.Add(data);
 
-                data.OnModified += () => OnModified?.Invoke();
+                data.OnSaveRequested += () => OnModified?.Invoke();
             }
 
             return (T)data;
@@ -429,6 +436,12 @@ namespace Unity.Muse.Common
             OnActiveToolChanged?.Invoke(ActiveTool);
         }
 
+        internal void SetDefaultRefineTool(ICanvasTool tool)
+        {
+            DefaultRefineTool = tool;
+            DefaultRefineToolChanged?.Invoke(DefaultRefineTool);
+        }
+
         internal void MaskPaintDone(Texture2D texture, bool isClear)
         {
             OnMaskPaintDone?.Invoke(texture, isClear);
@@ -455,11 +468,6 @@ namespace Unity.Muse.Common
                 return;
             currentMode = ModesFactory.GetModeKeyFromIndex(mode);
             OnModeChanged?.Invoke(mode);
-        }
-
-        internal void LoggedInStateChanged(bool loggedIn)
-        {
-            OnLoggedInStateChanged?.Invoke(loggedIn);
         }
 
         internal void RequestFrameArtifact(Artifact artifact)

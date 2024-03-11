@@ -3,6 +3,9 @@ namespace Unity.Muse.Common
     static class PackageResources
     {
         [ResourcePath]
+        internal const string museTheme = "Packages/com.unity.muse.common/PackageResources/Styles/UnityMuseTheme.tss";
+
+        [ResourcePath]
         internal const string mainUITemplate =
             "Packages/com.unity.muse.common/Runtime/UI/PackageResources/uxml/MainUI.uxml";
 
@@ -129,6 +132,10 @@ namespace Unity.Muse.Common
         [ResourcePath]
         internal const string doodlePadStyleSheet =
             "Packages/com.unity.muse.common/Runtime/UI/PackageResources/uss/DoodlePad.uss";
+
+        [ResourcePath]
+        internal const string textAreaCountStyle =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/uss/TextAreaCount.uss";
 
         [ResourcePath]
         internal const string doodlePaintShader =

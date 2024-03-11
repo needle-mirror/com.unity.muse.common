@@ -1,59 +1,14 @@
-.appui-actionbutton__label {
-    font-size: var(--appui-font-sizes-100);
+.muse-input-label--toggle-flexend {
+    --appui-inputlabel-label-size: 50%;
 }
 
-.appui-link {
-    font-size: var(--appui-font-sizes-100);
-}
-
-.appui-button--quiet:disabled,
-.appui-button--quiet.unity-disabled {
-    background-color: rgba(0, 0, 0, 0);
-    border-color: rgba(0, 0, 0, 0);
+.appui-numericalfield,
+.appui-inputlabel {
+    width: auto;
 }
 
 .appui-dialog__buttongroup > .appui-checkbox > .appui-checkbox__box {
     margin-left: 0;
-}
-
-.unity-text-field__input * {
-    cursor: var(--appui-alias-control-cursor-text);
-}
-
-.appui-grid-view__item {
-    padding: var(--appui-sizing-25);
-}
-
-.appui-popover__container {
-    overflow: visible;
-}
-
-.unity-scroller--vertical {
-    background-color: rgba(0,0,0,0);
-    margin: var(--appui-sizing-60) 0;
-}
-
-.unity-scroller--vertical .unity-base-slider__dragger {
-    width: var(--appui-sizing-100);
-    margin: 0 var(--appui-sizing-60) 0 var(--appui-sizing-25);
-    border-radius: var(--appui-sizing-50);
-}
-
-.unity-scroller--horizontal .unity-base-slider__dragger {
-    height: var(--appui-sizing-100);
-    margin: var(--appui-sizing-25) 0 var(--appui-sizing-60) 0;
-    border-radius: var(--appui-sizing-50);
-    min-height: auto;
-}
-
-.unity-scroller .unity-base-slider__dragger,
-.unity-scroller .unity-base-slider__dragger:enabled {
-    background-color: var(--appui-primary-600);
-}
-
-.unity-scroller .unity-base-slider__dragger:hover,
-.unity-scroller .unity-base-slider__dragger:hover:enabled {
-    background-color: var(--appui-primary-800);
 }
 
 .bottom-gap {
@@ -69,18 +24,13 @@
     align-self: stretch;
 }
 
+#muse-account-usage-group .row {
+    flex-wrap: nowrap;
+}
+
 .muse-spacer {
     flex-grow: 1;
     flex-shrink: 1;
-}
-
-/* testing an image in the canvas */
-.muse-current-image {
-    top: 100px;
-    left: 400px;
-    width: 200px;
-    height: 200px;
-    background-color: red;
 }
 
 .appui-inputlabel--horizontal > .appui-inputlabel__label {
@@ -158,12 +108,4 @@
 
 .appui-grid-view__item.is-selected .muse-patterns-view__image {
     border-color: var(--appui-accent-100);
-}
-
-.appui-colorpicker {
-    padding: var(--appui-spacing-200);
-}
-
-.appui-colorpicker__channels-container {
-    margin-top: var(--appui-spacing-150);
 }

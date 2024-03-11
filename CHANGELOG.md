@@ -4,6 +4,37 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-pre.18] - 2024-03-11
+
+## [1.0.0-pre.10] - 2024-03-06
+
+### Changed
+
+- Update com.unity.dt.app-ui to "1.0.3".
+
+## [1.0.0-pre.4] - 2024-02-16
+
+### Added
+
+- Add characters limit for prompts.
+
+### Changed
+
+- Muse tools now use a Unity Editor theme.
+
+### Fixed
+
+- Generate button not updated when prompts is set from Generation Settings -> Use.
+- Fix bug where items could be unselected in refinement.
+- Fix shortcuts in Refine mode not always working.
+- Fix Star and Unstar not working on multiple elements in the generations panel.
+- Fix Save shortcut not working on a new Muse window.
+- Fix option icons overlapping at specific window sizes.
+- Fix new Muse window getting dirty without any changes.
+- Fix Asset list view performance when there are a large number of items.
+- Fix Muse points label overflowing.
+- Fix "ExecuteMenuItem failed" error.
+
 ## [1.0.0-pre.3] - 2023-12-15
 
 ### Fixed

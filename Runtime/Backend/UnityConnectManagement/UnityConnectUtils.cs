@@ -105,6 +105,23 @@ namespace Unity.Muse.Common
         {
             return await m_AccessTokenCache.GetCachedValueAsync();
         }
+
+        /// <summary>
+        /// Clear the current user's access token
+        /// </summary>
+        /// <exception cref="Exception"> Throws exception when access token cannot be cleared </exception>
+        public static void ClearAccessToken()
+        {
+            try
+            {
+                k_UnityConnectType.GetMethod("ClearAccessToken")?.Invoke(Instance, null);
+            }
+            catch (Exception exception)
+            {
+                throw new Exception($"Could not clear access token: {exception.Message}");
+            }
+        }
+
         /// <summary>
         /// Is the user currently logged in?
         /// </summary>
@@ -237,6 +254,7 @@ namespace Unity.Muse.Common
                 throw new Exception($"Could not de-register to change event: {exception.Message}");
             }
         }
+
     }
 }
 

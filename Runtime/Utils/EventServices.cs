@@ -32,7 +32,7 @@ namespace Unity.Muse.Common
                     lastEditorUpdateTime = Time.realtimeSinceStartup;
                 }
                 else
-                    GenerativeAIBackend.s_Context.RegisterNextFrameCallback(OnUpdate);
+                    GenerativeAIBackend.context.RegisterNextFrameCallback(OnUpdate);
             }
 
             return () =>
@@ -40,7 +40,7 @@ namespace Unity.Muse.Common
                 if (started)
                     return;
 
-                GenerativeAIBackend.s_Context.RegisterNextFrameCallback(OnUpdate);
+                GenerativeAIBackend.context.RegisterNextFrameCallback(OnUpdate);
                 started = true;
             };
         }

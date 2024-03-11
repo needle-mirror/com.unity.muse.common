@@ -1,4 +1,5 @@
 using System;
+using Unity.AppUI.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
 using AppUI = Unity.AppUI.UI;
@@ -19,10 +20,6 @@ namespace Unity.Muse.Common
         internal event Action OnRetry;
         internal event Action OnDelete;
 
-        internal new class UxmlFactory : UxmlFactory<GenericLoader, UxmlTraits>
-        {
-        }
-
         public GenericLoader()
             : this(State.Loading)
         {
@@ -30,7 +27,10 @@ namespace Unity.Muse.Common
 
         public GenericLoader(State state, bool withProgress = false)
         {
-            m_Progress = new AppUI.UI.CircularProgress();
+            m_Progress = new AppUI.UI.CircularProgress
+            {
+                size = Size.L
+            };
             if (withProgress)
             {
                 m_Progress.variant = AppUI.UI.Progress.Variant.Determinate;

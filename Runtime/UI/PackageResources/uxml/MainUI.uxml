@@ -13,13 +13,11 @@
     <Style src="../uss/RefineArtifact.uss"/>
     <Style src="../uss/Icons.uss"/>
     <engine:Template src="Canvas.uxml" name="Canvas"/>
-    <engine:Template src="SignIn.uxml" name="SignIn"/>
     <engine:Template src="ControlToolbar.uxml" name="ControlToolbar"/>
     <engine:Template src="ScopeToolbar.uxml" name="ScopeToolbar"/>
     <engine:Template src="ContextMenu.uxml" name="ContextMenu"/>
-    <appui:Panel name="muse-root" class="muse-root">
+    <appui:Panel name="muse-root" class="muse-root" scale="small">
         <muse:MainUI>
-            <engine:Instance template="SignIn" name="SignIn" style="display:none"/>
             <engine:Instance template="ScopeToolbar" name="ScopeToolbar"/>
             <engine:Instance template="ControlToolbar" name="ControlToolbar"/>
             <engine:VisualElement name="muse-canvas-container" class="muse-canvas-container">

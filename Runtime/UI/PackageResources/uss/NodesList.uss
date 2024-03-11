@@ -13,7 +13,7 @@ NodesList {
 }
 
 .muse-nodeslist__content {
-    padding: var(--appui-spacing-125) var(--appui-sizing-60) var(--appui-spacing-125) var(--appui-spacing-125);
+    padding: var(--appui-spacing-125);
 }
 
 .muse-node {
@@ -89,10 +89,6 @@ NodesList {
 
 .muse-nodeslist__dragbar-content {
     width: 2px;
-}
-
-.muse-nodeslist__dragbar:hover > .muse-nodeslist__dragbar-content {
-    /*background-color: var(--appui-backgrounds-300);*/
 }
 
 #close {

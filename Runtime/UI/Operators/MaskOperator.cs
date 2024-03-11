@@ -21,11 +21,15 @@ namespace Unity.Muse.Common
         [SerializeField]
         OperatorData m_OperatorData;
 
+        const int k_MaskIndex = 0;
+        const int k_SeamlessIndex = 1;
+        const int k_ClearIndex = 2;
+
         event Action OnDataUpdate;
 
         public Texture2D GetMaskTexture()
         {
-            var b64String = m_OperatorData.settings[0];
+            var b64String = m_OperatorData.settings[k_MaskIndex];
             var bytes = Convert.FromBase64String(b64String);
             var maskTexture = TextureUtils.Create();
             maskTexture.LoadImage(bytes);
@@ -34,12 +38,12 @@ namespace Unity.Muse.Common
 
         public string GetMask()
         {
-            return m_OperatorData.settings[0];
+            return m_OperatorData.settings[k_MaskIndex];
         }
 
         public bool IsClear()
         {
-            return m_OperatorData.settings[2] == "1";
+            return m_OperatorData.settings[k_ClearIndex] == "1";
         }
 
         public MaskOperator()
@@ -54,7 +58,7 @@ namespace Unity.Muse.Common
 
         public bool GetSeamless()
         {
-            return bool.Parse(m_OperatorData.settings[1]);
+            return bool.Parse(m_OperatorData.settings[k_SeamlessIndex]);
         }
 
         public VisualElement GetCanvasView()
@@ -86,24 +90,33 @@ namespace Unity.Muse.Common
             var imageText = new Text();
             imageText.text = "No Mask";
             imageText.AddToClassList("muse-ref-image__text");
-            if (m_OperatorData.settings[0] != "")
-                imageText.text = "";
+            UpdateMaskImage(image, imageText);
 
             image.Add(imageText);
             UI.Add(image);
 
-            m_OperatorData.settings[1] = "True";
+            m_OperatorData.settings[k_SeamlessIndex] = "True";
 
             OnDataUpdate += () =>
             {
-                if (m_OperatorData.settings[0] != "")
-                {
-                    image.image = GetMaskTexture();
-                    imageText.text = "";
-                }
+                UpdateMaskImage(image, imageText);
             };
 
             return UI;
+        }
+
+        void UpdateMaskImage(Image image, Text imageText)
+        {
+            if (m_OperatorData.settings[k_MaskIndex] != "" && m_OperatorData.settings[k_ClearIndex] == "0")
+            {
+                image.image = GetMaskTexture();
+                imageText.text = "";
+            }
+            else if (m_OperatorData.settings[k_ClearIndex] == "1") // If clear, show no mask
+            {
+                image.image = null;
+                imageText.text = "No Mask";
+            }
         }
 
         Image GetImageUI()
@@ -112,7 +125,7 @@ namespace Unity.Muse.Common
             image.AddToClassList("muse-ref-image");
             image.name = "muse-reference-image-field";
 
-            if (m_OperatorData.settings[0] != "")
+            if (m_OperatorData.settings[k_MaskIndex] != "")
                 image.image = GetMaskTexture();
 
             image.AddToClassList("bottom-gap");
@@ -136,15 +149,15 @@ namespace Unity.Muse.Common
 
         void SetSettings(IReadOnlyList<string> settings)
         {
-            m_OperatorData.settings[0] = settings[0];
-            m_OperatorData.settings[1] = settings[1];
-            m_OperatorData.settings[2] = settings[2];
+            m_OperatorData.settings[k_MaskIndex] = settings[k_MaskIndex];
+            m_OperatorData.settings[k_SeamlessIndex] = settings[k_SeamlessIndex];
+            m_OperatorData.settings[k_ClearIndex] = settings[k_ClearIndex];
             OnDataUpdate?.Invoke();
         }
 
         string[] GetSettings()
         {
-            return new[] { m_OperatorData.settings[0], m_OperatorData.settings[1], m_OperatorData.settings[2] };
+            return new[] { m_OperatorData.settings[k_MaskIndex], m_OperatorData.settings[k_SeamlessIndex], m_OperatorData.settings[k_ClearIndex] };
         }
 
         public bool Enabled()
@@ -181,8 +194,16 @@ namespace Unity.Muse.Common
 
         void OnMaskPaintDone(Texture2D texture, bool isClear)
         {
-            m_OperatorData.settings[0] = Convert.ToBase64String(texture.EncodeToPNG());
-            m_OperatorData.settings[2] = isClear ? "1" : "0";
+            m_OperatorData.settings[k_ClearIndex] = isClear ? "1" : "0";
+            if (isClear)
+            {
+                m_OperatorData.settings[k_MaskIndex] = "";
+            }
+            else
+            {
+                m_OperatorData.settings[k_MaskIndex] = Convert.ToBase64String(texture.EncodeToPNG());
+            }
+
             OnDataUpdate?.Invoke();
         }
 
@@ -208,7 +229,7 @@ namespace Unity.Muse.Common
         /// <returns> UI for the operator. Set to Null if the operator should not be displayed in the settings view. Disable the returned VisualElement if you want it to be displayed but not usable.</returns>
         public VisualElement GetSettingsView(Model model, ref bool isCustomSection, Action dismissAction)
         {
-            if (string.IsNullOrEmpty(m_OperatorData.settings[0]))
+            if (string.IsNullOrEmpty(m_OperatorData.settings[k_MaskIndex]))
                 return null;
             return GetImageUI();
         }

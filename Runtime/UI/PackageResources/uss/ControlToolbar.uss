@@ -1,8 +1,8 @@
 .muse-controltoolbar {
     flex-direction: row;
     align-items: center;
-    background-color: var(--appui-backgrounds-100);
-    height: 46px;
+    background-color: var(--appui-backgrounds-200);
+    height: var(--appui-sizing-800);
     padding-left: var(--appui-spacing-125);
     padding-right: var(--appui-spacing-125);
 }
@@ -33,4 +33,9 @@
 }
 
 .muse-controltoolbar__actionbutton {
+}
+
+#close > LocalizedTextElement{
+    overflow: hidden;
+    text-overflow: ellipsis;
 }

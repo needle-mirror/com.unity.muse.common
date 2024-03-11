@@ -10,7 +10,10 @@ using Dragger = Unity.Muse.Common.Baryon.UI.Manipulators.Dragger;
 
 namespace Unity.Muse.Common
 {
-    internal class NodesList : VisualElement, IControl
+#if ENABLE_UXML_SERIALIZED_DATA
+    [UxmlElement]
+#endif
+    internal partial class NodesList : VisualElement, IControl
     {
         const string k_USSClassName = "muse-nodeslist";
         const string k_DragBarUssClassName = k_USSClassName + "__dragbar";
@@ -34,7 +37,9 @@ namespace Unity.Muse.Common
 
         public event Action OnResized;
 
+#if ENABLE_UXML_TRAITS
         internal new class UxmlFactory : UxmlFactory<NodesList, UxmlTraits> { }
+#endif
 
         private DateTime? m_LastGenerateTime;
 
@@ -56,6 +61,7 @@ namespace Unity.Muse.Common
             RegisterCallback<PointerLeaveEvent>(OnPointerLeave);
             m_ScrollView = this.Q<ScrollView>();
             m_ScrollView.verticalScrollerVisibility = ScrollerVisibility.AlwaysVisible;
+            m_ScrollView.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
             m_ScrollView.verticalScroller.style.opacity = 0;
             m_VerticalScrollerDragContainer = m_ScrollView.verticalScroller.slider.Q(classes: BaseSlider<float>.dragContainerUssClassName);
             m_Container = this.Q<VisualElement>(classes: k_ContentUssClassName);
@@ -81,7 +87,7 @@ namespace Unity.Muse.Common
             m_CurrentModel.OnModeChanged += OnModeChanged;
             m_CurrentModel.OnSetReferenceOperator += OnSetReferenceOperator;
             AccountInfo.Instance.OnOrganizationChanged += OnOrganizationChanged;
-            AccountInfo.Instance.OnClientStatusChanged += OnClientStatusChanged;
+            ClientStatus.Instance.OnClientStatusChanged += OnClientStatusChanged;
             RefreshOperatorEnableState();
         }
 
@@ -97,7 +103,7 @@ namespace Unity.Muse.Common
             m_CurrentModel.OnModeChanged -= OnModeChanged;
             m_CurrentModel.OnSetReferenceOperator -= OnSetReferenceOperator;
             AccountInfo.Instance.OnOrganizationChanged -= OnOrganizationChanged;
-            AccountInfo.Instance.OnClientStatusChanged -= OnClientStatusChanged;
+            ClientStatus.Instance.OnClientStatusChanged -= OnClientStatusChanged;
         }
 
         void OnModelDispose()
@@ -218,7 +224,7 @@ namespace Unity.Muse.Common
             if (operatorView is GenerateOperatorUI generateUI)
                 generateUI.UpdateEnableState();
             else
-                operatorView.SetEnabled(AccountInfo.Instance.IsClientUsable);
+                operatorView.SetEnabled(ClientStatus.Instance.IsClientUsable);
         }
 
         void RemoveOperator(IOperator op, out int foundIndex, out int removedAtIndex)

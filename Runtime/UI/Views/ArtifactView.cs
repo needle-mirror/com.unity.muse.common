@@ -215,7 +215,43 @@ namespace Unity.Muse.Common
 
         void ContextChanged(ContextChangedEvent<Model> evt)
         {
-            CurrentModel = evt.context;
+            SetModel(evt.context);
+        }
+
+        void SetModel(Model model)
+        {
+            if (CurrentModel == model)
+                return;
+
+            Unbind();
+            CurrentModel = model;
+            Bind();
+        }
+
+        void Bind()
+        {
+            if (CurrentModel != null)
+            {
+                CurrentModel.OnArtifactRemoved += OnArtifactRemoved;
+                CurrentModel.GetData<BookmarkManager>().OnModified += OnBookmarkChanged;
+            }
+        }
+
+        void Unbind()
+        {
+            if (CurrentModel != null)
+            {
+                CurrentModel.OnArtifactRemoved -= OnArtifactRemoved;
+                CurrentModel.GetData<BookmarkManager>().OnModified -= OnBookmarkChanged;
+            }
+        }
+
+        void OnArtifactRemoved(Artifact[] artifacts)
+        {
+            if (artifacts.Contains(m_Artifact))
+            {
+                Unbind();
+            }
         }
 
         void OnGeometryChanged(GeometryChangedEvent evt)
@@ -251,5 +287,7 @@ namespace Unity.Muse.Common
                 CurrentModel.RefineArtifact(m_Artifact);
             }).ExecuteLater(1);
         }
+
+        protected virtual void OnBookmarkChanged(){}
     }
 }

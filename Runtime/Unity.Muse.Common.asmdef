@@ -24,6 +24,16 @@
             "name": "com.unity.addressables",
             "expression": "1",
             "define": "UNITY_MUSE_ADDRESSABLES_PRESENT"
+        },
+        {
+            "name": "Unity",
+            "expression": "2023.3.0a1",
+            "define": "ENABLE_UXML_SERIALIZED_DATA"
+        },
+        {
+            "name": "Unity",
+            "expression": "[2021.3,2023.3.0a1)",
+            "define": "ENABLE_UXML_TRAITS"
         }
     ],
     "noEngineReferences": false

@@ -1,10 +1,9 @@
 using Unity.Muse.Common.Account;
-using Unity.Muse.Common.Editor;
 using Unity.Muse.Common.Editor.Settings;
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.Muse.Common.EditorAccount
+namespace Unity.Muse.Common
 {
     static class AccountEditorUtility
     {
@@ -13,26 +12,42 @@ namespace Unity.Muse.Common.EditorAccount
         {
             GlobalPreferences.Init(new EditorPreferences());
             EditorApplication.focusChanged += OnFocusChanged;
+
+            // Once per session
             EditorApplication.delayCall += () =>
             {
-                if (!AccountStatus.instance.entitlementsChecked)
-                    AccountInfo.Instance.UpdateEntitlements();
+                if (!AccountInfo.Instance.IsReady) AccountInfo.Instance.UpdateAccountInformation();
+                if (!AccountStatus.instance.statusChecked) ClientStatus.Instance.UpdateStatus();
 
-                if (!AccountStatus.instance.statusChecked) AccountInfo.Instance.UpdateStatus();
+                // Once per user
+                UnityConnectUtils.RegisterUserStateChangedEvent(_ =>
+                {
+                    ForceRefreshAccountInformation();
+                });
+
+                UnityConnectUtils.RegisterConnectStateChangedEvent(_ =>
+                {
+                    // This can happen when getting account information while the user is not connected causes it to
+                    // never get called again. So here we make sure to remedy this.
+                    if (!AccountInfo.Instance.IsReady)
+                        AccountInfo.Instance.UpdateAccountInformation();
+                });
             };
-            UnityConnectUtils.RegisterUserStateChangedEvent(_ =>
-            {
-                AccountInfo.Instance.ShouldCheckEntitlementsOnFocus = true;
-                AccountStatus.instance.entitlementsChecked = false;
+        }
 
-                AccountInfo.Instance.UpdateEntitlements();
-            });
+        static void ForceRefreshAccountInformation()
+        {
+            AccountInfo.Instance.ShouldCheckEntitlementsOnFocus = true;
+            AccountStatus.instance.entitlementsChecked = false;
+            AccountStatus.instance.legalConsentChecked = false;
+
+            AccountInfo.Instance.UpdateAccountInformation();
         }
 
         static void OnFocusChanged(bool focus)
         {
             // Don't constantly check subscription if muse is not even being used
-            if (!EditorWindow.HasOpenInstances<MuseEditor>())
+            if (!AccountController.IsAnyWindowRegistered())
                 return;
 
             if (focus && AccountInfo.Instance.ShouldCheckEntitlementsOnFocus)

@@ -1,6 +1,6 @@
 .left-vertical-container {
     position: absolute;
-    left: 0;
+    left: var(--appui-spacing-50);
     flex-direction: column;
     flex-shrink: 0;
     overflow: hidden;

@@ -67,7 +67,6 @@ namespace Unity.Muse.Common
         public ErrorView()
         {
             InitializeView();
-            RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
         }
 
         /// <summary>
@@ -78,58 +77,27 @@ namespace Unity.Muse.Common
             var styleSheet = ResourceManager.Load<StyleSheet>(PackageResources.errorViewStyleSheet);
             styleSheets.Add(styleSheet);
 
-            var errorText = new Text();
-            errorText.AddToClassList(k_ErrorTextClass);
-            Add(errorText);
+            m_ErrorText = new Text();
+            m_ErrorText.AddToClassList(k_ErrorTextClass);
+            Add(m_ErrorText);
 
-            var retryButton = new ActionButton();
-            retryButton.AddToClassList(k_RetryButtonClass);
-            retryButton.label = "Retry";
-            Add(retryButton);
+            m_RetryButton = new ActionButton();
+            m_RetryButton.AddToClassList(k_RetryButtonClass);
+            m_RetryButton.label = "Retry";
+            m_RetryButton.clickable.clicked += OnRetryClicked;
+            Add(m_RetryButton);
 
             var deleteButtonParent = new VisualElement();
             deleteButtonParent.AddToClassList(k_DeleteButtonParentClass);
             deleteButtonParent.pickingMode = PickingMode.Ignore;
             Add(deleteButtonParent);
-            
-            var deleteButton = new IconButton();
-            deleteButton.AddToClassList(k_DeleteButtonClass);
-            deleteButton.icon = "delete--regular";
-            deleteButtonParent.Add(deleteButton);
-        }
 
-        /// <summary>
-        /// event handler for the AttachToPanelEvent
-        /// </summary>
-        /// <param name="evt">On attach event</param>
-        private void OnAttachToPanel(AttachToPanelEvent evt)
-        {
-            m_ErrorText = this.Q<Text>(classes: k_ErrorTextClass);
-            m_RetryButton = this.Q<ActionButton>(classes: k_RetryButtonClass);
-            m_DeleteButton = this.Q<IconButton>(classes: k_DeleteButtonClass);
+            m_DeleteButton = new IconButton();
+            m_DeleteButton.AddToClassList(k_DeleteButtonClass);
+            m_DeleteButton.icon = "delete--regular";
+            m_DeleteButton.clickable.clicked += OnDeleteClicked;
+            deleteButtonParent.Add(m_DeleteButton);
 
-            m_RetryButton.clickable.clicked += OnRetry;
-            m_DeleteButton.clickable.clicked += OnDelete;
-
-            RefreshErrorText();
-
-            RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
-        }
-
-        /// <summary>
-        /// event handler for the DetachFromPanelEvent
-        /// </summary>
-        /// <param name="evt">Detach from panel event</param>
-        private void OnDetachFromPanel(DetachFromPanelEvent evt)
-        {
-            m_RetryButton.clickable.clicked -= OnRetry;
-            m_DeleteButton.clickable.clicked -= OnDelete;
-
-            m_ErrorText = null;
-            m_RetryButton = null;
-            m_DeleteButton = null;
-
-            UnregisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
         }
 
         /// <summary>
@@ -151,6 +119,16 @@ namespace Unity.Muse.Common
                 return;
 
             m_ErrorText.text = m_Error;
+        }
+
+        void OnDeleteClicked()
+        {
+            OnDelete?.Invoke();
+        }
+
+        void OnRetryClicked()
+        {
+            OnRetry?.Invoke();
         }
     }
 }

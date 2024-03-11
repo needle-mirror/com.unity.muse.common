@@ -8,9 +8,14 @@ using Unity.Muse.Common.Editor.Settings;
 
 namespace Unity.Muse.Common
 {
-    internal class Canvas : VisualElement
+#if ENABLE_UXML_SERIALIZED_DATA
+    [UxmlElement]
+#endif
+    internal partial class Canvas : VisualElement
     {
+#if ENABLE_UXML_TRAITS
         internal new class UxmlFactory : UxmlFactory<Canvas, UxmlTraits> { }
+#endif
 
         Model m_CurrentModel;
 
@@ -26,6 +31,8 @@ namespace Unity.Muse.Common
         VisualElement m_ControlBottomContent;
 
         IVisualElementScheduledItem m_ScheduledFrame;
+        
+        const int k_FrameTopOffset = 42;
 
         public Artifact refinedArtifact
         {
@@ -42,10 +49,9 @@ namespace Unity.Muse.Common
 
         public override VisualElement contentContainer => m_Canvas.contentContainer;
 
-        Rect frameContainer
+        void SetFrameContainer(Rect frameContainer)
         {
-            get => m_Canvas.frameContainer;
-            set => m_Canvas.frameContainer = value;
+            m_Canvas.frameContainer = frameContainer;
         }
 
         public AppUI.UI.CanvasManipulator primaryManipulator
@@ -153,18 +159,19 @@ namespace Unity.Muse.Common
             var rightOverlay = m_CurrentModel.RightOverlay.resolvedStyle;
             
             var width = resolvedStyle.width - 
-                leftOverlay.width - 
-                leftOverlay.marginLeft -
-                leftOverlay.marginRight -
-                rightOverlay.width -
-                rightOverlay.marginLeft -
-                rightOverlay.marginRight;
-            var height = resolvedStyle.height;
+                        leftOverlay.width - 
+                        leftOverlay.marginLeft -
+                        leftOverlay.marginRight -
+                        rightOverlay.width -
+                        rightOverlay.marginLeft -
+                        rightOverlay.marginRight;
             var x = leftOverlay.width + 
-                leftOverlay.marginLeft + 
-                leftOverlay.marginRight;
-            const int y = 0;
-            frameContainer = new Rect(x, y, width, height);
+                    leftOverlay.marginLeft + 
+                    leftOverlay.marginRight;
+            const int y = k_FrameTopOffset;
+            var height = resolvedStyle.height - y;
+            
+            SetFrameContainer(new Rect(x, y, width, height));
         }
 
         void SubscribeToModelEvents()
@@ -244,6 +251,7 @@ namespace Unity.Muse.Common
             {
                 item.SetEnabled(!panEnabled);
                 item.pickingMode = panEnabled ? PickingMode.Ignore : PickingMode.Position;
+                item.EnableInClassList("cursor--grab", panEnabled);
             }
             
             primaryManipulator = panEnabled ? AppUI.UI.CanvasManipulator.Pan : AppUI.UI.CanvasManipulator.None;

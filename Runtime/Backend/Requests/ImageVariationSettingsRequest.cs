@@ -12,6 +12,7 @@ namespace Unity.Muse.Common
         public uint width;
         public uint height;
         public float strength;
+        public bool strength_normalized_on_ui;
 
         /// <summary>
         ///
@@ -32,6 +33,7 @@ namespace Unity.Muse.Common
             this.width = width;
             this.height = height;
             this.strength = strength;
+            strength_normalized_on_ui = false; //Should be set to false indicating that the transformations are occuring srv side
         }
     }
 }

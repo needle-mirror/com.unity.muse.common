@@ -18,6 +18,11 @@ namespace Unity.Muse.Common
 
         void OnKeyDown(KeyDownEvent evt)
         {
+            ExecuteShortcuts(ref evt);
+        }
+
+        static void ExecuteShortcuts<T>(ref T evt) where T : KeyboardEventBase<T>, new()
+        {
             var keyCode = evt.keyCode;
             var keyModifier = GetModifier(evt);
 
@@ -50,10 +55,10 @@ namespace Unity.Muse.Common
         {
             if (evt.altKey)
                 return KeyModifier.Alt;
-            if (evt.ctrlKey)
-                return KeyModifier.Control;
             if (evt.actionKey)
                 return KeyModifier.Action;
+            if (evt.ctrlKey)
+                return KeyModifier.Control;
             if (evt.shiftKey)
                 return KeyModifier.Shift;
 

@@ -13,7 +13,10 @@ using Dragger = Unity.Muse.Common.Baryon.UI.Manipulators.Dragger;
 
 namespace Unity.Muse.Common
 {
-    internal class AssetsList : ExVisualElement, IControl
+#if ENABLE_UXML_SERIALIZED_DATA
+    [UxmlElement]
+#endif
+    internal partial class AssetsList : ExVisualElement, IControl
     {
         const string ussClassName = "muse-assetslist";
         static readonly string dragBarUssClassName = ussClassName + "__dragbar";
@@ -214,7 +217,7 @@ namespace Unity.Muse.Common
             m_GridView.dragFinished += OnGridViewDragFinished;
             m_GridView.dragCanceled += OnGridViewDragCanceled;
             m_GridView.scrollView.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
-            m_GridView.scrollView.verticalScrollerVisibility = ScrollerVisibility.AlwaysVisible;
+            m_GridView.scrollView.verticalScrollerVisibility = ScrollerVisibility.Auto;
             m_GridView.scrollView.verticalScroller.style.opacity = 0;
             m_VerticalScrollerDragContainer = m_GridView.scrollView.verticalScroller.slider.Q(classes:BaseSlider<float>.dragContainerUssClassName);
             m_DraggableContainer = this.Q<VisualElement>(dragBarUssClassName);
@@ -327,10 +330,7 @@ namespace Unity.Muse.Common
                 return;
 
             //Don't unselect items in refine mode
-            if (m_CurrentModel.isRefineMode && !selectedItems.Any())
-            {
-                m_GridView.SetSelection(m_PreviousSelectedIndices.ElementAt(0));
-            }
+            m_GridView.allowNoSelection = !m_CurrentModel.isRefineMode;
 
             Artifact selectedArtifact = null;
             foreach (var selectedItem in selectedItems)
@@ -722,7 +722,7 @@ namespace Unity.Muse.Common
 
             var itemHeight = Mathf.FloorToInt(width / m_CountPerRow);
 
-            if (!Mathf.Approximately(itemHeight, m_GridView.itemHeight))
+            if (Math.Abs(itemHeight - m_GridView.itemHeight) > 1)
                 m_GridView.itemHeight = itemHeight;
         }
 
@@ -827,6 +827,8 @@ namespace Unity.Muse.Common
             m_ExportButton.style.display = canExport ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
+#if ENABLE_UXML_TRAITS
         internal new class UxmlFactory : UxmlFactory<AssetsList, UxmlTraits> { }
+#endif
     }
 }

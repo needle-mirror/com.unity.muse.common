@@ -2,6 +2,7 @@ using System;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
+using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 #endif
 
 namespace Unity.Muse.Common
@@ -12,14 +13,16 @@ namespace Unity.Muse.Common
         public override string parameters => $"package_name={package_name}&package_version={package_version}&api_version={api_version}";
 
         public string package_version;
-        public string package_name = "com.unity.muse.common";
-        public string api_version = GenerativeAIBackend.TexturesUrl.version;
+        public string package_name;
+        public string api_version;
 
-        public ClientStatusRequest()
-        {
 #if UNITY_EDITOR
-            package_version = UnityEditor.PackageManager.PackageInfo.FindForAssetPath("Packages/com.unity.muse.common/package.json").version;
-#endif
+        public ClientStatusRequest(PackageInfo info, string apiVersion = null)
+        {
+            package_name = info.name;
+            package_version = info.version;
+            api_version = apiVersion ?? GenerativeAIBackend.TexturesUrl.version;
         }
+#endif
     }
 }

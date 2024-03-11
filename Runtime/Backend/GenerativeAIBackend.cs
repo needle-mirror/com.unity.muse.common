@@ -6,7 +6,6 @@ using Unity.Muse.Common.Account;
 using Unity.Muse.Common.Api;
 using UnityEngine.Networking;
 using UnityEngine;
-using UnityEngine.Scripting;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -16,6 +15,8 @@ namespace Unity.Muse.Common
 {
     class GenerativeAIBackend
     {
+        internal static bool s_IsRunningOnYamato = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("YAMATO_JOB_ID"));
+
         internal static event Func<long, string, bool> OnServerError;
 
         internal static class StatusEnum
@@ -48,13 +49,8 @@ namespace Unity.Muse.Common
 
         internal static TexturesUrl TexturesUrl => new() {orgId = AccountInfo.Instance.Organization?.Id};
 
-        internal static ICloudContext s_Context;
-
-        [Preserve]
-        static GenerativeAIBackend()
-        {
-            s_Context = CloudContextFactory.GetCloudContext();
-        }
+        static ICloudContext s_ContextInstance;
+        internal static ICloudContext context => s_ContextInstance ??= CloudContextFactory.GetCloudContext();
 
         [Serializable]
         internal class DownloadURLResponse
@@ -94,10 +90,11 @@ namespace Unity.Muse.Common
             string sourceGuid,
             string sourceBase64,
             string prompt,
+            string controlColor,
             ImageVariationSettingsRequest settings,
             Action<TextToImageResponse, string> onDone)
         {
-            return SendJsonRequest(TexturesUrl.generate, new ControlNetGenerateRequest(sourceGuid, sourceBase64, prompt, settings),
+            return SendJsonRequest(TexturesUrl.generate, new ControlNetGenerateRequest(sourceGuid, sourceBase64, prompt, controlColor, settings),
                 RequestHandler<TextToImageResponse>((data, error) =>
                 {
                     if (data != null)
@@ -207,18 +204,20 @@ namespace Unity.Muse.Common
 
         static UnityWebRequestAsyncOperation SendRequest(UnityWebRequest request, Action<object, string> onDone)
         {
+            var stackTrace = new System.Diagnostics.StackTrace();
+
             void PollForRequestCompletion()
             {
                 if (!request.isDone)
                 {
-                    s_Context.RegisterNextFrameCallback(PollForRequestCompletion);
+                    context.RegisterNextFrameCallback(PollForRequestCompletion);
                     return;
                 }
                 if (!string.IsNullOrEmpty(request.error) || request.downloadedBytes == 0)
                 {
                     try
                     {
-                        var errorMessage = $"Request failed: {request.url} -- Failed to download because " +
+                        var errorMessage = $"Request failed: {request.method} {request.url} -- Failed to download because " +
                             (request.downloadedBytes == 0
                                 ? $"response was empty: {request.error}"
                                 : request.error + $"\n{request.downloadHandler?.text}");
@@ -226,7 +225,7 @@ namespace Unity.Muse.Common
                         if (request.responseCode >= 400 && errorMessage.Contains("Invalid or expired access_token"))
                         {
 #if UNITY_EDITOR
-                            UnityEditor.EditorApplication.ExecuteMenuItem("Window/Unity Connect/Clear Access Token");
+                            UnityConnectUtils.ClearAccessToken();
                             UnityEditor.CloudProjectSettings.RefreshAccessToken(result =>
                             {
                                 Debug.LogWarning("Access token has been refreshed. Please try your action again.");
@@ -238,8 +237,8 @@ namespace Unity.Muse.Common
                         if (request.error != "Request aborted")
                         {
                             var handled = OnServerError?.Invoke(request.responseCode, request.error) ?? false;
-                            if (!handled)
-                                Debug.LogError(errorMessage);
+                            if (!handled && !s_IsRunningOnYamato)
+                                Debug.LogError(errorMessage + "\nStack trace:\n" + stackTrace);
                         }
 
                         if (onDone != null && onDone.Target != null)
@@ -267,17 +266,17 @@ namespace Unity.Muse.Common
             }
 
             // Register the update event
-            s_Context.RegisterNextFrameCallback(PollForRequestCompletion);
+            context.RegisterNextFrameCallback(PollForRequestCompletion);
 
             // Kick off the webrequest
             return request.SendWebRequest();
         }
 
-        protected static UnityWebRequestAsyncOperation SendJsonRequest(string serviceURL, object requestBody, Action<object, string> onDone)
+        protected static UnityWebRequestAsyncOperation SendJsonRequest(string serviceURL, object requestBody, Action<object, string> onDone, string type = "POST")
         {
             var requestJson = JsonUtility.ToJson(requestBody);
 
-            var request = new UnityWebRequest(serviceURL, "POST");
+            var request = new UnityWebRequest(serviceURL, type);
             request.SetRequestHeader("content-type", "application/json; charset=UTF-8");
             request.SetRequestHeader("authorization", $"Bearer {AccessToken}");
             request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(requestJson));
@@ -310,7 +309,7 @@ namespace Unity.Muse.Common
         /// <summary>
         /// Generic request handler
         /// </summary>
-        protected static Action<object, string> RequestHandler<T>(Action<T, string> callabck) where T : class
+        protected static Action<object, string> RequestHandler<T>(Action<T, string> callback) where T : class
         {
             return (data, error) =>
             {
@@ -327,27 +326,46 @@ namespace Unity.Muse.Common
                         error = $"Error handling request: {content}\nException: {exception.Message}";
                     }
 
-                    callabck(result, error);
+                    callback(result, error);
                     return;
                 }
 
-                callabck(null, error);
+                callback(null, error);
             };
         }
 
         public static UnityWebRequestAsyncOperation GetEntitlements(Action<SubscriptionResponse, string> onDone)
         {
-            return SendGetRequest(TexturesUrl.entitlements, null, RequestHandler(onDone));
+            return SendGetRequest($"{TexturesUrl.entitlements}?force_reload_cache=True", null, RequestHandler(onDone));
         }
 
-        public static UnityWebRequestAsyncOperation GetStatus(Action<ClientStatusResponse, string> onDone)
+        public static UnityWebRequestAsyncOperation GetStatus(ClientStatusRequest requestData, Action<ClientStatusResponse, string> onDone)
         {
-            return SendGetRequest(TexturesUrl.status, new ClientStatusRequest(), RequestHandler(onDone));
+            return SendGetRequest(TexturesUrl.status, requestData, RequestHandler(onDone));
         }
 
         public static UnityWebRequestAsyncOperation GetUsage(Action<UsageResponse, string> onDone)
         {
             return SendGetRequest(TexturesUrl.usage, null, RequestHandler(onDone));
+        }
+
+        public static UnityWebRequestAsyncOperation StartTrial(string orgId, Action<string> onDone)
+        {
+            return SendJsonRequest(TexturesUrl.startTrial(orgId), new(),
+                RequestHandler<StartTrialResponse>((_, error) => onDone?.Invoke(error)));
+        }
+
+        public static UnityWebRequestAsyncOperation GetLegalConsent(Action<LegalConsentResponse, string> onDone)
+        {
+            return SendGetRequest(TexturesUrl.legalConsent, null, RequestHandler(onDone));
+        }
+
+        public static UnityWebRequestAsyncOperation SetLegalConsent(
+            LegalConsentRequest settings,
+            Action<LegalConsentResponse, string> onDone)
+        {
+            return SendJsonRequest(TexturesUrl.legalConsent, settings,
+                RequestHandler<LegalConsentResponse>((data, error) =>  onDone?.Invoke(data, error)), "PUT");
         }
     }
 }

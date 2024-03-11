@@ -15,8 +15,6 @@ namespace Unity.Muse.Common.Tools
 
     internal class DoodleCursorOverlay : VisualElement
     {
-        public new class UxmlFactory : UxmlFactory<DoodleCursorOverlay> { }
-
         const float k_LineWidth = 1.0f;
         const float k_SegmentLength = 10.0f;
         readonly Color k_LineColor = Color.white;
@@ -58,8 +56,6 @@ namespace Unity.Muse.Common.Tools
 
     internal class DoodlePad : VisualElement, IValidatableElement<byte[]>, ISizeableElement, IDisposable
     {
-        public class CustomUxmlFactory : UxmlFactory<DoodlePad, UxmlTraits> { }
-
         public const string baseStyleName = "doodle-pad";
         public const string doodleCanvasStyleName = baseStyleName + "-canvas";
         public const string cursorStyleName = baseStyleName + "-cursor";
@@ -72,6 +68,7 @@ namespace Unity.Muse.Common.Tools
 
         Image m_Image;
 
+        DoodleModifierState m_StartingState;
         DoodleModifierState m_ModifierState;
 
         public DoodleModifierState modifierState
@@ -184,6 +181,13 @@ namespace Unity.Muse.Common.Tools
             if (evt.altKey)
                 return;
 
+            m_StartingState = modifierState;
+            m_WasActionKeyPressed = evt.actionKey;
+            if (m_WasActionKeyPressed)
+            {
+                SwitchBrush();
+            }
+
             m_LastDoodlePosition = m_CurrentDoodlePosition = evt.localPosition;
 
             var currentPosition = GetPosition(m_CurrentDoodlePosition);
@@ -231,6 +235,7 @@ namespace Unity.Muse.Common.Tools
                 return;
 
             m_IsPainting = false;
+            modifierState = m_StartingState;
 
             m_Painter.UpdateTextureData();
             schedule.Execute(SendValueChangedEvent);
@@ -248,6 +253,8 @@ namespace Unity.Muse.Common.Tools
             SendEvent(evt);
         }
 
+        bool m_WasActionKeyPressed;
+
         void OnDoodleMove(PointerMoveEvent evt)
         {
             if (m_ModifierState == DoodleModifierState.None)
@@ -257,6 +264,14 @@ namespace Unity.Muse.Common.Tools
             UpdateDoodleCursorStyle();
             if (!m_IsPainting)
                 return;
+
+            // If control key on windows or command key on mac is pressed, switch between brush and erase
+            if (m_WasActionKeyPressed != evt.actionKey)
+            {
+                SwitchBrush();
+            }
+
+            m_WasActionKeyPressed = evt.actionKey;
 
             var currentPosition = (Vector3)GetPosition(m_CurrentDoodlePosition);
             var previousPosition = (Vector3)GetPosition(m_LastDoodlePosition);
@@ -273,6 +288,17 @@ namespace Unity.Muse.Common.Tools
             evt.StopPropagation();
         }
 
+        void SwitchBrush()
+        {
+            if (modifierState == DoodleModifierState.Brush)
+            {
+                modifierState = DoodleModifierState.Erase;
+            }
+            else if (modifierState == DoodleModifierState.Erase)
+            {
+                modifierState = DoodleModifierState.Brush;
+            }
+        }
 
         float GetBrushSize(float brushSize)
         {

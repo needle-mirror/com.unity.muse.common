@@ -5,7 +5,10 @@ using UnityEngine.UIElements;
 
 namespace Unity.Muse.Common
 {
-    internal class ScopeToolbar : VisualElement, IControl, INotifyValueChanged<int>
+#if ENABLE_UXML_SERIALIZED_DATA
+    [UxmlElement]
+#endif
+    internal partial class ScopeToolbar : VisualElement, IControl, INotifyValueChanged<int>
     {
         const string ussClassName = "muse-scopetoolbar";
 
@@ -21,7 +24,9 @@ namespace Unity.Muse.Common
 
         Model m_Model;
 
+#if ENABLE_UXML_TRAITS
         internal new class UxmlFactory : UxmlFactory<ScopeToolbar, UxmlTraits> { }
+#endif
 
         public ScopeToolbar()
         {

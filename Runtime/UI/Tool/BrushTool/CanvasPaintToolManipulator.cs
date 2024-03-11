@@ -15,6 +15,8 @@ namespace Unity.Muse.Common.Tools
         Vector2Int m_Size;
         bool m_IsEraser;
 
+        public DoodleModifierState currentState => m_PaintingManipulator.currentState;
+
         public PaintCanvasToolManipulator(Model model, Vector2Int size)
             : base(model)
         {

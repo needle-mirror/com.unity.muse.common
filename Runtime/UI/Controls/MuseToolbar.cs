@@ -13,26 +13,24 @@ namespace Unity.Muse.Common
         /// <summary>
         /// Pan Button
         /// </summary>
-        public Button PanBtn { get; private set; }
+        public ActionButton PanBtn { get; private set; }
         /// <summary>
         /// Paint Button
         /// </summary>
-        public Button PaintBtn { get; private set; }
+        public ActionButton PaintBtn { get; private set; }
         /// <summary>
         /// Erase Button
         /// </summary>
-        public Button EraseBtn { get; private set; }
+        public ActionButton EraseBtn { get; private set; }
         /// <summary>
         /// Delete Button
         /// </summary>
-        public IconButton DeleteBtn { get; private set; }
+        public ActionButton DeleteBtn { get; private set; }
         /// <summary>
         /// Size Slider
         /// </summary>
         public TouchSliderFloat SizeSlider { get; private set; }
-
-        const string k_SelectedClassName = "muse-toolbar--selected";
-
+        
         public MuseToolbar()
         {
             InitializeVisualTree();
@@ -53,27 +51,27 @@ namespace Unity.Muse.Common
                 }
             };
 
-            PanBtn = new Button()
+            PanBtn = new ActionButton()
             {
                 name = "PanBtn",
-                tooltip = "Pan",
-                trailingIcon = "pan--regular"
+                tooltip = "Pan (1 or P)",
+                icon = "pan"
             };
             actionGroup.Add(PanBtn);
 
-            PaintBtn = new Button()
+            PaintBtn = new ActionButton()
             {
                 name = "PaintBtn",
-                tooltip = "Paint",
-                trailingIcon = "paint-brush--regular"
+                tooltip = "Paint (2 or B)",
+                icon = "paint-brush"
             };
             actionGroup.Add(PaintBtn);
 
-            EraseBtn = new Button()
+            EraseBtn = new ActionButton()
             {
                 name = "EraseBtn",
-                tooltip = "Erase",
-                trailingIcon = "eraser--regular"
+                tooltip = "Erase (3 or E)",
+                icon = "eraser"
             };
             actionGroup.Add(EraseBtn);
 
@@ -92,10 +90,20 @@ namespace Unity.Muse.Common
             };
             Add(SizeSlider);
 
-            DeleteBtn = new IconButton("delete--regular")
+            DeleteBtn = new ActionButton
             {
+                icon = "delete",
                 tooltip = "Clear"
             };
+
+            if (Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.OSXPlayer)
+            {
+                DeleteBtn.tooltip += " (Command+Delete)";
+            }
+            else
+            {
+                DeleteBtn.tooltip += " (Del)";
+            }
 
             Add(DeleteBtn);
 
@@ -110,14 +118,24 @@ namespace Unity.Muse.Common
         /// Set the button's selected state
         /// </summary>
         /// <param name="button">The specific button</param>
-        public void SelectButton(Button button)
+        public void SelectButton(ActionButton button)
         {
-            PaintBtn.EnableInClassList(k_SelectedClassName, button == PaintBtn);
-            EraseBtn.EnableInClassList(k_SelectedClassName, button == EraseBtn);
-            PanBtn.EnableInClassList(k_SelectedClassName, button == PanBtn);
+            PaintBtn.EnableInClassList(Styles.selectedUssClassName, button == PaintBtn);
+            EraseBtn.EnableInClassList(Styles.selectedUssClassName, button == EraseBtn);
+            PanBtn.EnableInClassList(Styles.selectedUssClassName, button == PanBtn);
 
             DeleteBtn.SetEnabled(button == PaintBtn || button == EraseBtn);
             SizeSlider.SetEnabled(button == PaintBtn || button == EraseBtn);
+        }
+
+        internal bool IsPaintButtonSelected()
+        {
+            return PaintBtn.ClassListContains(Styles.selectedUssClassName);
+        }
+
+        internal bool IsEraserButtonSelected()
+        {
+            return EraseBtn.ClassListContains(Styles.selectedUssClassName);
         }
 
         void OnPaintClicked()

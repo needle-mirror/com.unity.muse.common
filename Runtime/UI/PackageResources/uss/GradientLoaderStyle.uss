@@ -4,6 +4,13 @@
     justify-content: center;
 }
 
+.genai-loader-gradient .appui-circular-progress {
+    width: var(--appui-sizing-1000);
+    height: var(--appui-sizing-1000);
+    max-width: 80%;
+    max-height: 80%;
+}
+
 .genai-loader-state-loading {
 }
 

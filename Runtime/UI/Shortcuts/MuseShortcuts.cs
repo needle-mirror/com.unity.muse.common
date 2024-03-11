@@ -37,7 +37,7 @@ namespace Unity.Muse.Common
         public readonly KeyCode keyCode;
         public readonly KeyModifier keyModifier;
         public readonly Action action;
-        
+
         /// <summary>
         /// Source element related to the shortcut.
         /// Used to detect which panel to apply shortcut to.
@@ -96,7 +96,7 @@ namespace Unity.Muse.Common
             else
                 s_Shortcuts[keyCode] = new List<MuseShortcut> { shortcut };
         }
-        
+
         public static void AddShortcuts(IEnumerable<MuseShortcut> shortcuts)
         {
             if (shortcuts == null)
@@ -115,10 +115,14 @@ namespace Unity.Muse.Common
             if (s_Shortcuts.ContainsKey(keyCode))
             {
                 if (s_Shortcuts[keyCode] != null)
+                {
                     s_Shortcuts[keyCode].Remove(shortcut);
+                    if (s_Shortcuts[keyCode].Count == 0)
+                        s_Shortcuts.Remove(keyCode);
+                }
             }
         }
-        
+
         public static void RemoveShortcuts(IEnumerable<MuseShortcut> shortcuts)
         {
             if (shortcuts == null)

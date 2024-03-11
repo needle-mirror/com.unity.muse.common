@@ -33,8 +33,18 @@ namespace Unity.Muse.Common
         /// </summary>
         public static List<OrganizationInfo> organizations
         {
-            get => s_Preferences.Get<List<OrganizationInfo>>(nameof(organizations), defaultValue: new());
-            set => s_Preferences.Set(nameof(organizations), value);
+            get => s_Preferences.Get<List<OrganizationInfo>>(nameof(organizations), PreferenceScope.Project,
+                defaultValue: new());
+            set => s_Preferences.Set(nameof(organizations), value, PreferenceScope.Project);
+        }
+
+        /// <summary>
+        /// Last-fetched legal consent
+        /// </summary>
+        public static LegalConsentInfo legalConsent
+        {
+            get => s_Preferences.Get<LegalConsentInfo>(nameof(legalConsent), defaultValue: new());
+            set => s_Preferences.Set(nameof(legalConsent), value);
         }
 
         /// <summary>
@@ -42,8 +52,8 @@ namespace Unity.Muse.Common
         /// </summary>
         public static OrganizationInfo organization
         {
-            get => s_Preferences.Get<OrganizationInfo>(nameof(organization));
-            set => s_Preferences.Set(nameof(organization), value);
+            get => s_Preferences.Get<OrganizationInfo>(nameof(organization), PreferenceScope.Project);
+            set => s_Preferences.Set(nameof(organization), value, PreferenceScope.Project);
         }
 
         /// <summary>
@@ -51,8 +61,8 @@ namespace Unity.Muse.Common
         /// </summary>
         public static UsageInfo usage
         {
-            get => s_Preferences.Get(nameof(usage), defaultValue: new UsageInfo());
-            set => s_Preferences.Set(nameof(usage), value);
+            get => s_Preferences.Get(nameof(usage), PreferenceScope.Project, defaultValue: new UsageInfo());
+            set => s_Preferences.Set(nameof(usage), value, PreferenceScope.Project);
         }
 
         /// <summary>

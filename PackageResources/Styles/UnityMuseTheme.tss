@@ -1,6 +1,15 @@
-@import url("/Packages/com.unity.dt.app-ui/PackageResources/Styles/Themes/App UI.tss");
+@import url("unity-theme://default");
+@import url("/Packages/com.unity.dt.app-ui/PackageResources/Styles/Themes/App UI - Globals.uss");
 
-@import url("../../Runtime/UI/PackageResources/uss/GridView.uss");
+@import url("/Packages/com.unity.dt.app-ui/PackageResources/Styles/Themes/App UI - Alias.uss");
+
+@import url("/Packages/com.unity.dt.app-ui/PackageResources/Styles/App UI.uss");
+
+@import url("/Packages/com.unity.dt.app-ui/PackageResources/Styles/Themes/App UI - Dark.uss");
+@import url("/Packages/com.unity.dt.app-ui/PackageResources/Styles/Themes/App UI - Small.uss");
+@import url("/Packages/com.unity.dt.app-ui/PackageResources/Styles/Themes/App UI - Editor Dark.class.uss");
+@import url("/Packages/com.unity.dt.app-ui/PackageResources/Styles/Themes/App UI - Editor Light.class.uss");
+@import url("/Packages/com.unity.dt.app-ui/PackageResources/Styles/Themes/App UI - Small.class.uss");
 
 @import url("UnityMuseStyle.uss");
 

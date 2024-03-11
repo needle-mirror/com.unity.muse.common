@@ -7,6 +7,6 @@ namespace Unity.Muse.Common
     [Serializable]
     class SubscriptionResponse : Response
     {
-        public List<OrganizationInfo> entitlements;
+        public List<OrganizationInfo> orgs;
     }
 }

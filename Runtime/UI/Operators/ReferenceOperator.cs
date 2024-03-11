@@ -19,6 +19,7 @@ namespace Unity.Muse.Common
             Image,
             Mode,
             Strength,
+            Color,
 
             SettingsLength
         }
@@ -42,6 +43,7 @@ namespace Unity.Muse.Common
                 "",   // Image
                 "0",  // Mode
                 "20", // Strength
+                "" // Color
             }, false);
             OnDataUpdate += UpdateView;
         }
@@ -70,9 +72,11 @@ namespace Unity.Muse.Common
             var img = GetSettingTex(Setting.Image);
             var mode = GetSettingEnum<Mode>(Setting.Mode);
             var strength = GetSettingInt(Setting.Strength);
+            var color = GetSettingString(Setting.Color);
 
             m_View.SetGuidWithoutNotify(guid);
             m_View.SetModeWithoutNotify(mode);
+            m_View.SetColorWithoutNotify(ColorUtility.TryParseHtmlString(color, out var c) ? c : null); 
             if (mode == Mode.Color)
                 m_View.SetColorImageWithoutNotify(img);
             else
@@ -86,6 +90,7 @@ namespace Unity.Muse.Common
             var mode = m_View.GetMode();
             var img = mode == Mode.Color ? m_View.GetColorImage() : m_View.GetShapeImage();
             var strength = m_View.GetStrength();
+            var color = m_View.GetColor();
 
             var imgPng = img ? img.EncodeToPNG() : null;
 
@@ -93,6 +98,7 @@ namespace Unity.Muse.Common
             SetSettingWithoutNotify(Setting.Image, imgPng != null ? Convert.ToBase64String(imgPng) : "");
             SetSettingWithoutNotify(Setting.Mode, ((int)mode).ToString());
             SetSettingWithoutNotify(Setting.Strength, strength.ToString());
+            SetSettingWithoutNotify(Setting.Color, color != null ? $"#{ColorUtility.ToHtmlStringRGB(color.Value)}": string.Empty);
         }
 
         public OperatorData GetOperatorData()
@@ -102,22 +108,26 @@ namespace Unity.Muse.Common
 
         public int GetSettingInt(Setting setting)
         {
+            EnsureSetting(setting);
             return int.Parse(m_OperatorData.settings[(int) setting]);
         }
 
         public string GetSettingString(Setting setting)
         {
+            EnsureSetting(setting);
             return m_OperatorData.settings[(int) setting];
         }
 
         public T GetSettingEnum<T>(Setting setting)
             where T : Enum
         {
+            EnsureSetting(setting);
             return (T)Enum.Parse(typeof(T), m_OperatorData.settings[(int) setting]);
         }
 
         public Texture2D GetSettingTex(Setting setting)
         {
+            EnsureSetting(setting);
             var b64String = m_OperatorData.settings[(int) setting];
 
             if (string.IsNullOrEmpty(b64String))
@@ -132,7 +142,7 @@ namespace Unity.Muse.Common
         public void SetOperatorData(OperatorData data)
         {
             m_OperatorData.enabled = data.enabled;
-            if (data.settings == null || data.settings.Length < (int)Setting.SettingsLength)
+            if (data.settings == null || data.settings.Length == 0 || data.settings.Length > (int)Setting.SettingsLength)
                 return;
             m_OperatorData.settings = data.settings;
             OnDataUpdate?.Invoke();
@@ -156,6 +166,7 @@ namespace Unity.Muse.Common
 
         void SetSettingWithoutNotify(Setting setting, string value)
         {
+            EnsureSetting(setting);
             m_OperatorData.settings[(int)setting] = value;
         }
 
@@ -208,6 +219,14 @@ namespace Unity.Muse.Common
             image.image = GetSettingTex(Setting.Image);
 
             return image;
+        }
+
+        void EnsureSetting(Setting setting)
+        {
+            if(m_OperatorData.settings.Length <= (int)setting)
+            {
+                Array.Resize(ref m_OperatorData.settings, (int)setting + 1);
+            }
         }
     }
 }

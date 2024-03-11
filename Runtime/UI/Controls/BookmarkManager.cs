@@ -8,6 +8,7 @@ namespace Unity.Muse.Common
     internal class BookmarkManager : IModelData
     {
         public event Action OnModified;
+        public event Action OnSaveRequested;
 
         [SerializeField]
         SerializedHashSet<string> m_BookmarkedArtifacts;
@@ -36,6 +37,7 @@ namespace Unity.Muse.Common
                 m_BookmarkedArtifacts.Remove(guid);
 
             OnModified?.Invoke();
+            OnSaveRequested?.Invoke();
         }
 
         public void SetFilter(bool enabled)
