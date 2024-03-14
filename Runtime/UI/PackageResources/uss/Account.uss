@@ -3,6 +3,7 @@
     --muse-subscription-dialog-light: #EB417A;
     --muse-subscription-dialog-pressed: #9a2a50;
     --muse-subscription-dialog-border: #851F40;
+    --muse-subscription-dialog-text-magenta: #CE3299;
 }
 
 .appui-icon--muse-logo--regular {
@@ -32,12 +33,16 @@
 }
 
 .muse-subscription-dialog Button.appui-dialog__cancel-action {
-    background-color: rgba(0,0,0,0);
-    border-color: rgba(0,0,0,0);
-    cursor: link;
     -unity-font-style: bold;
     margin-right: var(--appui-spacing-200);
     margin-left: 0;
+}
+
+.muse-subscription-dialog Button.appui-dialog__cancel-action,
+.account-dropdown-start-subscription {
+    background-color: rgba(0,0,0,0);
+    border-color: rgba(0,0,0,0);
+    cursor: link;
 }
 
 .muse-subscription-dialog #muse-dialog-description-container {
@@ -349,4 +354,13 @@
     -unity-font-style: bold;
     font-size: var(--appui-font-sizes-300);
     margin-bottom: var(--appui-spacing-400);
+}
+
+.account-dropdown-start-subscription .appui-button__titlecontainer {
+    margin: 0;
+    align-items: flex-start;
+}
+
+.account-dropdown-start-subscription .appui-button__titlecontainer .appui-localized-text {
+    color: var(--muse-subscription-dialog-light);
 }

@@ -7,7 +7,7 @@ namespace Unity.Muse.Common.Account
     {
         public Action OnAccept;
 
-        public StartTrialDialog()
+        public StartTrialDialog(bool m_AllowNoAccount = false)
         {
             AddToClassList("muse-subscription-dialog-start");
 
@@ -15,6 +15,9 @@ namespace Unity.Muse.Common.Account
             dialogDescription.Add(new Text {text = TextContent.subDescription1, name = "muse-description-secondary", enableRichText = true});
 
             AddCancelButton(TextContent.subViewPlan, AccountLinks.ViewPricing);
+            if (m_AllowNoAccount)
+                AddCloseButton();
+
             AddPrimaryButton(TextContent.subStart, () => OnAccept?.Invoke());
 
             // Check entitlements on focus as long as the trial dialogs are shown.

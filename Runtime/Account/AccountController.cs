@@ -62,9 +62,9 @@ namespace Unity.Muse.Common.Account
         /// <param name="window">The EditorWindow to be registered.</param>
         /// <param name="transition">An option method that can modify the state change logic if desired.</param>
         /// <returns></returns>
-        public static AccountController Register(EditorWindow window, StateTransition transition = null)
+        public static AccountController Register(EditorWindow window, StateTransition transition = null, bool allowNoAccount = false)
         {
-            var controller = new AccountController(window, false);
+            var controller = new AccountController(window, false, allowNoAccount);
             controller.OnStateTransition += transition;
             controller.Init();
 
@@ -81,16 +81,18 @@ namespace Unity.Muse.Common.Account
         Modal m_Modal;  // The currently displayed modal dialog
         AccountDialog m_Dialog;
         bool m_HasAttached;
+        public bool allowNoAccount { get; protected set; }
 
-        public AccountController(EditorWindow window, bool init = true)
+        public AccountController(EditorWindow window, bool init = true, bool allowNoAccount = false)
         {
             s_Controllers.Add(this);
+            this.allowNoAccount = allowNoAccount;
 
             m_Window = window;
             if (element is null)
                 throw new Exception("The window must have a visual element with a Panel type to be apple to display modal dialogs.");
 
-            m_Window.rootVisualElement.styleSheets.Add(ResourceManager.Load<StyleSheet>(PackageResources.museTheme));
+            element.styleSheets.Add(ResourceManager.Load<StyleSheet>(PackageResources.museTheme));
 
             AccountInfo.Instance.OnOrganizationChanged += StateChanged;
             AccountInfo.Instance.OnLegalConsentChanged += StateChanged;
@@ -137,6 +139,16 @@ namespace Unity.Muse.Common.Account
         }
 
         /// <summary>
+        /// Get the account controller that a visual element is part of
+        /// </summary>
+        /// <param name="anyElementInWindow"></param>
+        /// <returns></returns>
+        public static AccountController Get(VisualElement anyElementInWindow)
+        {
+            return s_Controllers.Find(accountController => accountController.element == anyElementInWindow.GetFirstAncestorOfType<Panel>());
+        }
+
+        /// <summary>
         /// Refresh all editor windows's state
         /// </summary>
         public static void Refresh()
@@ -155,9 +167,9 @@ namespace Unity.Muse.Common.Account
             return IsInvalid;
         }
 
-        void StateChanged() => StateChanged(AccountState.Default);
+        public void StateChanged() => StateChanged(AccountState.Default);
 
-        void StateChanged(AccountState toState)
+        public void StateChanged(AccountState toState)
         {
             if (ShouldSkipStateChange())
                 return;
@@ -177,6 +189,8 @@ namespace Unity.Muse.Common.Account
                 return AccountState.Default;        // Don't show any dialogs when running tests
             if (SignInUtility.Instance.SignInState == SignInState.SignedOut)
                 return AccountState.SignIn;         // Always show sign-in dialog if requested
+            if (allowNoAccount && GlobalPreferences.trialDialogShown)
+                return AccountState.Default;        // Opt-out of the subscription flow if the app is usable without an entitlement.
             if (AccountInfo.Instance.RequestSeat)
                 return AccountState.RequestSeat;
             if (!AccountInfo.Instance.IsReady)
@@ -260,7 +274,15 @@ namespace Unity.Muse.Common.Account
 
         public virtual void DisplayStartTrial()
         {
-            ShowModal(new StartTrialDialog {OnAccept = () => State = AccountState.TrialConfirm});
+            ShowModal(new StartTrialDialog(allowNoAccount)
+            {
+                OnAccept = () => State = AccountState.TrialConfirm,
+                OnClose = () =>
+                {
+                    GlobalPreferences.trialDialogShown = true;
+                    StateChanged();
+                }
+            });
         }
 
         public virtual void DisplayStartTrialConfirm() => ShowModal(new StartTrialConfirmDialog

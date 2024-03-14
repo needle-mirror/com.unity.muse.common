@@ -66,6 +66,15 @@ namespace Unity.Muse.Common
         }
 
         /// <summary>
+        /// Has the trial dialog been shown at least once to this user?
+        /// </summary>
+        public static bool trialDialogShown
+        {
+            get => s_Preferences.Get<bool>(nameof(trialDialogShown), PreferenceScope.Project, defaultValue: new());
+            set => s_Preferences.Set(nameof(trialDialogShown), value, PreferenceScope.Project);
+        }
+
+        /// <summary>
         /// If the subscriptStart message has been displayed or not (should be displayed only once per user lifetime)
         /// </summary>
         public static bool subscriptionStartDisplayed

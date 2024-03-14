@@ -7,7 +7,10 @@ using Button = Unity.AppUI.UI.Button;
 
 namespace Unity.Muse.Common
 {
-    class AccountDropdown : VisualElement
+#if ENABLE_UXML_SERIALIZED_DATA
+    [UxmlElement]
+#endif
+    partial class AccountDropdown : VisualElement
     {
 #if ENABLE_UXML_TRAITS
         internal new class UxmlFactory : UxmlFactory<AccountDropdown, UxmlTraits> { }
@@ -58,6 +61,24 @@ namespace Unity.Muse.Common
             var content = new VisualElement();
             content.AddToClassList("muse-account-settings");
 
+            var hasNeverUsedMuse = AccountInfo.Instance is {IsEntitled: false, IsExpired: false};
+            var controller = AccountController.Get(this);
+            if (hasNeverUsedMuse && controller is {allowNoAccount: true})
+            {
+                var startTrial = new Button {title = TextContent.tryMuse};
+                startTrial.pickingMode = PickingMode.Position;
+                startTrial.style.marginLeft = 0;
+                startTrial.AddToClassList("account-dropdown-start-subscription");
+                startTrial.quiet = true;
+                startTrial.clicked += () =>
+                {
+                    modal?.Dismiss();
+                    GlobalPreferences.trialDialogShown = false;
+                    controller.StateChanged();
+                };
+                content.Add(startTrial);
+            }
+
             var usageGroup = new VisualElement {name = "muse-account-usage-group"};
 
             var isUsageExceeded = AccountInfo.Instance.Usage.CanExceed &&
@@ -99,7 +120,8 @@ namespace Unity.Muse.Common
                 usageGroup.Add(usageProgress);
             }
 
-            content.Add(usageGroup);
+            if (!hasNeverUsedMuse)
+                content.Add(usageGroup);
 
             var goToAccountRow = new VisualElement();
             goToAccountRow.AddToClassList("row");

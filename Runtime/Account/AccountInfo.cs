@@ -89,6 +89,7 @@ namespace Unity.Muse.Common.Account
                 GlobalPreferences.organization = value;
                 if (changed)
                 {
+                    GlobalPreferences.trialDialogShown = false;
                     OnOrganizationChanged?.Invoke();
                     UpdateUsage();
                 }

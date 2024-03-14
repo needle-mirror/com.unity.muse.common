@@ -89,6 +89,7 @@ namespace Unity.Muse.Common
         public static readonly string signinTitle = "Log in to start using Muse";
         public static readonly string signinAccept = "Log in";
         public static readonly string goToMuseAccount = "Go to Muse account";
+        public static readonly string tryMuse = "Start your Muse subscription now";
         public static readonly string requestSeatTitle = "You’re almost there";
         public static readonly string requestSeatDescription = "<line-height=20px>Your organization currently has a Muse subscription, so please ask your administrator to assign you a Muse seat.</line-height>";
         public static readonly string requestSeatAccept = "View organization";

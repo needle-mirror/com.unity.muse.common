@@ -11,6 +11,9 @@ namespace Unity.Muse.Common.Account
         public ScrollView dialogDescription;
         public VisualElement primaryActionContainer = new();
         public VisualElement cancelActionContainer = new();
+        public Action OnClose;
+
+        protected Button m_CloseButton;
 
         public AccountDialog()
         {
@@ -70,6 +73,18 @@ namespace Unity.Muse.Common.Account
             cancelActionContainer.Add(button);
 
             return button;
+        }
+
+        public Button AddCloseButton()
+        {
+            m_CloseButton = new Button {title = TextContent.subConfirmClose};
+            m_CloseButton.quiet = true;
+            m_CloseButton.AddToClassList("appui-dialog__cancel-action");
+            m_CloseButton.clicked += () => OnClose?.Invoke();
+            m_CloseButton.style.marginLeft = 0;
+            primaryActionContainer.Add(m_CloseButton);
+
+            return m_CloseButton;
         }
 
         /// <summary>

@@ -9,13 +9,11 @@ namespace Unity.Muse.Common.Account
     class StartTrialConfirmDialog : AccountDialog
     {
         public Action<OrganizationInfo> OnAccept;
-        public Action OnClose;
         readonly Button m_PrimaryAction;
         readonly Text m_TermsOfServiceText;
         readonly Text m_PrivacyPolicyText;
         readonly Checkbox m_TermsOfServiceCheck;
         readonly Checkbox m_PrivacyPolicyCheck;
-        readonly Button m_CloseButton;
 
         public StartTrialConfirmDialog()
         {
@@ -56,13 +54,7 @@ namespace Unity.Muse.Common.Account
             }
 
             AddCancelButton(TextContent.subConfirmLearnMore, AccountLinks.TrialLearnMore);
-            m_CloseButton = new Button {title = TextContent.subConfirmClose};
-            m_CloseButton.quiet = true;
-            m_CloseButton.pickingMode = PickingMode.Position;
-            m_CloseButton.AddToClassList("appui-dialog__cancel-action");
-            m_CloseButton.clicked += () => OnClose?.Invoke();
-            m_CloseButton.style.marginLeft = 0;
-            primaryActionContainer.Add(m_CloseButton);
+            AddCloseButton();
             m_PrimaryAction = AddPrimaryButton(TextContent.subConfirmStart, () => OnAccept?.Invoke(org));
             m_PrimaryAction.SetEnabled(false);
 
