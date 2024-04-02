@@ -25,6 +25,8 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Unity.Muse.Behavior.Editor.Tests")]
 [assembly: InternalsVisibleTo("Unity.Muse.App")]
 [assembly: InternalsVisibleTo("Unity.Muse.Common.Editor.Settings")]
+[assembly: InternalsVisibleTo("Unity.Muse.Animate")]
+[assembly: InternalsVisibleTo("Unity.Muse.Animate.Editor")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 [assembly: InternalsVisibleTo("Unity.Muse.Behavior")]
 [assembly: InternalsVisibleTo("Unity.2D.Muse.Editor")]

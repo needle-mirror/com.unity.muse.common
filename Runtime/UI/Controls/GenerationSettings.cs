@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Unity.AppUI.UI;
+using Unity.Muse.AppUI.UI;
 using Unity.Muse.Common.Utils;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -121,6 +121,17 @@ namespace Unity.Muse.Common
             // We don't want to override the amount of Images to generate
             var operators = m_Artifact.CloneOperators();
             var proxyOperators = operators.FindAll(x => x is IProxyOperator);
+
+            for(var i = operators.Count - 1; i >= 0; i--)
+            {
+                if (operators[i] is not IOperatorAddHandler handler ||
+                    handler.EvaluateAddOperator(m_CurrentModel)) continue;
+                
+                if(operators[i] is IOperatorRemoveHandler removeHandler)
+                    removeHandler.OnOperatorRemoved(operators);
+                    
+                operators.RemoveAt(i);
+            }
             
             foreach (var proxy in proxyOperators)
             {

@@ -1,7 +1,7 @@
-using Unity.AppUI.UI;
+using Unity.Muse.AppUI.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Button = Unity.AppUI.UI.Button;
+using Button = Unity.Muse.AppUI.UI.Button;
 
 namespace Unity.Muse.Common
 {

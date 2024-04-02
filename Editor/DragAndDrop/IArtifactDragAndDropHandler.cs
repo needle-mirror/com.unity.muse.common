@@ -4,6 +4,7 @@ namespace Unity.Muse.Common
 {
     internal interface IArtifactDragAndDropHandler
     {
+        event System.Action<string, Artifact> ArtifactDropped;
         bool CanDropSceneView(GameObject dropUpon, Vector3 worldPosition);
         void HandleDropSceneView(GameObject dropUpon, Vector3 worldPosition);
 

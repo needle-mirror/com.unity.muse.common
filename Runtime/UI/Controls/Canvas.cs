@@ -1,10 +1,7 @@
 using System;
-using Unity.AppUI.UI;
+using Unity.Muse.AppUI.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
-#if UNITY_EDITOR
-using Unity.Muse.Common.Editor.Settings;
-#endif
 
 namespace Unity.Muse.Common
 {
@@ -67,12 +64,8 @@ namespace Unity.Muse.Common
                 frameMargin = 24f,
             };
             
-#if UNITY_EDITOR
-            m_Canvas.controlScheme = MusePreferences.canvasControlScheme;
-            MusePreferences.preferencesSaved += OnPreferencesChanged;
-#else
-            m_Canvas.controlScheme = Preferences.Session.canvasControlScheme;
-#endif
+            m_Canvas.controlScheme = GlobalPreferences.canvasControlScheme;
+            GlobalPreferences.preferencesChanged += OnPreferencesChanged;
             
             hierarchy.Add(m_Canvas);
             m_Canvas.StretchToParentSize();
@@ -119,9 +112,7 @@ namespace Unity.Muse.Common
 
         void OnPreferencesChanged()
         {
-#if UNITY_EDITOR
-            m_Canvas.controlScheme = MusePreferences.canvasControlScheme;
-#endif
+            m_Canvas.controlScheme = GlobalPreferences.canvasControlScheme;
         }
 
         void FrameArtifact(Artifact artifact)

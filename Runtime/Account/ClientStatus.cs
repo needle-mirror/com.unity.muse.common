@@ -1,5 +1,6 @@
 using System;
 using UnityEditor.PackageManager;
+using UnityEngine;
 
 namespace Unity.Muse.Common.Account
 {
@@ -14,7 +15,7 @@ namespace Unity.Muse.Common.Account
 
         public event Action<ClientStatusResponse> OnClientStatusChanged;
 
-        public bool IsClientUsable => AccountInfo.Instance.IsEntitled && !Status.IsDeprecated;
+        public bool IsClientUsable => AccountInfo.Instance.IsEntitled && !Status.IsDeprecated && NetworkState.IsAvailable;
         public PackageInfo packageInfo = PackageInfo.FindForAssetPath("Packages/com.unity.muse.common/package.json");
         public string apiVersion = GenerativeAIBackend.TexturesUrl.version;
 
@@ -30,8 +31,6 @@ namespace Unity.Muse.Common.Account
 
         public void UpdateStatus()
         {
-            if (AccountStatus.instance.statusChecked)
-                return;
             if (!UnityConnectUtils.GetIsLoggedIn())
                 return;
 

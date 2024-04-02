@@ -15,5 +15,16 @@ namespace Unity.Muse.Common.Account
         public SubscriptionStatus Status => SubscriptionStatusUtils.FromString(status);
         public bool IsExpired => Status is SubscriptionStatus.SubscriptionExpired or SubscriptionStatus.TrialExpired;
         public bool IsEntitled => this is {Status: SubscriptionStatus.FreeTrial} or {Status: SubscriptionStatus.Entitled};
+        public bool HasMuseAccount => IsEntitled || IsExpired;     // If the user has a subscription or ever had one
+
+
+        public void CopyTo(OrganizationInfo target)
+        {
+            if (target == null) throw new ArgumentNullException(nameof(target));
+
+            target.org_id = org_id;
+            target.org_name = org_name;
+            target.status = status;
+        }
     }
 }

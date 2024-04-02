@@ -1,9 +1,10 @@
 using System;
-using Unity.AppUI.UI;
+using Unity.Muse.AppUI.UI;
 using Unity.Muse.Common.Account;
+using Unity.Muse.Common.Utils;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Button = Unity.AppUI.UI.Button;
+using Button = Unity.Muse.AppUI.UI.Button;
 
 namespace Unity.Muse.Common
 {
@@ -17,6 +18,15 @@ namespace Unity.Muse.Common
 #endif
 
         Popover m_SubscriptionStartModal;
+        static Action s_UpdateUsage;
+        Text m_UsageExceeded;
+        Image m_Bar;
+        LinearProgress m_UsageProgress;
+        Text m_Usage;
+        bool UsageExceeded => AccountInfo.Instance.Usage.Exceeded;
+
+        static Action UpdateUsage => s_UpdateUsage ??= EventServices.IntervalDebounce(AccountInfo.Instance.UpdateUsage, 5f);
+
 
         public AccountDropdown()
         {
@@ -36,16 +46,32 @@ namespace Unity.Muse.Common
             RegisterCallback<AttachToPanelEvent>(AttachToPanel);
             RegisterCallback<DetachFromPanelEvent>(DetachFromPanel);
             ShowSubscriptionStartMessage();
+
+            UpdateUsage();
         }
 
         void AttachToPanel(AttachToPanelEvent evt)
         {
             AccountInfo.Instance.OnOrganizationChanged += ShowSubscriptionStartMessage;
+            AccountInfo.Instance.OnUsageChanged += RefreshUsage;
+        }
+
+        void RefreshUsage()
+        {
+            if (m_Bar is null || m_UsageExceeded is null || m_UsageProgress is null || m_Usage is null)
+                return;
+
+            m_Bar.SetDisplay(UsageExceeded);
+            m_UsageExceeded.SetDisplay(UsageExceeded);
+            m_UsageProgress.SetDisplay(!UsageExceeded);
+            m_Usage.text = AccountInfo.Instance.Usage.Label;
+            m_Usage.tooltip = AccountInfo.Instance.Usage.Tooltip;
         }
 
         void DetachFromPanel(DetachFromPanelEvent evt)
         {
             AccountInfo.Instance.OnOrganizationChanged -= ShowSubscriptionStartMessage;
+            AccountInfo.Instance.OnUsageChanged -= RefreshUsage;
         }
 
         void ShowMuseAccountSettings()
@@ -81,44 +107,34 @@ namespace Unity.Muse.Common
 
             var usageGroup = new VisualElement {name = "muse-account-usage-group"};
 
-            var isUsageExceeded = AccountInfo.Instance.Usage.CanExceed &&
-                AccountInfo.Instance.Usage.used > AccountInfo.Instance.Usage.total;
-            if (isUsageExceeded)
-            {
-                var usageExceeded = new Text {name = "muse-usage-exceeded", text = TextContent.subUsageExceeded};
-                usageGroup.Add(usageExceeded);
-            }
+            m_UsageExceeded = new Text {name = "muse-usage-exceeded", text = TextContent.subUsageExceeded};
+            usageGroup.Add(m_UsageExceeded);
 
             var usageRow = new VisualElement {name = "muse-account-usage-row"};
             var usageLabel = new Text {text = TextContent.subUsageUsed};
             usageRow.Add(usageLabel);
-            var usage = new Text {text = AccountInfo.Instance.Usage.Label, tooltip = AccountInfo.Instance.Usage.Tooltip};
-            usage.AddToClassList("usage");
-            usageRow.Add(usage);
+            m_Usage = new();
+            m_Usage.AddToClassList("usage");
+            usageRow.Add(m_Usage);
 
             usageGroup.Add(usageRow);
 
-            if (isUsageExceeded)
+            m_Bar = new Image
             {
-                var bar = new Image
-                {
-                    image = ResourceManager.Load<Texture2D>(PackageResources.accountUsageExceededBar),
-                    scaleMode = ScaleMode.StretchToFill
-                };
-                bar.AddToClassList("muse-usage-progress");
-                usageGroup.Add(bar);
-            }
-            else
+                image = ResourceManager.Load<Texture2D>(PackageResources.accountUsageExceededBar),
+                scaleMode = ScaleMode.StretchToFill
+            };
+            m_Bar.AddToClassList("muse-usage-progress");
+            usageGroup.Add(m_Bar);
+
+            m_UsageProgress = new LinearProgress
             {
-                var usageProgress = new LinearProgress
-                {
-                    value = AccountInfo.Instance.Usage.Progress,
-                    variant = Progress.Variant.Determinate
-                };
-                usageProgress.AddToClassList("muse-usage-progress");
-                usageProgress.colorOverride = new Color(0.9215f, 0.2549f, 0.47843f);
-                usageGroup.Add(usageProgress);
-            }
+                value = AccountInfo.Instance.Usage.Progress,
+                variant = Progress.Variant.Determinate
+            };
+            m_UsageProgress.AddToClassList("muse-usage-progress");
+            m_UsageProgress.colorOverride = new Color(0.9215f, 0.2549f, 0.47843f);
+            usageGroup.Add(m_UsageProgress);
 
             if (!hasNeverUsedMuse)
                 content.Add(usageGroup);
@@ -135,6 +151,8 @@ namespace Unity.Muse.Common
             goToAccountRow.AddManipulator(new Pressable(GoToAccountClick));
 
             content.Add(goToAccountRow);
+
+            RefreshUsage();
 
             modal = Popover.Build(this, content);
             modal.SetAnchor(this);
@@ -166,7 +184,8 @@ namespace Unity.Muse.Common
             message.Add(new Button(() =>
             {
                 m_SubscriptionStartModal?.Dismiss();
-                AccountController.SetAllStates(AccountState.TrialStarted);
+                GlobalPreferences.trialDialogShown = false;
+                AccountController.Refresh();
             })
             {
                 name = "muse-message-learn-more-button",

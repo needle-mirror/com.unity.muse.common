@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.AppUI.UI;
+using Unity.Muse.AppUI.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -113,7 +113,7 @@ namespace Unity.Muse.Common
 
         internal void DeleteCurrentModel()
         {
-            if (Preferences.Session.deleteWithoutWarning)
+            if (GlobalPreferences.deleteWithoutWarning)
                 DoDelete();
             else
             {
@@ -134,7 +134,7 @@ namespace Unity.Muse.Common
                 dialog.SetPrimaryAction(2, TextContent.deleteDialogOk, () =>
                 {
                     if (checkbox.value == CheckboxState.Checked)
-                        Preferences.Session.deleteWithoutWarning = true;
+                        GlobalPreferences.deleteWithoutWarning = true;
                     DoDelete();
                 });
                 dialog.SetCancelAction(0, TextContent.cancel);
@@ -200,7 +200,7 @@ namespace Unity.Muse.Common
             }
         }
 
-        public virtual bool TrySaveAsset(string directory) => false;
+        public virtual bool TrySaveAsset(string directory, Action<string> onExport = null) => false;
 
         public virtual IEnumerable<ContextMenuAction> GetAvailableActions(ActionContext context) => new List<ContextMenuAction>();
 

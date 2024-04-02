@@ -1,8 +1,8 @@
 using System;
-using Unity.AppUI.UI;
+using Unity.Muse.AppUI.UI;
 using UnityEngine.UIElements;
-using Button = Unity.AppUI.UI.Button;
-using Toggle = Unity.AppUI.UI.Toggle;
+using Button = Unity.Muse.AppUI.UI.Button;
+using Toggle = Unity.Muse.AppUI.UI.Toggle;
 
 namespace Unity.Muse.Common.Account
 {
@@ -10,6 +10,7 @@ namespace Unity.Muse.Common.Account
     {
         public Action<bool> OnAccept;
         readonly Button m_PrimaryAction;
+        Toggle m_UsageOptIn;
 
         public DataOpInDialog()
         {
@@ -23,20 +24,21 @@ namespace Unity.Muse.Common.Account
             var optInGroup = new VisualElement();
             optInGroup.AddToClassList("muse-opt-in-group");
             optInGroup.AddToClassList("muse-description-section");
-            var usageOptIn = new Toggle {value = true};
-            optInGroup.Add(usageOptIn);
+            m_UsageOptIn = new Toggle {value = true};
+            optInGroup.Add(m_UsageOptIn);
             optInGroup.Add(new Text {text = TextContent.subDataLegalOptInMessage, enableRichText = true});
 
             dialogDescription.Add(optInGroup);
             dialogDescription.Add(description2);
 
             AddCancelButton(TextContent.subDataReadPolicy, AccountLinks.PrivacyNotice);
-            m_PrimaryAction = AddPrimaryButton(TextContent.subDataClose, () => OnAccept?.Invoke(usageOptIn.value), false);
+            m_PrimaryAction = AddPrimaryButton(TextContent.subDataClose, () => OnAccept?.Invoke(m_UsageOptIn.value), false);
         }
 
         public override void SetProcessing()
         {
             m_PrimaryAction.SetEnabled(false);
+            m_UsageOptIn.SetEnabled(false);
         }
     }
 }

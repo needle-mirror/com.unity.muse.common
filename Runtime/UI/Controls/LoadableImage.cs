@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Unity.AppUI.UI;
+using Unity.Muse.AppUI.UI;
 using Unity.Muse.Common.Utils;
 
 namespace Unity.Muse.Common

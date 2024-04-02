@@ -42,7 +42,9 @@ namespace Unity.Muse.Common.Editor
                 return DragAndDropVisualMode.None;
 
             if (perform)
+            {
                 draggable.HandleDropProject(path);
+            }
 
             return DragAndDropVisualMode.Copy;
         }

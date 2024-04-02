@@ -11,6 +11,10 @@ namespace Unity.Muse.Common.Editor
     {
         readonly IList<IArtifactDragAndDropHandler> m_Handlers;
 
+#pragma warning disable 67
+        public event Action<string, Artifact> ArtifactDropped;
+#pragma warning restore 67
+
         public MultiArtifactDragAndDropHandler(IList<IArtifactDragAndDropHandler> handlers)
         {
             m_Handlers = handlers;

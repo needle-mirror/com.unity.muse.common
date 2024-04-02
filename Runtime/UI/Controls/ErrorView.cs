@@ -1,6 +1,6 @@
 using System;
 using UnityEngine.UIElements;
-using Unity.AppUI.UI;
+using Unity.Muse.AppUI.UI;
 using UnityEngine;
 
 namespace Unity.Muse.Common

@@ -36,6 +36,10 @@ namespace Unity.Muse.Common
         [ResourcePath]
         internal const string toolbarStyleSheet =
             "Packages/com.unity.muse.common/Runtime/UI/PackageResources/uss/Toolbar.uss";
+        
+        [ResourcePath]
+        internal const string projectSettingsStyleSheet =
+            "Packages/com.unity.muse.common/Editor/Preferences/MuseProjectSettings.uss";
 
         [ResourcePath]
         internal const string accountStyleSheet =
@@ -84,6 +88,148 @@ namespace Unity.Muse.Common
         [ResourcePath]
         internal const string patternShape11 =
             "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/11.png";
+
+        [ResourcePath]
+        internal const string patternShape12 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/12.png";
+
+        [ResourcePath]
+        internal const string patternShape13 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/13.png";
+
+        [ResourcePath]
+        internal const string patternShape14 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/14.png";
+
+
+        [ResourcePath]
+        internal const string patternShape15 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/15.png";
+
+        [ResourcePath]
+        internal const string patternShape16 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/16.png";
+
+        [ResourcePath]
+        internal const string patternShape17 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/17.png";
+
+        [ResourcePath]
+        internal const string patternShape18 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/18.png";
+
+        [ResourcePath]
+        internal const string patternShape19 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/19.png";
+
+        [ResourcePath]
+        internal const string patternShape20 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/20.png";
+
+        [ResourcePath]
+        internal const string patternShape21 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/21.png";
+
+        [ResourcePath]
+        internal const string patternShape22 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/22.png";
+
+        [ResourcePath]
+        internal const string patternShape23 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/23.png";
+
+        [ResourcePath]
+        internal const string patternShape24 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/24.png";
+
+        [ResourcePath]
+        internal const string patternShape25 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/25.png";
+
+        [ResourcePath]
+        internal const string patternShape26 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/26.png";
+
+        [ResourcePath]
+        internal const string patternShape27 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/27.png";
+
+        [ResourcePath]
+        internal const string patternShape28 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/28.png";
+
+        [ResourcePath]
+        internal const string patternShape29 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/29.png";
+
+        [ResourcePath]
+        internal const string patternShape30 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/30.png";
+
+        [ResourcePath]
+        internal const string patternShape31 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/31.png";
+
+        [ResourcePath]
+        internal const string patternShape32 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/32.png";
+
+
+        [ResourcePath]
+        internal const string patternShape33 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/33.png";
+
+        [ResourcePath]
+        internal const string patternShape34 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/34.png";
+
+        [ResourcePath]
+        internal const string patternShape35 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/35.png";
+
+        [ResourcePath]
+        internal const string patternShape36 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/36.png";
+
+        [ResourcePath]
+        internal const string patternShape37 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/37.png";
+
+        [ResourcePath]
+        internal const string patternShape38 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/38.png";
+
+        [ResourcePath]
+        internal const string patternShape39 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/39.png";
+
+        [ResourcePath]
+        internal const string patternShape40 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/40.png";
+
+        [ResourcePath]
+        internal const string patternShape41 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/41.png";
+
+        [ResourcePath]
+        internal const string patternShape42 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/42.png";
+
+        [ResourcePath]
+        internal const string patternShape43 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/43.png";
+
+        [ResourcePath]
+        internal const string patternShape44 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/44.png";
+
+        [ResourcePath]
+        internal const string patternShape45 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/45.png";
+
+        [ResourcePath]
+        internal const string patternShape46 =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shapes/46.png";
 
         [ResourcePath]
         internal const string museLogo =

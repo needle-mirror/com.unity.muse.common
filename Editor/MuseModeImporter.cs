@@ -18,7 +18,7 @@ namespace Unity.Muse.Common.Editor
             ctx.SetMainObject(asset);
         }
 
-        [MenuItem("internal:Muse/Update Modes", false, 111)]
+        [MenuItem("internal:Muse/Internals/Update Modes", false, 111)]
         static void LoadMuseMode()
         {
             ModesFactory.LoadMuseModes();

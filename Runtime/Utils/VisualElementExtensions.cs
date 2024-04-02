@@ -68,5 +68,10 @@ namespace Unity.Muse.Common.Utils
             else
                 element.RemoveFromHierarchy();
         }
+
+        public static void SetDisplay(this VisualElement element, bool display)
+        {
+            element.style.display = display ? DisplayStyle.Flex : DisplayStyle.None;
+        }
     }
 }

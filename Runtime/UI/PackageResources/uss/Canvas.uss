@@ -15,16 +15,16 @@
     flex-grow: 1;
 }
 
-Canvas GridBackground {
+.muse-canvas .appui-canvas__background {
     --grid-background-color: var(--appui-backgrounds-50);
     --line-color: var(--appui-backgrounds-300);
     --thick-line-color: var(--appui-backgrounds-300);
     --thick-lines: 0; /* Every N lines the line is thicker (use 0 to disable) */
     --line-spacing: 12; /* 12px of spacing between each lines' center point */
     --draw-points: 1; /* 1 to draw points, 0 to draw lines */
-    --thickness: 2; /* line or point thickness */
+    --thickness: 1; /* line or point thickness */
     --thick-line-thickness: 0; /* line or point thickness for thicker ones */
-    --next-grid-scale-factor: 10; /* 0 to disable, N to get the next grid N times bigger than the previous one */
+    --next-grid-scale-factor: 4; /* 0 to disable, N to get the next grid N times bigger than the previous one */
 }
 
 Canvas #SelectionBorder {

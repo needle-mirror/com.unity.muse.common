@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Unity.AppUI.Core;
-using Unity.AppUI.UI;
+using Unity.Muse.AppUI.UI;
 using UnityEngine;
 using UnityEngine.Scripting;
 using UnityEngine.UIElements;
@@ -28,6 +28,41 @@ namespace Unity.Muse.Common
             Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape09).EncodeToPNG()),
             Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape10).EncodeToPNG()),
             Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape11).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape12).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape13).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape14).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape15).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape16).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape17).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape18).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape19).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape20).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape21).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape22).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape23).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape24).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape25).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape26).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape27).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape28).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape29).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape30).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape31).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape32).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape33).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape34).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape35).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape36).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape37).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape38).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape39).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape40).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape41).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape42).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape43).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape44).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape45).EncodeToPNG()),
+            Convert.ToBase64String(ResourceManager.Load<Texture2D>(PackageResources.patternShape46).EncodeToPNG()),
         };
 
         static readonly Texture2D[] k_PatternTextures = k_ProvidedPatternsBase64Encoded.Select(guid =>
@@ -265,6 +300,8 @@ namespace Unity.Muse.Common
             m_PatternsView.itemsSource = k_PatternTextures;
             m_PatternsView.itemsChosen += (indices) => OnPatternChosen(indices, true);
             m_PatternsView.selectionChanged += (indices) => OnPatternChosen(indices, false);
+            m_PatternsView.columnCount = 3;
+            m_PatternsView.itemHeight = 75;
         }
 
         void OnDropZonePointerDown(PointerDownEvent evt)

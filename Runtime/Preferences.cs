@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Unity.AppUI.UI;
+using Unity.Muse.AppUI.UI;
 using UnityEngine;
 using UnityEngine.Scripting;
 #if UNITY_EDITOR
@@ -14,7 +14,7 @@ namespace Unity.Muse.Common
     {
         public const string keyPrefix = "Unity.Muse.Common.Preferences.";
         public const string defaultImportFolderPath = "Assets";
-        
+
         const string k_PackageName = "com.unity.muse.common";
         const string k_PackageVersionKey = "Unity.Muse.Common.Version";
 
@@ -26,7 +26,7 @@ namespace Unity.Muse.Common
         };
 
 #if UNITY_EDITOR
-        [UnityEditor.MenuItem("internal:Muse/Clear Preferences", false)]
+        [UnityEditor.MenuItem("internal:Muse/Internals/Clear Preferences", false)]
 #endif
         public static void ClearAll()
         {
@@ -84,9 +84,9 @@ namespace Unity.Muse.Common
             }
 
 #if UNITY_EDITOR
-            
+
             static int s_EditorUpdateFrames = 0;
-            
+
             private static void OnEditorUpdate()
             {
                 if (s_EditorUpdateFrames < 10)
@@ -94,20 +94,20 @@ namespace Unity.Muse.Common
                     s_EditorUpdateFrames++;
                     return;
                 }
-                
+
                 EditorApplication.update -= OnEditorUpdate;
                 CheckPackageVersion();
             }
-            
+
             private static void CheckPackageVersion()
             {
                 var request = Client.List(true, true);
-                
+
                 while (request.Status == StatusCode.InProgress)
                 {
                     System.Threading.Tasks.Task.Delay(100).Wait();
                 }
-                
+
                 if (request.Status == StatusCode.Success && request.Result != null)
                 {
                     foreach (var package in request.Result)
@@ -115,7 +115,7 @@ namespace Unity.Muse.Common
                         if (package.name == k_PackageName)
                         {
                             var version = package.version;
-                            if (PlayerPrefs.HasKey(k_PackageVersionKey)) 
+                            if (PlayerPrefs.HasKey(k_PackageVersionKey))
                             {
                                 var previousVersion = PlayerPrefs.GetString(k_PackageVersionKey);
                                 if (previousVersion != version)
@@ -133,13 +133,13 @@ namespace Unity.Muse.Common
                         }
                     }
                 }
-            } 
+            }
 
             private static void OnPackageVersionChanged()
             {
                 EditorUtility.RequestScriptReload();
             }
-            
+
             private static void OnEditorQuit()
             {
                 EditorApplication.update -= OnEditorUpdate;

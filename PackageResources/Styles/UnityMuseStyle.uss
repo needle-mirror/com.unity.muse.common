@@ -88,14 +88,14 @@
 }
 
 .muse-patterns-view {
-    width: 212px;
+    width: 230px;
     height: 230px;
 }
 
 .muse-patterns-view__item {
     position: relative;
-    width: 100px;
-    height: 100px;
+    width: 75px;
+    height: 75px;
     padding: 4px;
 }
 

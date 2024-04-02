@@ -2,9 +2,9 @@ using System;
 
 namespace Unity.Muse.Common
 {
-    internal static class TextContent
+    static class TextContent
     {
-        public static string defaultAssetName(string modeTitle = "Muse") => $"New {modeTitle}";
+        public static string DefaultAssetName(string modeTitle = "Muse") => $"New {modeTitle}";
 
         public static readonly string yes = "Yes";
         public static readonly string no = "No";
@@ -27,7 +27,6 @@ namespace Unity.Muse.Common
         public static readonly string thumbnailSizeSliderTooltip = "Adjust thumbnails size";
         public static readonly string assetRemovedFromProjectTitle = "Delete selected generator?";
         public static readonly string assetRemovedFromProjectMessage = "'{0}'\n\nYou cannot undo the delete action.";
-        public static readonly string saveGeneratorAsset = "Save Generator Asset";
         public static readonly string bookmarkTooltip = "Shows only starred artifacts";
         public static readonly string bookmarkButtonTooltip = "Add to favourites";
         public static readonly string operatorGenerateNumberTooltip = "Sets the number of images to be generated.";
@@ -35,27 +34,26 @@ namespace Unity.Muse.Common
         public static readonly string operatorNegativePromptTooltip = "Enter the text to describe the things you want to exclude...";
         public static readonly string saveTooltip = "Saves selected generation(s) into project.";
         public static readonly string refineTooltip = "Refines image in canvas.";
-        public static readonly string undoTooltip = "Undo";
-        public static readonly string redoTooltip = "Redo";
         public static readonly string backButtonTooltip = "Snaps back the Generations panel, hides the canvas, and exits the Refine mode.";
         public static readonly string promptPlaceholder = "Enter what to generate...";
-        public static readonly string removeReference = "Remove Reference Image";
         public static readonly string savePanelTitle = "Save";
         public static readonly string savePanelMessage = "Save changes to an asset in the Project.";
         public static readonly string dragAndDropColorImageMessage = "To guide your generation, drag and drop or import a square image at 512x512 pixels or smaller";
         public static readonly string dragAndDropShapeImageMessage = "Import a <b>black and white <u><a href=\"https://en.wikipedia.org/wiki/Canny_edge_detector\">canny</a></u> image</b> to guide your generation";
         public static readonly string dislike = "Dislike";
         public static readonly string removeDislike = "Remove Dislike";
-        public static readonly string dislikeTooltip = "Dislike this";
         public static readonly string like = "Like";
         public static readonly string removeLike = "Remove Like";
-        public static readonly string likeTooltip = "Like this";
         public static readonly string controlMaskBrushSizeTooltip = "Adjusts the brush size (Up Arrow and Down Arrow)";
         public static readonly string controlMaskToolTooltip = "Paints a mask over the area that you want to refine.";
-        public static readonly string subTitle = "Start your 15-day\nfree Muse trial";
-        public static readonly string subDescription1 = "<line-height=20px>Advance your projects faster with AI-powered creativity. And get new Muse capabilities regularly to improve all aspects of your game \nand app development.</line-height>";
-        public static readonly string subStart = "Try for free";
+        public static readonly string subTitle = "Get started with Muse";
+        public static readonly string subDescription1 = "<line-height=20px>Advance your projects faster with AI-powered creativity. And get new Muse capabilities regularly to improve all aspects of your game and app development.</line-height>";
+        public static readonly string subStartTrial = "Try Muse for free";
+        public static readonly string subStartUsing = "Start using Muse";
+        public static readonly string subStartJoinTrial = "Join your organization’s trial";
+        public static readonly string subStartJoinSubscription = "Join your organization’s subscription";
         public static readonly string subViewPlan = "Learn more";
+        public static readonly string subViewOrganizations = "View organizations";
         public static readonly string subNoEntitlements = "You currently do not have an active subscription. <link><color=#CE3299FF>Start your subscription</color></link> to use Muse.";
         public static readonly string subConfirmTitle = "Start your 15-day\nMuse trial";
         public static readonly string subConfirmTitleTrial = "Join the Muse trial";
@@ -68,7 +66,7 @@ namespace Unity.Muse.Common
         public static readonly string subConfirmPrivacy = "<line-height=24px>I have read and I acknowledge the <link=policy><color=#CE3299FF>Unity Privacy Policy</color></link> and the <link=supplemental><color=#CE3299FF>Generative AI Supplemental Privacy Notice</color></link>.</line-height>";
         public static readonly string subConfirmLearnMore = "Learn more";
         public static readonly string subConfirmClose = "Close";
-        public static readonly string subConfirmSelectOrganization = "Select your organization";
+        public static readonly string subConfirmSelectOrganization = "Choose which organization will use Muse";
         public static string subConfirmSelectOrganizationWarningSimple => $"All members of your organization will be signed up to the free trial.";
         public static string SubConfirmSelectOrganizationWarning(string org) => $"All members of the {org} organization will be signed up to the free trial.";
         public static readonly string subDataTitle = "Help us improve your\nMuse experience";
@@ -96,6 +94,7 @@ namespace Unity.Muse.Common
         public static readonly string clientStatusDeprecatedMessage = "Your current Muse package is using a deprecated API version. You need to <link><color=#CE3299FF>upgrade your Muse package</color></link> to continue using Muse.";
         public static string ClientStatusWillBeDeprecatedMessage(DateTime date) => $"Your current Muse package is using an API version that will be deprecated on {date:MMMM dd yyyy}. You will need to <link><color=#CE3299FF>upgrade your Muse package</color></link> to continue using Muse.";
         public static readonly string clientStatusUpdateMessage = "There is a new Muse package version available <link><color=#CE3299FF>for upgrade</color></link>.";
+        public static readonly string clientStatusNoInternet = "Please ensure you are connected to the internet to use Muse.";
         public static readonly string generateButtonCooldownTooltip = "Please wait before generating again.";
         public static readonly string generateButtonEnterPromptTooltip = "Enter a prompt to enable generation.";
         public static readonly string generateButtonPaintMaskTooltip = "Paint a mask to enable generation.";
@@ -112,8 +111,18 @@ namespace Unity.Muse.Common
         public static readonly string patterns = "Patterns";
         public static readonly string inputImageCopiedToClipboard = "Input Image Copied to Clipboard";
         public static readonly string subNotEntitled = "This organization does not have a Muse subscription or trial.";
-        public static readonly string projectSettingsTitle = "Muse Settings";
+        public static readonly string projectSettingsTitle = "Muse";
         public static readonly string projectSettingsOrgDesc = "Select your organization";
         public static readonly string projectSettingsSignedOut = "Please log in to start using Muse.";
+        public static readonly string generalSettingsCategory = "General";
+        public static readonly string spriteSettingsCategory = "Muse Sprite";
+        public static readonly string textureSettingsCategory = "Muse Texture";
+        public static readonly string accountSettingsCategory = "Account";
+        public static readonly string browse = "Browse";
+        public static readonly string selectFolder = "Select Folder";
+        public static readonly string deleteWithoutWarning = "Delete Generations Without Warning";
+        public static readonly string spriteAssetGeneratedPath = "Default Path for Muse Sprite Assets";
+        public static readonly string textureAssetGeneratedPath = "Default Path for Muse Texture Assets";
+        public static readonly string canvasControlScheme = "Canvas Control Scheme";
     }
 }

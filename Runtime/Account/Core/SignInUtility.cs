@@ -1,42 +1,27 @@
 using System;
-using Unity.Muse.Common.Account;
 using UnityEditor;
 using UnityEngine;
 
 namespace Unity.Muse.Common
 {
-    class SignInUtility
+    static class SignInUtility
     {
-        static SignInUtility s_SignInUtility;
-        public static SignInUtility Instance => s_SignInUtility ??= new SignInUtility();
-
         [InitializeOnLoadMethod]
-        static void Start() => s_SignInUtility ??= new SignInUtility();
+        static void Start()
+        {
+            RefreshSignIn();
+            UnityConnectUtils.RegisterConnectStateChangedEvent(_ => RefreshSignIn());
+        }
+
+        public static event Action OnChanged;
 
         /// <summary>
         /// LoggedIn value is only valid if Ready is true, otherwise it is unknown
         /// </summary>
-        public SignInState SignInState
-        {
-            get
-            {
-                if (m_LoggedIn is null)
-                    return SignInState.NotReady;
+        public static SignInState state => s_State;
+        static SignInState s_State = SignInState.NotReady;
 
-                return m_LoggedIn.Value ? SignInState.SignedIn : SignInState.SignedOut;
-            }
-        }
-
-        bool? m_LoggedIn;
-        readonly ChangeInfo m_Info = new();
-
-        SignInUtility()
-        {
-            RefreshSignIn();
-            m_Info.eventDelegate = UnityConnectUtils.RegisterConnectStateChangedEvent(_ => RefreshSignIn());
-        }
-
-        void RefreshSignIn()
+        static void RefreshSignIn()
         {
             if (!UnityConnectUtils.GetIsUserInfoReady())
             {
@@ -44,13 +29,12 @@ namespace Unity.Muse.Common
                 return;
             }
 
-            var loggedIn = UnityConnectUtils.GetIsLoggedIn();
-
-            if (m_LoggedIn is not null && m_LoggedIn.Value == loggedIn)
+            var currentState = UnityConnectUtils.GetIsLoggedIn() ? SignInState.SignedIn : SignInState.SignedOut;
+            if (s_State == currentState)
                 return;
-            m_LoggedIn = loggedIn;
 
-            AccountController.Refresh();
+            s_State = currentState;
+            OnChanged?.Invoke();
         }
     }
 }

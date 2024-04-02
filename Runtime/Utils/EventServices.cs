@@ -40,8 +40,8 @@ namespace Unity.Muse.Common
                 if (started)
                     return;
 
-                GenerativeAIBackend.context.RegisterNextFrameCallback(OnUpdate);
                 started = true;
+                OnUpdate();
             };
         }
     }

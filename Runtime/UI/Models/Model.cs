@@ -102,9 +102,12 @@ namespace Unity.Muse.Common
                 guid = Guid.NewGuid().ToString();
 
             foreach (var modelData in m_Data)
-                modelData.OnSaveRequested += () => OnModified?.Invoke();
+            {
+                if (modelData is not null)
+                    modelData.OnSaveRequested += () => OnModified?.Invoke();
+            }
         }
-
+ 
         internal List<Artifact> AssetsData
         {
             get => isRefineMode ? refinedArtifact.history : assetsData;
@@ -151,6 +154,9 @@ namespace Unity.Muse.Common
 
         [SerializeReference]
         List<IOperator> m_PreRefineOperators;
+
+        [SerializeField]
+        List<ExportedArtifact> m_ExportedArtifacts;
 
         /// <summary>
         /// Get the list of operators currently being used
@@ -358,6 +364,7 @@ namespace Unity.Muse.Common
                 // Check by artifact reference rather then guid otherwise we might delete multiple top level items that have
                 // previously been branched off.
                 AssetsData.RemoveAll(a => ReferenceEquals(a, artifact));
+                m_ExportedArtifacts?.RemoveAll(e => e.MuseGuid == artifact.Guid);
             }
 
             // After everything has been deleted, check if we need to set a new thumbnail or select a new item
@@ -745,6 +752,25 @@ namespace Unity.Muse.Common
         {
             m_UpdateUsage ??= EventServices.IntervalDebounce(AccountInfo.Instance.UpdateUsage, 4f);
             m_UpdateUsage();
+        }
+
+        internal void AddExportedArtifact(string unityGuid, string artifactGuid)
+        {
+            m_ExportedArtifacts ??= new List<ExportedArtifact>();
+            m_ExportedArtifacts.Add(new ExportedArtifact(unityGuid, artifactGuid));
+
+            OnModified?.Invoke();
+        }
+
+        internal string GetExportedArtifact(string unityGuid)
+        {
+            m_ExportedArtifacts ??= new List<ExportedArtifact>();
+            return m_ExportedArtifacts.FirstOrDefault(e => e.UnityGuid == unityGuid)?.MuseGuid;
+        }
+
+        internal Artifact GetArtifactByGuid(string guid)
+        {
+            return assetsData.FirstOrDefault(a => a.Guid == guid);
         }
     }
 }

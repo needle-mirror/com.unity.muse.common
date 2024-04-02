@@ -1,8 +1,8 @@
 using System;
-using Unity.AppUI.UI;
+using Unity.Muse.AppUI.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Button = Unity.AppUI.UI.Button;
+using Button = Unity.Muse.AppUI.UI.Button;
 
 namespace Unity.Muse.Common.Account
 {
@@ -14,6 +14,7 @@ namespace Unity.Muse.Common.Account
         public Action OnClose;
 
         protected Button m_CloseButton;
+        protected Button m_PrimaryButton;
 
         public AccountDialog()
         {
@@ -54,15 +55,15 @@ namespace Unity.Muse.Common.Account
 
         public Button AddPrimaryButton(string text, Action clicked, bool isPrimary = true)
         {
-            var button = new Button { title = text };
+            m_PrimaryButton = new Button { title = text };
             if (isPrimary)
-                button.AddToClassList("appui-dialog__primary-action");
+                m_PrimaryButton.AddToClassList("appui-dialog__primary-action");
             else
-                SetQuiet(button);
-            button.clicked += clicked;
-            primaryActionContainer.Add(button);
+                SetQuiet(m_PrimaryButton);
+            m_PrimaryButton.clicked += clicked;
+            primaryActionContainer.Add(m_PrimaryButton);
 
-            return button;
+            return m_PrimaryButton;
         }
 
         public Button AddCancelButton(string text, Action clicked)

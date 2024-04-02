@@ -4,11 +4,11 @@ namespace Unity.Muse.Common.Account
 {
     enum SubscriptionStatus
     {
-        NotEntitled,
-        FreeTrial,
         Entitled,
+        FreeTrial,
         TrialExpired,
-        SubscriptionExpired
+        SubscriptionExpired,
+        NotEntitled
     }
 
     static class SubscriptionStatusUtils

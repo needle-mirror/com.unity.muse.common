@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using Unity.Muse.Common.Editor.Settings;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;
@@ -35,7 +34,7 @@ namespace Unity.Muse.Common.Editor
             return false;
         }
 
-        static MuseEditor OpenEditorTo(Model asset)
+        internal static MuseEditor OpenEditorTo(Model asset)
         {
             MuseEditor window = null;
             var windows = GetAllInstances<MuseEditor>();
@@ -87,13 +86,13 @@ namespace Unity.Muse.Common.Editor
 
         public static string GetSavePath(Model currentModel, bool showDialog)
         {
-            var defaultName = TextContent.defaultAssetName(ModesFactory.GetModeData(currentModel.CurrentMode)?.title ?? "Muse Generator");
+            var defaultName = TextContent.DefaultAssetName(ModesFactory.GetModeData(currentModel.CurrentMode)?.title ?? "Muse Generator");
             var promptOperator = currentModel.CurrentOperators?.GetOperator<PromptOperator>();
             var fileName = promptOperator != null && !string.IsNullOrWhiteSpace(promptOperator.GetPrompt())
                 ? promptOperator.GetPrompt()
                 : defaultName;
 
-            var directory = MusePreferences.GetMuseAssetGeneratedFolderPathFromMode(currentModel.CurrentMode);
+            var directory = GlobalPreferences.GetMuseAssetGeneratedFolderPathFromMode(currentModel.CurrentMode);
             var path = ExporterHelpers.GetUniquePath(directory, fileName, "asset");
 
             return showDialog ? EditorUtility.SaveFilePanelInProject(TextContent.savePanelTitle, Path.GetFileNameWithoutExtension(path), "asset", TextContent.savePanelMessage) : path;

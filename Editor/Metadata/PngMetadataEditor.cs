@@ -16,7 +16,7 @@ namespace Unity.Muse.Common.Editor.Metadata
     {
         public const string titleText = "PNG Metadata Editor";
 
-        [MenuItem("internal:Muse/PNG Metadata Editor")]
+        [MenuItem("internal:Muse/Internals/PNG Metadata Editor")]
         public static void CreateWindow() => EditorWindow.CreateWindow<PngMetadataEditor>().titleContent = new GUIContent(titleText);
 
         PngMetadataEditorUI m_WatermarkUI;

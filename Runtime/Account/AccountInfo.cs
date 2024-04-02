@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Unity.Muse.Common.Account
@@ -11,27 +12,24 @@ namespace Unity.Muse.Common.Account
         public static AccountInfo Instance => s_Instance ??= new();
 
         public event Action OnOrganizationChanged;
+        public event Action OnUsageChanged;
         public event Action OnOrganizationListChanged;
         public event Action OnLegalConsentChanged;
-        public event Action OnReady;
 
         public bool IsEntitled => Organization is {IsEntitled: true};
         public bool IsExpired => Organization is {IsExpired: true};
+        public bool IsRegistered => Organization is {HasMuseAccount: true};
         public bool RequestSeat;
-        public bool IsReady => AccountStatus.instance.entitlementsChecked && AccountStatus.instance.legalConsentChecked;
 
-        public List<OrganizationInfo> NotEntitledOrganizations => Organizations?
-            .Where(org => org.Status == SubscriptionStatus.NotEntitled).ToList();
-
-        void RefreshReady()
-        {
-            if (IsReady)
-                OnReady?.Invoke();
-        }
+        // Stuck state possible: No valid token, so can't do the ready calls.
+        // Since they never get retried, the state never changes back to a correct one.
+        public bool IsReady =>
+            AccountStatus.instance.entitlementsChecked &&
+            AccountStatus.instance.legalConsentChecked;
 
         public LegalConsentInfo LegalConsent
         {
-            get => GlobalPreferences.legalConsent;
+            get => GlobalPreferences.legalConsent ??= new();
             set
             {
                 var changed = GlobalPreferences.legalConsent != value;
@@ -49,7 +47,10 @@ namespace Unity.Muse.Common.Account
             get => GlobalPreferences.organizations;
             internal set
             {
-                GlobalPreferences.organizations = value;
+                GlobalPreferences.organizations = value
+                    .OrderBy(org => org.Status)
+                    .ThenBy(org => org.Label)
+                    .ToList();
                 OnOrganizationListChanged?.Invoke();
                 RefreshOrganization();
             }
@@ -62,6 +63,7 @@ namespace Unity.Muse.Common.Account
 #endif
             // Try to select the most appropriate organization
             // In order of preference:
+            //      Keep current organization
             //      Use entitled project organization
             //      Use any entitled organization
             //      Use not entitled project organization
@@ -85,8 +87,11 @@ namespace Unity.Muse.Common.Account
             get => GlobalPreferences.organization;
             internal set
             {
-                var changed = GlobalPreferences.organization != value;  // Record comparison will check for different fields by default
-                GlobalPreferences.organization = value;
+                // Always privilege the organization from the current list if possible (should be all cases except for tests/debug cases)
+                var organization = Organizations.Find(org => org.Id == value.Id) ?? value;
+
+                var changed = Organization != organization;  // Record comparison will check for different fields by default
+                GlobalPreferences.organization = organization;
                 if (changed)
                 {
                     GlobalPreferences.trialDialogShown = false;
@@ -101,7 +106,13 @@ namespace Unity.Muse.Common.Account
         public UsageInfo Usage
         {
             get => GlobalPreferences.usage;
-            set => GlobalPreferences.usage = value;
+            set
+            {
+                var changed = Usage != value;
+                GlobalPreferences.usage = value;
+                if (changed)
+                    OnUsageChanged?.Invoke();
+            }
         }
 
         public bool SubscriptionStartDisplayed
@@ -110,85 +121,70 @@ namespace Unity.Muse.Common.Account
             set => GlobalPreferences.subscriptionStartDisplayed = value;
         }
 
-        bool m_UpdatingEntitlements;
-        bool m_UpdatingLegalConsent;
+        Task<(SubscriptionResponse response, string error)> m_UpdatingEntitlements;
+        Task<(LegalConsentResponse response, string error)> m_UpdatingLegalConsent;
 
-        public void UpdateEntitlements(Action done = null)
+        public async Task UpdateEntitlements()
         {
             if (!UnityConnectUtils.GetIsLoggedIn())
                 return;
-            if (m_UpdatingEntitlements)
-                return;
-
-            m_UpdatingEntitlements = true;
-            GenerativeAIBackend.GetEntitlements((result, error) =>
+            if (m_UpdatingEntitlements is not null)
             {
-                if (!string.IsNullOrEmpty(error))
-                {
-                    // This can happen if the token or request failed. In which case we should consider no entitlements.
-                    Organizations = new();
-                }
-                else
-                {
-                    AccountStatus.instance.entitlementsChecked = true;
-                    Organizations = result.orgs.ToList();
-                    ShouldCheckEntitlementsOnFocus = !IsEntitled;  // Stop checking on focus if we are entitled
-                    RefreshReady();
-                }
-
-                m_UpdatingEntitlements = false;
-                done?.Invoke();
-            });
-        }
-
-        public void UpdateLegalConsent(Action done = null)
-        {
-            if (!UnityConnectUtils.GetIsLoggedIn())
+                await m_UpdatingEntitlements;
                 return;
-            if (m_UpdatingLegalConsent)
-                return;
-
-            m_UpdatingLegalConsent = true;
-            GenerativeAIBackend.GetLegalConsent((result, error) =>
-            {
-                if (string.IsNullOrEmpty(error))
-                {
-                    AccountStatus.instance.legalConsentChecked = true;
-                    LegalConsent = new()
-                    {
-                        content_usage_data_training = result.content_usage_data_training,
-                        privacy_policy_gen_ai = result.privacy_policy_gen_ai,
-                        terms_of_service_legal_info = result.terms_of_service_legal_info,
-                        user_id = result.user_id
-                    };
-                    RefreshReady();
-                }
-
-                m_UpdatingLegalConsent = false;
-                done?.Invoke();
-            });
-        }
-
-        public void UpdateAccountInformation(Action done = null)
-        {
-            bool entitlementsDone = false, legalCheckDone = false;
-            void OnDone()
-            {
-                if (entitlementsDone && legalCheckDone)
-                    done?.Invoke();
             }
 
-            UpdateEntitlements(() =>
+            try
             {
-                entitlementsDone = true;
-                OnDone();
-            });
-            UpdateLegalConsent(() =>
+                m_UpdatingEntitlements = GenerativeAIBackend.GetEntitlements();
+                var result = await m_UpdatingEntitlements;
+
+                if (!string.IsNullOrEmpty(result.error))
+                    return; // This can happen if the token or request failed.
+
+                AccountStatus.instance.entitlementsChecked = true;
+                Organizations = result.response.orgs.ToList();
+            }
+            finally
             {
-                legalCheckDone = true;
-                OnDone();
-            });
+                m_UpdatingEntitlements = null;
+            }
         }
+
+        public async Task UpdateLegalConsent()
+        {
+            if (!UnityConnectUtils.GetIsLoggedIn())
+                return;
+            if (m_UpdatingLegalConsent is not null)
+            {
+                await m_UpdatingLegalConsent;
+                return;
+            }
+
+            try
+            {
+                m_UpdatingLegalConsent = GenerativeAIBackend.GetLegalConsent();
+                var result = await m_UpdatingLegalConsent;
+
+                if (!string.IsNullOrEmpty(result.error))
+                    return; // This can happen if the token or request failed.
+
+                AccountStatus.instance.legalConsentChecked = true;
+                LegalConsent = new()
+                {
+                    content_usage_data_training = result.response.content_usage_data_training,
+                    privacy_policy_gen_ai = result.response.privacy_policy_gen_ai,
+                    terms_of_service_legal_info = result.response.terms_of_service_legal_info,
+                    user_id = result.response.user_id
+                };
+            }
+            finally
+            {
+                m_UpdatingLegalConsent = null;
+            }
+        }
+
+        public Task UpdateAccountInformation() => Task.WhenAll(UpdateEntitlements(), UpdateLegalConsent());
 
         public void UpdateUsage()
         {

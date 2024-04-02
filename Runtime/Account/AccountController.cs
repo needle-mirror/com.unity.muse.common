@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.AppUI.UI;
+using System.Threading.Tasks;
+using Unity.Muse.AppUI.UI;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -12,28 +13,6 @@ namespace Unity.Muse.Common.Account
 
     class AccountController : IDisposable
     {
-        AccountState m_State = AccountState.Default;
-
-        internal static void SetAllStates(AccountState state)
-        {
-            RunAll(controller => controller.State = state);
-        }
-
-        internal static void RunAll(Action<AccountController> action)
-        {
-            foreach (var controller in s_Controllers)
-                action(controller);
-        }
-
-        public AccountState State
-        {
-            get => m_State;
-            set => StateChanged(value);
-        }
-
-        TrialForm m_TrialForm;
-        bool m_TrialStartProcessing;
-
         static List<AccountController> s_Controllers = new();
         public static IEnumerable<AccountController> controllers => s_Controllers;
 
@@ -69,56 +48,6 @@ namespace Unity.Muse.Common.Account
             controller.Init();
 
             return controller;
-        }
-
-        public StateTransition OnStateTransition;
-        public bool skipInternalStateChange;
-        public AccountDropdown AccountDropdown => m_Window.rootVisualElement.Q<AccountDropdown>();
-        public bool IsInvalid => m_Window == null || element == null;
-
-        public VisualElement element => m_Window.rootVisualElement.Q<Panel>(); // An arbitrary UI element inside the UI panel.
-        readonly EditorWindow m_Window;
-        Modal m_Modal;  // The currently displayed modal dialog
-        AccountDialog m_Dialog;
-        bool m_HasAttached;
-        public bool allowNoAccount { get; protected set; }
-
-        public AccountController(EditorWindow window, bool init = true, bool allowNoAccount = false)
-        {
-            s_Controllers.Add(this);
-            this.allowNoAccount = allowNoAccount;
-
-            m_Window = window;
-            if (element is null)
-                throw new Exception("The window must have a visual element with a Panel type to be apple to display modal dialogs.");
-
-            element.styleSheets.Add(ResourceManager.Load<StyleSheet>(PackageResources.museTheme));
-
-            AccountInfo.Instance.OnOrganizationChanged += StateChanged;
-            AccountInfo.Instance.OnLegalConsentChanged += StateChanged;
-            AccountInfo.Instance.OnReady += StateChanged;
-            window.rootVisualElement.RegisterCallback<AttachToPanelEvent>(AttachToPanel);
-
-            if (init)
-                Init();
-        }
-
-        public virtual void Dispose()
-        {
-            AccountInfo.Instance.OnOrganizationChanged -= StateChanged;
-            AccountInfo.Instance.OnLegalConsentChanged -= StateChanged;
-            AccountInfo.Instance.OnReady -= StateChanged;
-        }
-
-        public void Init()
-        {
-            StateChanged();
-        }
-
-        void AttachToPanel(AttachToPanelEvent evt)
-        {
-            m_HasAttached = true;
-            Apply();
         }
 
         static void Clear(AccountController controller)
@@ -157,6 +86,61 @@ namespace Unity.Muse.Common.Account
                 controller.StateChanged();
         }
 
+        AccountState m_State = AccountState.Default;
+        public AccountState State => m_State;
+
+        TrialForm m_TrialForm;
+        public StateTransition OnStateTransition;
+        public bool skipInternalStateChange;
+        public AccountDropdown AccountDropdown => m_Window.rootVisualElement.Q<AccountDropdown>();
+        public bool IsInvalid => m_Window == null || element == null;
+
+        public VisualElement element => m_Window.rootVisualElement.Q<Panel>(); // An arbitrary UI element inside the UI panel.
+        readonly EditorWindow m_Window;
+        Modal m_Modal;  // The currently displayed modal dialog
+        AccountDialog m_Dialog;
+        bool m_HasAttached;
+        public bool allowNoAccount { get; protected set; }
+
+        public AccountController(EditorWindow window, bool init = true, bool allowNoAccount = false)
+        {
+            s_Controllers.Add(this);
+            this.allowNoAccount = allowNoAccount;
+
+            m_Window = window;
+            if (element is null)
+                throw new Exception("The window must have a visual element with a Panel type to be apple to display modal dialogs.");
+
+            element.styleSheets.Add(ResourceManager.Load<StyleSheet>(PackageResources.museTheme));
+            element.styleSheets.Add(ResourceManager.Load<StyleSheet>(PackageResources.accountStyleSheet));
+
+            AccountInfo.Instance.OnOrganizationChanged += StateChanged;
+            AccountInfo.Instance.OnLegalConsentChanged += StateChanged;
+            SignInUtility.OnChanged += StateChanged;
+            window.rootVisualElement.RegisterCallback<AttachToPanelEvent>(AttachToPanel);
+
+            if (init)
+                Init();
+        }
+
+        public virtual void Dispose()
+        {
+            AccountInfo.Instance.OnOrganizationChanged -= StateChanged;
+            AccountInfo.Instance.OnLegalConsentChanged -= StateChanged;
+            SignInUtility.OnChanged -= StateChanged;
+        }
+
+        public void Init()
+        {
+            StateChanged();
+        }
+
+        void AttachToPanel(AttachToPanelEvent evt)
+        {
+            m_HasAttached = true;
+            Apply();
+        }
+
         bool ShouldSkipStateChange()
         {
             // Skip any update if the window has been destroyed.
@@ -167,70 +151,82 @@ namespace Unity.Muse.Common.Account
             return IsInvalid;
         }
 
-        public void StateChanged() => StateChanged(AccountState.Default);
-
-        public void StateChanged(AccountState toState)
+        public void StateChanged()
         {
             if (ShouldSkipStateChange())
                 return;
 
-            var updateToState = skipInternalStateChange ? toState : ChangeStateDefault(toState);// Apply internal state change logic
+            var updateToState = ResolveCurrentState();                                          // Apply internal state change logic
             m_State = OnStateTransition?.Invoke(updateToState, m_State) ?? updateToState;       // Apply External client's state change logic
             Apply();                                                                            // Apply new state
         }
 
-        /// <summary>
-        /// Refresh state
-        /// </summary>
-        protected virtual AccountState ChangeStateDefault(AccountState toState)
+        // Always allow all usage. Used mainly for testing purposes.
+        internal static bool ForceAllowUsage { get; set; }
+
+        // Always show sign-in dialog if requested
+        bool IsSignedOut => SignInUtility.state == SignInState.SignedOut;
+
+        bool AlwaysAllowUseWithoutEntitlements => allowNoAccount && GlobalPreferences.trialDialogShown;
+
+        // If the user has a trial or ever had one
+        bool IsRegistered => AccountInfo.Instance.IsRegistered;
+
+        // Opt-out of the subscription flow if the app is usable without an entitlement.
+        bool AllowsUseWithoutEntitlements => IsRegistered || AlwaysAllowUseWithoutEntitlements;
+
+        // If the user does not have seats but his organization is determined to have available ones.
+        bool ShouldRequestSeats => AccountInfo.Instance.RequestSeat;
+
+        // If the user is currently filling up dialogs
+        bool IsFillingForm => m_TrialForm is not null;
+
+        bool IsEntitled => AccountInfo.Instance.IsEntitled;
+
+        // Keep in current state if processing trial form dialogs (eg: clicked start trial)
+        // Don't change state until we have entitlements+legal information
+        // Otherwise we run the risk of displaying partial information
+        //  eg: Entitlement is set, so dialog disappear but legal consent is not yet received so consent dialog is shown again briefly
+        bool IsProcessingTrialForm => m_TrialForm?.processing ?? false;
+
+        AccountState TrialFormState
         {
-            // Remove this condition and make it controllable in tests fixtures
-            if (GenerativeAIBackend.s_IsRunningOnYamato)
-                return AccountState.Default;        // Don't show any dialogs when running tests
-            if (SignInUtility.Instance.SignInState == SignInState.SignedOut)
-                return AccountState.SignIn;         // Always show sign-in dialog if requested
-            if (allowNoAccount && GlobalPreferences.trialDialogShown)
-                return AccountState.Default;        // Opt-out of the subscription flow if the app is usable without an entitlement.
-            if (AccountInfo.Instance.RequestSeat)
-                return AccountState.RequestSeat;
-            if (!AccountInfo.Instance.IsReady)
+            get => m_TrialForm.state;
+            set
             {
-                // Failsafe to avoid a potential issue where the user is stuck in the sign-in state
-                // This isn't something that should happen, but seem to have.
-                // Should consider removing after the logic has been reviewed.
-                if (m_State == AccountState.SignIn)
+                m_TrialForm.state = value;
+                StateChanged();
+            }
+        }
+
+        // Resolve current state based on current user/account information
+        protected virtual AccountState ResolveCurrentState()
+        {
+            if (ForceAllowUsage)
+                return AccountState.Default;
+            if (IsSignedOut)
+                return AccountState.SignIn;
+            if (IsProcessingTrialForm)
+                return m_State;
+            if (AllowsUseWithoutEntitlements)
+                return AccountState.Default;
+
+            if (IsEntitled)
+            {
+                if (AccountInfo.Instance.LegalConsent.HasConsented)
                     return AccountState.Default;
                 else
-                    return m_State;                     // Don't change state until we have entitlements+legal information
-            }
-            // Expired subscription do not show the "start trial" dialog
-            if ((AccountInfo.Instance.IsEntitled || AccountInfo.Instance.IsExpired) &&
-                AccountInfo.Instance.LegalConsent.HasConsented)
-            {
-                // We should most likely return the toState here, but until we can think through
-                // the implications further, keeping this as-is.
-                if (toState == AccountState.TrialStarted)
-                    return toState;
-
-                return AccountState.Default;
-            }
-
-            // Not entitled and not expired
-            if (toState == AccountState.Default)
-            {
-                if (m_TrialStartProcessing)             // Keep in current state if processing trial start
-                    return m_State;
-
-                if (!AccountInfo.Instance.LegalConsent.HasConsented)
                     return AccountState.TrialConfirm;
-
-                if (m_State == AccountState.Default)
-                    return AccountState.Trial;
-                else
-                    return m_State;     // Can't change to default, so keep current state
             }
+            else
+            {
+                if (ShouldRequestSeats)
+                    return AccountState.RequestSeat;
+                if (IsFillingForm)
+                    return TrialFormState;
 
-            return toState;
+                return AccountState.Trial;
+            }
         }
 
         /// <summary>
@@ -239,7 +235,12 @@ namespace Unity.Muse.Common.Account
         protected virtual void Apply()
         {
             if (State == AccountState.Default)
+            {
+                // If started trial form and changed organization to a valid one, ensure trialForm is reset
+                // Otherwise changing back to an organization that's not entitled would pursue the old form.
+                m_TrialForm = null;
                 TryDismissCurrentModal();
+            }
             else if (State == AccountState.Trial)
             {
                 m_TrialForm = new() {startTrial = !AccountInfo.Instance.IsEntitled};
@@ -247,9 +248,12 @@ namespace Unity.Muse.Common.Account
             }
             else if (State == AccountState.TrialConfirm)
             {
-                if (m_TrialForm == null)
-                    m_TrialForm = new();    // startTrial will be false since in this case we only need legal consent and opt-in
-
+                // startTrial will be false since in this case we only need legal consent and opt-in
+                m_TrialForm ??= new()
+                {
+                    organization = AccountInfo.Instance.Organization,
+                    state = AccountState.TrialConfirm
+                };
                 DisplayStartTrialConfirm();
             }
             else if (State == AccountState.DataOptIn)
@@ -276,7 +280,17 @@ namespace Unity.Muse.Common.Account
         {
             ShowModal(new StartTrialDialog(allowNoAccount)
             {
-                OnAccept = () => State = AccountState.TrialConfirm,
+                OnAccept = org =>
+                {
+                    m_TrialForm.organization = org;
+                    m_TrialForm.state = AccountState.TrialConfirm;
+
+                    // Apply the organization change
+                    if (m_TrialForm.organization is not null)
+                        AccountInfo.Instance.Organization = m_TrialForm.organization;
+
+                    StateChanged();
+                },
                 OnClose = () =>
                 {
                     GlobalPreferences.trialDialogShown = true;
@@ -285,38 +299,31 @@ namespace Unity.Muse.Common.Account
             });
         }
 
-        public virtual void DisplayStartTrialConfirm() => ShowModal(new StartTrialConfirmDialog
+        public virtual void DisplayStartTrialConfirm() => ShowModal(new StartTrialConfirmDialog(m_TrialForm.organization)
             {
-                OnAccept = org =>
+                OnAccept = () =>
                 {
-                    // Something went wrong to even get here. Try to unstuck from bad situation
-                    // Reported once as an issue with call stack but without reproduction
-                    if (m_TrialForm == null)
-                    {
-                        StateChanged();
-                        return;
-                    }
-
-                    m_TrialForm.organization = org;
                     m_TrialForm.legalConsent.terms_of_service_legal_info = true;
                     m_TrialForm.legalConsent.privacy_policy_gen_ai = true;
 
                     if (AccountInfo.Instance.LegalConsent.HasConsented)
                         ProcessTrialForm(m_TrialForm);      // Start trial without showing usage opt-in if the user has already consented to the legal terms
                     else
-                        State = AccountState.DataOptIn;
+                        TrialFormState = AccountState.DataOptIn;
                 },
-                OnClose = () => State = AccountState.Trial
+                OnClose = () => TrialFormState = AccountState.Trial
             });
-        public virtual void DisplayDataOptIn() => ShowModal(new DataOpInDialog {OnAccept = (usage) =>
+
+        public virtual void DisplayDataOptIn() => ShowModal(new DataOpInDialog {OnAccept = usage =>
             {
                 m_TrialForm.legalConsent.content_usage_data_training = usage;
                 ProcessTrialForm(m_TrialForm);
             }
         });
+
         public virtual void DisplayTrialStarted() => ShowModal(new SubscriptionStartedDialog
         {
-            OnAccept = () => StateChanged(AccountState.Default)
+            OnAccept = StateChanged
         });
         public virtual void DisplaySignIn() => ShowModal(new SignInDialog());
         public virtual void DisplayRequestSeat() => ShowModal(new RequestSeatDialog());
@@ -331,49 +338,18 @@ namespace Unity.Muse.Common.Account
 
         void ProcessTrialForm(TrialForm trialForm)
         {
-            m_Dialog.SetProcessing();
-            m_TrialForm = null;
-
-            void SetLegalConsent(Action done = null)
-            {
-                m_TrialStartProcessing = false;
-
-                // No need to send it again if the user has already consented
-                if (AccountInfo.Instance.LegalConsent.HasConsented)
-                {
-                    OnProcessTrialFormCompleted(done);
-                }
-                else
-                {
-                    AccountStatus.instance.legalConsentChecked = false;
-                    GenerativeAIBackend.SetLegalConsent(trialForm.legalConsent, (_, _) => OnProcessTrialFormCompleted(done));
-                }
-            }
-
-            if (trialForm.startTrial)
-            {
-                // Ensure entitlements will be updated.
-                AccountInfo.Instance.ShouldCheckEntitlementsOnFocus = true;
-                AccountStatus.instance.entitlementsChecked = false;
-
-                // Avoids changing the state to another dialog while processing the trial start
-                // because of various organization and legal change events
-                m_TrialStartProcessing = true;
-
-                GenerativeAIBackend.StartTrial(trialForm.organization.Id, _ => SetLegalConsent(() =>
-                {
-                    // Switch to trial form's organization if different then current
-                    AccountInfo.Instance.Organization = AccountInfo.Instance.Organizations
-                        .Find(org => org.Id == trialForm.organization.Id);
-                }));
-            }
-            else
-                SetLegalConsent();
+            AsyncUtils.SafeExecute(ProcessTrialFormAsync(trialForm));
         }
 
-        void OnProcessTrialFormCompleted(Action done = null)
+        async Task ProcessTrialFormAsync(TrialForm trialForm)
         {
-            AccountInfo.Instance.UpdateAccountInformation(done);
+            m_Dialog.SetProcessing();       // Block dialog buttons
+            await trialForm.Apply();
+            m_TrialForm = null;
+
+            // Normally there should have been a refresh at the correct event, but this acts
+            // as a failsafe to ensure the state is always refreshed once all information is known.
+            StateChanged();
         }
     }
 }

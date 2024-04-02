@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
-using Unity.AppUI.UI;
+using Unity.Muse.AppUI.UI;
 using Unity.Muse.Common.Account;
+using UnityEngine;
 using UnityEngine.UIElements;
-using Button = Unity.AppUI.UI.Button;
+using Button = Unity.Muse.AppUI.UI.Button;
 #if UNITY_WEBGL && !UNITY_EDITOR
 using System.Linq;
 #endif
@@ -182,6 +183,14 @@ namespace Unity.Muse.Common
                 textGroup.Add(new Text { text = TextContent.clientStatusUpdateMessage, enableRichText = true });
                 textGroup.AddToClassList("muse-node-message-link");
                 textGroup.RegisterCallback<PointerUpEvent>(_ => AccountUtility.UpdateMusePackages());
+                m_DisableMessage.Add(textGroup);
+            }
+
+            if (!NetworkState.IsAvailable)
+            {
+                var textGroup = new VisualElement { name = "muse-node-disable-message-group" };
+                textGroup.Add(new Text { text = TextContent.clientStatusNoInternet, enableRichText = true });
+                textGroup.AddToClassList("muse-node-message-warning");
                 m_DisableMessage.Add(textGroup);
             }
         }

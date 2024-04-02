@@ -4,6 +4,18 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-pre.20] - 2024-04-02
+
+### Fixed
+
+- Fix organizations not showing in project settings.
+
+### Removed
+
+- Remove App UI as a dependency.
+- Remove Settings Manager as a dependency.
+- Remove Burst as a dependency.
+
 ## [1.0.0-pre.19] - 2024-03-14
 
 ## [1.0.0-pre.18] - 2024-03-11

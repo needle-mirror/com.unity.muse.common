@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Unity.Muse.Common.Account
 {
     [Serializable]
-    class UsageInfo
+    record UsageInfo
     {
         public int used;
         public int total;
@@ -23,5 +23,7 @@ namespace Unity.Muse.Common.Account
             var num = Math.Round(number / Math.Pow(1000, idx), 1);
             return $"{num.ToString(CultureInfo.CurrentCulture)}{suf[idx]}";
         }
+
+        public bool Exceeded => CanExceed && used > total;
     }
 }

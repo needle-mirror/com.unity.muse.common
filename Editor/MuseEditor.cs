@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Unity.AppUI.UI;
+using Unity.Muse.AppUI.UI;
 using Unity.Muse.Common.Account;
 using UnityEditor;
 using UnityEngine;
@@ -26,13 +26,12 @@ namespace Unity.Muse.Common.Editor
         MuseShortcut m_SaveShortcut;
         Vector2 m_MinSizeWindow = new(500f, 350f);
 
-        string defaultWindowTitle => TextContent.defaultAssetName(ModesFactory.GetModeData(m_Mode)?.title ?? "Muse Generator");
+        string defaultWindowTitle => TextContent.DefaultAssetName(ModesFactory.GetModeData(m_Mode)?.title ?? "Muse Generator");
 
         bool m_Maximized;
 
         public void AddItemsToMenu(GenericMenu menu)
         {
-            menu.AddItem(new GUIContent("Muse/Preferences"), false, () => SettingsService.OpenUserPreferences("Preferences/Muse"));
             menu.AddItem(new GUIContent("Muse/Project Settings"), false, () => SettingsService.OpenProjectSettings("Project/Muse"));
         }
 
@@ -158,7 +157,7 @@ namespace Unity.Muse.Common.Editor
             m_Panel = null;
         }
 
-        static void EditorDragStart(string type, IList<Artifact> artifacts)
+        void EditorDragStart(string type, IList<Artifact> artifacts)
         {
             if (artifacts == null)
                 return;
@@ -173,10 +172,20 @@ namespace Unity.Muse.Common.Editor
             if (handler == null)
                 return;
 
+            handler.ArtifactDropped += (path, artifact) =>
+            {
+                if (string.IsNullOrEmpty(path))
+                {
+                    return;
+                }
+
+                AddExportedArtifact(path, artifact.Guid);
+            };
+
             ArtifactDragAndDropHandler.StartDrag(handler, type);
         }
 
-        static void EditorMultiDragStart(IList<(string name, IList<Artifact> artifacts)> items)
+        void EditorMultiDragStart(IList<(string name, IList<Artifact> artifacts)> items)
         {
             if (items == null || items.Count == 0)
                 return;
@@ -192,7 +201,19 @@ namespace Unity.Muse.Common.Editor
 
                 var h = DragAndDropFactory.CreateHandler(item.name, item.artifacts);
                 if (h != null)
+                {
+                    h.ArtifactDropped += (path, artifact) =>
+                    {
+                        if (string.IsNullOrEmpty(path))
+                        {
+                            return;
+                        }
+
+                        AddExportedArtifact(path, artifact.Guid);
+                    };
+
                     handlers.Add(h);
+                }
             }
 
             var handler = DragAndDropFactory.CreateMultiHandler(handlers);
@@ -210,7 +231,7 @@ namespace Unity.Muse.Common.Editor
             UpdateTitle();
         }
 
-        static void OnExportArtifact(Artifact artifact)
+        void OnExportArtifact(Artifact artifact)
         {
             if (artifact == null)
                 return;
@@ -230,10 +251,13 @@ namespace Unity.Muse.Common.Editor
             if (string.IsNullOrEmpty(path))
                 return;
 
-            artifact.ExportToPath(path);
+            artifact.ExportToPath(path, (exportedPath) =>
+            {
+                AddExportedArtifact(exportedPath, artifact.Guid);
+            });
         }
 
-        static void OnMultiExport(IList<ArtifactView> artifactViews)
+        void OnMultiExport(IList<ArtifactView> artifactViews)
         {
             if (artifactViews == null)
                 return;
@@ -250,9 +274,40 @@ namespace Unity.Muse.Common.Editor
 
             foreach (var artifactView in artifactViews)
             {
-                if (!artifactView.TrySaveAsset(directory))
-                    ExporterHelpers.ExportToDirectory(artifactView.Artifact, directory);
+                if (!artifactView.TrySaveAsset(directory, (path) => 
+                {
+                    AddExportedArtifact(path, artifactView.Artifact.Guid);
+                }))
+                {
+                    ExporterHelpers.ExportToDirectory(artifactView.Artifact, directory, true, (path) =>
+                    {
+                        AddExportedArtifact(path, artifactView.Artifact.Guid);
+                    });
+                }
             }
+        }
+
+        private void AddExportedArtifact(string exportedPath, string artifactGuid)
+        {
+            var relativePath = GetProjectRelativePath(exportedPath);
+
+            var unityGuid = AssetDatabase.AssetPathToGUID(relativePath).ToString();
+
+            if (!string.IsNullOrEmpty(unityGuid) && !string.IsNullOrEmpty(artifactGuid))
+            {
+                CurrentModel.AddExportedArtifact(unityGuid, artifactGuid);
+            }
+        }
+
+        private static string GetProjectRelativePath(string path)
+        {
+            if (!path.Contains(Application.dataPath))
+            {
+                return path;
+            }
+
+            var projectFolderPath = Application.dataPath[..Application.dataPath.LastIndexOf("/")];
+            return path[(projectFolderPath.Length + 1)..];
         }
 
         public override void SaveChanges()
@@ -266,7 +321,10 @@ namespace Unity.Muse.Common.Editor
                     return;
                 }
 
-                AssetDatabase.CreateAsset(CurrentModel, ExporterHelpers.GetPathRelativeToRoot(path));
+                var relativePath = ExporterHelpers.GetPathRelativeToRoot(path);
+                var absolutePath = Path.GetFullPath(ExporterHelpers.GetAbsolutePath(relativePath));
+                ExporterHelpers.EnsureDirectoryExists(Path.GetDirectoryName(absolutePath));
+                AssetDatabase.CreateAsset(CurrentModel, relativePath);
             }
 
             EditorUtility.SetDirty(CurrentModel);
@@ -334,6 +392,8 @@ namespace Unity.Muse.Common.Editor
             var path = EditorModelAssetEditor.GetSavePath(CurrentModel, false);
             path = path.Replace("\\", "/");
             m_AssetPath = ExporterHelpers.GetPathRelativeToRoot(path);
+            var absolutePath = Path.GetFullPath(ExporterHelpers.GetAbsolutePath(m_AssetPath));
+            ExporterHelpers.EnsureDirectoryExists(Path.GetDirectoryName(absolutePath));
             AssetDatabase.CreateAsset(CurrentModel, m_AssetPath);
             CurrentModel = AssetDatabase.LoadAssetAtPath<Model>(m_AssetPath);
 

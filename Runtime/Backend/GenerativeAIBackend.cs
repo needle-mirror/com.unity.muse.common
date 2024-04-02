@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Unity.Muse.Common.Account;
 using Unity.Muse.Common.Api;
 using UnityEngine.Networking;
@@ -15,7 +16,7 @@ namespace Unity.Muse.Common
 {
     class GenerativeAIBackend
     {
-        internal static bool s_IsRunningOnYamato = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("YAMATO_JOB_ID"));
+        internal static bool skipErrorLogs;
 
         internal static event Func<long, string, bool> OnServerError;
 
@@ -237,7 +238,7 @@ namespace Unity.Muse.Common
                         if (request.error != "Request aborted")
                         {
                             var handled = OnServerError?.Invoke(request.responseCode, request.error) ?? false;
-                            if (!handled && !s_IsRunningOnYamato)
+                            if (!handled && !skipErrorLogs)
                                 Debug.LogError(errorMessage + "\nStack trace:\n" + stackTrace);
                         }
 
@@ -339,6 +340,14 @@ namespace Unity.Muse.Common
             return SendGetRequest($"{TexturesUrl.entitlements}?force_reload_cache=True", null, RequestHandler(onDone));
         }
 
+        public static Task<(SubscriptionResponse, string)> GetEntitlements()
+        {
+            return AsyncUtils.SafeExecute<(SubscriptionResponse, string)>(tcs =>
+            {
+                GetEntitlements((response, error) => tcs.SetResult((response, error)));
+            });
+        }
+
         public static UnityWebRequestAsyncOperation GetStatus(ClientStatusRequest requestData, Action<ClientStatusResponse, string> onDone)
         {
             return SendGetRequest(TexturesUrl.status, requestData, RequestHandler(onDone));
@@ -355,9 +364,25 @@ namespace Unity.Muse.Common
                 RequestHandler<StartTrialResponse>((_, error) => onDone?.Invoke(error)));
         }
 
+        public static Task<string> StartTrial(string orgId)
+        {
+            return AsyncUtils.SafeExecute<string>(tcs =>
+            {
+                StartTrial(orgId, error => tcs.SetResult(error));
+            });
+        }
+
         public static UnityWebRequestAsyncOperation GetLegalConsent(Action<LegalConsentResponse, string> onDone)
         {
             return SendGetRequest(TexturesUrl.legalConsent, null, RequestHandler(onDone));
+        }
+
+        public static Task<(LegalConsentResponse, string)> GetLegalConsent()
+        {
+            return AsyncUtils.SafeExecute<(LegalConsentResponse, string)>(tcs =>
+            {
+                GetLegalConsent((response, error) => tcs.SetResult((response, error)));
+            });
         }
 
         public static UnityWebRequestAsyncOperation SetLegalConsent(
@@ -366,6 +391,14 @@ namespace Unity.Muse.Common
         {
             return SendJsonRequest(TexturesUrl.legalConsent, settings,
                 RequestHandler<LegalConsentResponse>((data, error) =>  onDone?.Invoke(data, error)), "PUT");
+        }
+
+        public static Task<(LegalConsentResponse, string)> SetLegalConsent(LegalConsentRequest settings)
+        {
+            return AsyncUtils.SafeExecute<(LegalConsentResponse, string)>(tcs =>
+            {
+                SetLegalConsent(settings, (response, error) => tcs.SetResult((response, error)));
+            });
         }
     }
 }

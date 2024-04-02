@@ -1,14 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.AppUI.UI;
+using Unity.Muse.AppUI.UI;
 using Unity.Muse.Common.Utils;
 using UnityEngine;
 using UnityEngine.UIElements;
-#if UNITY_EDITOR
-using Unity.Muse.Common.Editor.Settings;
-#endif
-using Button = Unity.AppUI.UI.Button;
+using Button = Unity.Muse.AppUI.UI.Button;
 using Dragger = Unity.Muse.Common.Baryon.UI.Manipulators.Dragger;
 
 namespace Unity.Muse.Common
@@ -149,14 +146,10 @@ namespace Unity.Muse.Common
             {
                 SetModel(model);
                 UpdateView();
+
                 schedule.Execute(() =>
                 {
-                    if (m_GridView.selectedIds != null && m_GridView.selectedIds.Any())
-                    {
-                        var selectedId = m_GridView.selectedIds?.First() ?? -1;
-						if (selectedId >= 0)
-                        	m_GridView.ScrollToItem(selectedId);
-                    }
+                    OnArtifactSelected(artifact);
                 });
             });
         }
@@ -233,7 +226,6 @@ namespace Unity.Muse.Common
             m_ExportButton.tooltip = TextContent.saveTooltip;
 
             m_BookmarkFilterButton = this.Q<ActionButton>(className:bookmarkFilterButtonUssClassName);
-            m_BookmarkFilterButton.accent = true;
             m_BookmarkFilterButton.clicked += OnToggleFilter;
             m_BookmarkFilterButton.tooltip = TextContent.bookmarkTooltip;
 
@@ -602,13 +594,8 @@ namespace Unity.Muse.Common
         {
             if (!m_GridView.selectedItems.Any())
                 return;
-#if UNITY_EDITOR
-            if(MusePreferences.deleteWithoutWarning)
+            if(GlobalPreferences.deleteWithoutWarning)
                 DoDeleteSelected();
-#else
-            if (Preferences.Session.deleteWithoutWarning)
-                DoDeleteSelected();
-#endif
             else
             {
                 var checkbox = new Checkbox
@@ -629,11 +616,7 @@ namespace Unity.Muse.Common
                 {
 				    if (checkbox.value == CheckboxState.Checked)
 				    {
-#if UNITY_EDITOR
-					    MusePreferences.deleteWithoutWarning = true;
-#else
-					    Preferences.Session.deleteWithoutWarning = true;
-#endif
+                        GlobalPreferences.deleteWithoutWarning = true;
 				    }
 				    DoDeleteSelected();
                 });

@@ -4,7 +4,7 @@ using Unity.Muse.Common.Account;
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.Muse.Common.EditorAccount
+namespace Unity.Muse.Common.Editor
 {
     static class AccountEditorInternals
     {
@@ -13,6 +13,12 @@ namespace Unity.Muse.Common.EditorAccount
         const string s_ResetSettingsMenuItem = "Muse/Internals/Reset Settings";
         const string s_ShowDialogsMenuItem = "Muse/Internals/Show Dialog";
         const string s_ShowCloudInfoMenuItem = "Muse/Internals/Cloud Info";
+
+        static void RunAll(Action<AccountController> action)
+        {
+            foreach (var controller in AccountController.controllers)
+                action(controller);
+        }
 
         [MenuItem("internal:" + s_ShowCloudInfoMenuItem)]
         static void CloudInfo()
@@ -124,15 +130,15 @@ namespace Unity.Muse.Common.EditorAccount
                 if (!dialog.IsInvalid)
                 {
                     if (options == 0)
-                        AccountController.RunAll(controller => controller.DisplaySignIn());
+                        RunAll(controller => controller.DisplaySignIn());
                     if (options == 1)
-                        AccountController.RunAll(controller => controller.DisplayStartTrialConfirm());
+                        RunAll(controller => controller.DisplayStartTrialConfirm());
                     if (options == 2)
                     {
                         if (options2 == 0)
-                            AccountController.RunAll(controller => controller.DisplayStartTrial());
+                            RunAll(controller => controller.DisplayStartTrial());
                         if (options2 == 1)
-                            AccountController.RunAll(controller => controller.DisplayDataOptIn());
+                            RunAll(controller => controller.DisplayDataOptIn());
                         if (options2 == 2)
                         {
                             AccountInfo.Instance.SubscriptionStartDisplayed = false;

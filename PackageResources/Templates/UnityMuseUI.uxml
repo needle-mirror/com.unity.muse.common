@@ -2,7 +2,7 @@
 <ui:UXML
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:ui="UnityEngine.UIElements"
-    xmlns:appui="Unity.AppUI.UI"
+    xmlns:appui="Unity.Muse.AppUI.UI"
     xsi:noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd"
 >
     <appui:Panel class="muse-root" scale="small">

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Unity.AppUI.UI;
+using Unity.Muse.AppUI.UI;
 using Unity.Muse.Common.Account;
 using Unity.Muse.Common.Utils;
 using Dragger = Unity.Muse.Common.Baryon.UI.Manipulators.Dragger;
@@ -88,6 +88,7 @@ namespace Unity.Muse.Common
             m_CurrentModel.OnSetReferenceOperator += OnSetReferenceOperator;
             AccountInfo.Instance.OnOrganizationChanged += OnOrganizationChanged;
             ClientStatus.Instance.OnClientStatusChanged += OnClientStatusChanged;
+            NetworkState.OnChanged += RefreshOperatorEnableState;
             RefreshOperatorEnableState();
         }
 
@@ -104,6 +105,7 @@ namespace Unity.Muse.Common
             m_CurrentModel.OnSetReferenceOperator -= OnSetReferenceOperator;
             AccountInfo.Instance.OnOrganizationChanged -= OnOrganizationChanged;
             ClientStatus.Instance.OnClientStatusChanged -= OnClientStatusChanged;
+            NetworkState.OnChanged -= RefreshOperatorEnableState;
         }
 
         void OnModelDispose()

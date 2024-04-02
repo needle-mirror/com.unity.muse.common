@@ -331,31 +331,6 @@
     margin-top: var(--appui-spacing-200);
 }
 
-.muse-project-settings-panel {
-    background-color: var(--appui-backgrounds-600);
-}
-
-.muse-project-settings-panel #main-container {
-    padding: var(--appui-spacing-300);
-}
-
-.muse-project-settings-panel #muse-settings-header {
-    font-size: var(--appui-font-sizes-500);
-    -unity-font-style: bold;
-    margin-bottom: var(--appui-spacing-200);
-}
-
-.muse-project-settings-panel #muse-settings-blurb {
-    margin-top: var(--appui-spacing-200);
-    margin-bottom: var(--appui-spacing-400);
-}
-
-#muse-settings-sign-in-warning {
-    -unity-font-style: bold;
-    font-size: var(--appui-font-sizes-300);
-    margin-bottom: var(--appui-spacing-400);
-}
-
 .account-dropdown-start-subscription .appui-button__titlecontainer {
     margin: 0;
     align-items: flex-start;
@@ -363,4 +338,12 @@
 
 .account-dropdown-start-subscription .appui-button__titlecontainer .appui-localized-text {
     color: var(--muse-subscription-dialog-light);
+}
+
+#muse-description-text-secondary {
+    margin-bottom: var(--appui-spacing-150);
+}
+
+.muse-node-message-warning Text {
+    color: var(--appui-destructive-300);
 }

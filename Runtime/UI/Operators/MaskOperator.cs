@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using Unity.AppUI.UI;
+using Unity.Muse.AppUI.UI;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.UIElements;
-using Text = Unity.AppUI.UI.Text;
+using Text = Unity.Muse.AppUI.UI.Text;
 
 namespace Unity.Muse.Common
 {
@@ -231,7 +231,30 @@ namespace Unity.Muse.Common
         {
             if (string.IsNullOrEmpty(m_OperatorData.settings[k_MaskIndex]))
                 return null;
-            return GetImageUI();
+
+            var ui = GetImageUI();
+
+            if(!model.isRefineMode)
+            {
+                ui.userData = GenerationSettingsView.HideUse;
+            }
+
+            return ui;
+        }
+
+        public bool EvaluateAddOperator(Model model)
+        {
+            return model.isRefineMode;
+        }
+
+        //When removed from an operator's list, we want to enable the reference operator that was disabled when this operator was added
+        public void OnOperatorRemoved(List<IOperator> removedInOperators)
+        {
+            var referenceOps = removedInOperators.FindAll(x => x is ReferenceOperator);
+            foreach (var referenceOperator in referenceOps)
+            {
+                referenceOperator.Enable(true);
+            }
         }
     }
 }

@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using Unity.AppUI.UI;
+using Unity.Muse.AppUI.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Text = Unity.AppUI.UI.Text;
+using Text = Unity.Muse.AppUI.UI.Text;
 
 namespace Unity.Muse.Common
 {

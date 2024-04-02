@@ -1,9 +1,8 @@
 using Unity.Muse.Common.Account;
-using Unity.Muse.Common.Editor.Settings;
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.Muse.Common
+namespace Unity.Muse.Common.Editor
 {
     static class AccountEditorUtility
     {
@@ -37,7 +36,6 @@ namespace Unity.Muse.Common
 
         static void ForceRefreshAccountInformation()
         {
-            AccountInfo.Instance.ShouldCheckEntitlementsOnFocus = true;
             AccountStatus.instance.entitlementsChecked = false;
             AccountStatus.instance.legalConsentChecked = false;
 
@@ -50,8 +48,8 @@ namespace Unity.Muse.Common
             if (!AccountController.IsAnyWindowRegistered())
                 return;
 
-            if (focus && AccountInfo.Instance.ShouldCheckEntitlementsOnFocus)
-                AccountInfo.Instance.UpdateEntitlements();
+            if (focus && !AccountInfo.Instance.IsEntitled)
+                AsyncUtils.SafeExecute(AccountInfo.Instance.UpdateEntitlements);
         }
     }
 }

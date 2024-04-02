@@ -175,7 +175,7 @@ namespace Unity.Muse.Common.Editor
             return uniquePath;
         }
 
-        static string GetAbsolutePath(string path)
+        public static string GetAbsolutePath(string path)
         {
             if (path.StartsWith(assetsRoot))
                 path = path.Replace("Assets", Application.dataPath);
@@ -199,6 +199,15 @@ namespace Unity.Muse.Common.Editor
                 return string.Empty;
 
             return path.StartsWith(assetsRoot) ? path : FileUtil.GetProjectRelativePath(path);
+        }
+        
+        public static void EnsureDirectoryExists(string directory)
+        {
+            if (string.IsNullOrEmpty(directory))
+                return;
+
+            if (!Directory.Exists(directory))
+                Directory.CreateDirectory(directory);
         }
 
         public static string RemoveSpecialCharacters(string stringValue, char replaceCharacter = '_')
