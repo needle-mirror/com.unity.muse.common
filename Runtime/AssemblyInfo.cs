@@ -21,6 +21,7 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Unity.Muse.Chat.Editor.Tests")]
 [assembly: InternalsVisibleTo("Unity.Muse.Animate.Editor")]
 [assembly: InternalsVisibleTo("Unity.Muse.Animate.Editor.Tests")]
+[assembly: InternalsVisibleTo("Unity.DeepPose.Cloud")]
 [assembly: InternalsVisibleTo("Unity.Muse.Behavior.Editor")]
 [assembly: InternalsVisibleTo("Unity.Muse.Behavior.Editor.Tests")]
 [assembly: InternalsVisibleTo("Unity.Muse.App")]
