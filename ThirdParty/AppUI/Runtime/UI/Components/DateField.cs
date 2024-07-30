@@ -15,7 +15,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class DateField : ExVisualElement, IInputElement<Date>, INotifyValueChanging<Date>, ISizeableElement
+    internal partial class DateField : ExVisualElement, IInputElement<Date>, INotifyValueChanging<Date>, ISizeableElement
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
 
@@ -357,12 +357,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Class to instantiate a <see cref="DateField"/> using the data read from a UXML file.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<DateField, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<DateField, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="DateField"/>.
         /// </summary>
-        public new class UxmlTraits : ExVisualElement.UxmlTraits
+        internal new class UxmlTraits : ExVisualElement.UxmlTraits
         {
             readonly UxmlBoolAttributeDescription m_Invalid = new UxmlBoolAttributeDescription
             {

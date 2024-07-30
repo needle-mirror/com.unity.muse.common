@@ -14,6 +14,8 @@ namespace Unity.Muse.Common.Account
         public static void TermsOfService() => Application.OpenURL("https://unity.com/legal/terms-of-service");
         public static void LegalInfo() => Application.OpenURL("https://unity.com/legal");
         public static void RequestSeat() => Application.OpenURL("https://id.unity.com/en/organizations");
-        public static void ViewOrganizations() => Application.OpenURL($"https://id.unity.com/organizations");
+        public static void LearnMuse() => Application.OpenURL("https://learn.unity.com/project/prototype-a-game-with-unity-muse-AI");
+        public static void ExperimentalProgram() => Application.OpenURL("https://discussions.unity.com/t/about-muse-ai-2024-experimental/361144");
+        public static void SignUpExperimentalProgram() => Application.OpenURL("https://create.unity.com/ai-sign-up");
     }
 }

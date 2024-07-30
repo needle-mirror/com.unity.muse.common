@@ -14,7 +14,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class PageIndicator : BaseVisualElement, INotifyValueChanged<int>
+    internal partial class PageIndicator : BaseVisualElement, INotifyValueChanged<int>
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -29,27 +29,28 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The PageIndicator main styling class.
         /// </summary>
-        public static readonly string ussClassName = "appui-page-indicator";
+        public const string ussClassName = "appui-page-indicator";
 
         /// <summary>
         /// The PageIndicator direction styling class.
         /// </summary>
-        public static readonly string variantUssClassName = ussClassName + "--";
+        [EnumName("GetDirectionUssClassName", typeof(Direction))]
+        public const string variantUssClassName = ussClassName + "--";
 
         /// <summary>
         /// The PageIndicator dot styling class.
         /// </summary>
-        public static readonly string dotUssClassName = ussClassName + "__dot";
+        public const string dotUssClassName = ussClassName + "__dot";
 
         /// <summary>
         /// The PageIndicator dot background styling class.
         /// </summary>
-        public static readonly string dotBackgroundUssClassName = ussClassName + "__dot-background";
+        public const string dotBackgroundUssClassName = ussClassName + "__dot-background";
 
         /// <summary>
         /// The PageIndicator dot content styling class.
         /// </summary>
-        public static readonly string dotContentUssClassName = ussClassName + "__dot-content";
+        public const string dotContentUssClassName = ussClassName + "__dot-content";
 
         Direction m_Direction;
 
@@ -132,9 +133,9 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_Direction != value;
-                RemoveFromClassList(variantUssClassName + m_Direction.ToString().ToLower());
+                RemoveFromClassList(GetDirectionUssClassName(m_Direction));
                 m_Direction = value;
-                AddToClassList(variantUssClassName + m_Direction.ToString().ToLower());
+                AddToClassList(GetDirectionUssClassName(m_Direction));
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
@@ -288,12 +289,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Factory class to instantiate a <see cref="PageIndicator"/> using the data read from a UXML file.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<PageIndicator, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<PageIndicator, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="PageIndicator"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             readonly UxmlEnumAttributeDescription<Direction> m_Direction = new UxmlEnumAttributeDescription<Direction>()
             {

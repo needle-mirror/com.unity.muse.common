@@ -45,7 +45,7 @@ namespace Unity.Muse.Common.Editor
         static void OnFocusChanged(bool focus)
         {
             // Don't constantly check subscription if muse is not even being used
-            if (!AccountController.IsAnyWindowRegistered())
+            if (!MuseWindowTracker.IsAnyWindowRegistered())
                 return;
 
             if (focus && !AccountInfo.Instance.IsEntitled)

@@ -12,7 +12,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// The direction of the scroll.
     /// </summary>
-    public enum ScrollDirection
+    internal enum ScrollDirection
     {
         /// <summary>
         /// The natural scroll direction.
@@ -28,7 +28,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// The current Grab Mode.
     /// </summary>
-    public enum GrabMode
+    internal enum GrabMode
     {
         /// <summary>
         /// No grab possible for the moment.
@@ -49,7 +49,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// The current Canvas control scheme.
     /// </summary>
-    public enum CanvasControlScheme
+    internal enum CanvasControlScheme
     {
         /// <summary>
         /// The default control scheme, similar to others Unity Editor tools.
@@ -65,7 +65,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// The current Canvas manipulator for the primary pointer.
     /// </summary>
-    public enum CanvasManipulator
+    internal enum CanvasManipulator
     {
         /// <summary>
         /// The pointer has no manipulator when no modifier is pressed.
@@ -90,7 +90,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class Canvas : BaseVisualElement
+    internal partial class Canvas : BaseVisualElement
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         internal static readonly BindingId frameContainerProperty = nameof(frameContainer);
@@ -130,29 +130,35 @@ namespace Unity.Muse.AppUI.UI
         public const string ussClassName = "appui-canvas";
         
         /// <summary>
+        /// USS class name prefix for the cursor.
+        /// </summary>
+        [EnumName("GetGrabModeUssClassName", typeof(GrabMode))]
+        public const string cursorUssClassName = Styles.cursorUsClassNamePrefix;
+        
+        /// <summary>
         /// USS class name of the background element of this type.
         /// </summary>
-        public static readonly string backgroundUssClassName = ussClassName + "__background";
+        public const string backgroundUssClassName = ussClassName + "__background";
         
         /// <summary>
         /// USS class name of the viewport element of this type.
         /// </summary>
-        public static readonly string viewportUssClassName = ussClassName + "__viewport";
+        public const string viewportUssClassName = ussClassName + "__viewport";
         
         /// <summary>
         /// USS class name of the viewport container element of this type.
         /// </summary>
-        public static readonly string viewportContainerUssClassName = ussClassName + "__viewport-container";
+        public const string viewportContainerUssClassName = ussClassName + "__viewport-container";
         
         /// <summary>
         /// USS class name of the horizontal scroller element of this type.
         /// </summary>
-        public static readonly string horizontalScrollerUssClassName = ussClassName + "__horizontal-scroller";
+        public const string horizontalScrollerUssClassName = ussClassName + "__horizontal-scroller";
         
         /// <summary>
         /// USS class name of the vertical scroller element of this type.
         /// </summary>
-        public static readonly string verticalScrollerUssClassName = ussClassName + "__vertical-scroller";
+        public const string verticalScrollerUssClassName = ussClassName + "__vertical-scroller";
         
         /// <summary>
         /// Event that is triggered when the scroll position of the Canvas has changed.
@@ -231,7 +237,7 @@ namespace Unity.Muse.AppUI.UI
         bool m_UseSpaceBar = k_DefaultUseSpaceBar;
 
         CanvasControlScheme m_ControlScheme = k_DefaultControlScheme;
-
+        
         /// <summary>
         /// The content container of the Canvas.
         /// </summary>
@@ -299,7 +305,7 @@ namespace Unity.Muse.AppUI.UI
             get => m_ScrollSpeed;
             set
             {
-                var changed = m_ScrollSpeed != value;
+                var changed = !Mathf.Approximately(m_ScrollSpeed, value);
                 m_ScrollSpeed = value;
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
@@ -323,7 +329,7 @@ namespace Unity.Muse.AppUI.UI
             get => m_MinZoom;
             set
             {
-                var changed = m_MinZoom != value;
+                var changed = !Mathf.Approximately(m_MinZoom, value);
                 m_MinZoom = value;
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
@@ -347,7 +353,7 @@ namespace Unity.Muse.AppUI.UI
             get => m_MaxZoom;
             set
             {
-                var changed = m_MaxZoom != value;
+                var changed = !Mathf.Approximately(m_MaxZoom, value);
                 m_MaxZoom = value;
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
@@ -371,7 +377,7 @@ namespace Unity.Muse.AppUI.UI
             get => m_ZoomSpeed;
             set
             {
-                var changed = m_ZoomSpeed != value;
+                var changed = !Mathf.Approximately(m_ZoomSpeed, value);
                 m_ZoomSpeed = value;
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
@@ -395,7 +401,7 @@ namespace Unity.Muse.AppUI.UI
             get => m_ZoomMultiplier;
             set
             {
-                var changed = m_ZoomMultiplier != value;
+                var changed = !Mathf.Approximately(m_ZoomMultiplier, value);
                 m_ZoomMultiplier = value;
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
@@ -419,7 +425,7 @@ namespace Unity.Muse.AppUI.UI
             get => m_PanMultiplier;
             set
             {
-                var changed = m_PanMultiplier != value;
+                var changed = !Mathf.Approximately(m_PanMultiplier, value);
                 m_PanMultiplier = value;
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
@@ -496,7 +502,7 @@ namespace Unity.Muse.AppUI.UI
             get => m_FrameMargin;
             set
             {
-                var changed = m_FrameMargin != value;
+                var changed = !Mathf.Approximately(m_FrameMargin, value);
                 m_FrameMargin = value;
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
@@ -544,10 +550,10 @@ namespace Unity.Muse.AppUI.UI
                 if (m_GrabMode == value)
                     return;
                 
-                RemoveFromClassList("cursor--" + m_GrabMode.ToString().ToLower());
+                RemoveFromClassList(GetGrabModeUssClassName(m_GrabMode));
                 m_GrabMode = value;
-                AddToClassList("cursor--" + m_GrabMode.ToString().ToLower());
-                
+                AddToClassList(GetGrabModeUssClassName(m_GrabMode));
+
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 NotifyPropertyChanged(in grabModeProperty);
 #endif
@@ -827,6 +833,14 @@ namespace Unity.Muse.AppUI.UI
         {
             if (panel == null || panel.GetCapturingElement(evt.pointerId) != null)
                 return;
+            
+            if (Application.isPlaying && Application.isMobilePlatform && m_PointerId >= 0 && evt.pointerId != m_PointerId)
+            {
+                evt.StopPropagation();
+                if (this.HasPointerCapture(m_PointerId))
+                    this.ReleasePointer(m_PointerId);
+                return;
+            }
 
             var hasModifierPressed = controlScheme switch
             {
@@ -836,10 +850,12 @@ namespace Unity.Muse.AppUI.UI
             } || primaryManipulator == CanvasManipulator.Pan;
 
             if (evt.button == (int)MouseButton.MiddleMouse || 
-                (evt.button == (int)MouseButton.LeftMouse && hasModifierPressed))
+                (evt.button == (int)MouseButton.LeftMouse && hasModifierPressed) ||
+                (evt.pointerId != PointerId.mousePointerId && evt.isPrimary))
             {
                 if (!this.HasPointerCapture(evt.pointerId))
                 {
+                    m_DampingEffect?.Pause();
                     this.CapturePointer(evt.pointerId);
 #if !UNITY_2023_1_OR_NEWER
                     if (evt.pointerId == PointerId.mousePointerId)
@@ -850,6 +866,7 @@ namespace Unity.Muse.AppUI.UI
                 evt.StopPropagation();
                 m_PointerId = evt.pointerId;
                 m_PointerPosition = evt.localPosition;
+                m_LastTimestamp = evt.timestamp;
                 grabMode = GrabMode.Grabbing;
             }
         }
@@ -877,18 +894,47 @@ namespace Unity.Muse.AppUI.UI
             if (evt.pointerId == m_PointerId)
             {
                 m_PointerId = -1;
+                m_LastTimestamp = 0;
                 grabMode = m_SpaceBarPressed || m_PrimaryManipulator == CanvasManipulator.Pan ? 
                     GrabMode.Grab : GrabMode.None;
+                
+                // damping the velocity
+                var durationMs = 750f;
+                var elapsed = 0f;
+                m_DampingEffect?.Pause();
+                m_DampingEffect = schedule.Execute(evt =>
+                {
+                    var newScrollOffset = scrollOffset;
+                    elapsed += evt.deltaTime;
+                    newScrollOffset += m_Velocity * (1.0f - (elapsed / durationMs));
+                    scrollOffset = newScrollOffset;
+                }).Every(16L).ForDuration((long)durationMs);
             }
         }
 
+        Vector2 m_Velocity;
+        long m_LastTimestamp;
+        IVisualElementScheduledItem m_DampingEffect;
+
         void OnPointerMove(PointerMoveEvent evt)
         {
+            if (Application.isPlaying && Application.isMobilePlatform && evt.pointerId != m_PointerId)
+                return;
+            
             if (this.HasPointerCapture(evt.pointerId))
             {
+                evt.SetIsHandledByDraggable(true);
                 grabMode = GrabMode.Grabbing;
-                scrollOffset += (Vector2)(evt.localPosition - m_PointerPosition) *
+                var oldScrollOffset = scrollOffset;
+                var newScrollOffset = scrollOffset;
+                newScrollOffset += (Vector2)(evt.localPosition - m_PointerPosition) *
                                 (scrollDirection == ScrollDirection.Natural ? -1f : 1f);
+                if (m_LastTimestamp == 0)
+                    m_LastTimestamp = evt.timestamp;
+                var deltaTime = evt.timestamp - m_LastTimestamp;
+                m_LastTimestamp = evt.timestamp;
+                m_Velocity = (newScrollOffset - oldScrollOffset) / deltaTime;
+                scrollOffset = newScrollOffset;
             }
             
             m_PointerPosition = evt.localPosition;
@@ -899,8 +945,13 @@ namespace Unity.Muse.AppUI.UI
             
             evt.StopImmediatePropagation();
 
+            if (m_PointerId >= 0 && this.HasPointerCapture(m_PointerId))
+                this.ReleasePointer(m_PointerId);
+
             // no support of touchpad App UI events in Alternate control scheme
-            if (controlScheme == CanvasControlScheme.Editor && evt.button == Unity.AppUI.Core.AppUI.touchPadId)
+            if (!Application.isMobilePlatform && 
+                controlScheme == CanvasControlScheme.Editor && 
+                evt.button == Unity.AppUI.Core.AppUI.touchPadId)
                 return;
 
             var shouldZoom = controlScheme switch
@@ -1070,12 +1121,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Defines the UxmlFactory for the Canvas.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<Canvas, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<Canvas, UxmlTraits> { }
         
         /// <summary>
         /// Class containing the UXML traits for the <see cref="Canvas"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             readonly UxmlFloatAttributeDescription m_ScrollSpeed = new UxmlFloatAttributeDescription
             {

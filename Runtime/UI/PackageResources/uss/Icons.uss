@@ -25,3 +25,7 @@
 .appui-icon--like-filled--regular {
     --unity-image: url("./Icons/thumbs-up-fill.png");
 }
+
+.appui-icon--git-branch--regular {
+    --unity-image: url("./Icons/GitBranch.png");
+}

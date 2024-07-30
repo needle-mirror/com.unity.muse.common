@@ -38,8 +38,8 @@ namespace Unity.Muse.Common.Tools
 
         protected virtual void OnArtifactSelected(Artifact artifact)
         {
-            if (m_CurrentModel)
-                m_CurrentModel.SetActiveTool(m_CurrentModel.isRefineMode ? m_PanTool : null);
+            if (m_CurrentModel && m_CurrentModel.isRefineMode)
+                m_CurrentModel.SetActiveTool(m_PanTool);
         }
 
         public virtual bool EvaluateEnableState(Artifact artifact)
@@ -49,7 +49,8 @@ namespace Unity.Muse.Common.Tools
 
         public void ActivateOperators()
         {
-            if (m_CurrentModel == null) return;
+            if (!m_CurrentModel) 
+                return;
 
             var opMask = m_CurrentModel.CurrentOperators.Find(x => x.GetType() == typeof(T)) ??
                 m_CurrentModel.AddOperator<T>();
@@ -162,6 +163,7 @@ namespace Unity.Muse.Common.Tools
         void OnAttach(AttachToPanelEvent evt)
         {
             m_CurrentModel.OnActiveToolChanged += OnActiveToolChanged;
+            OnActiveToolChanged(m_CurrentModel.ActiveTool);
         }
 
         internal virtual void OnActiveToolChanged(ICanvasTool canvasTool)

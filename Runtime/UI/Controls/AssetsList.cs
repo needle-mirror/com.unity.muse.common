@@ -16,30 +16,34 @@ namespace Unity.Muse.Common
     internal partial class AssetsList : ExVisualElement, IControl
     {
         const string ussClassName = "muse-assetslist";
+        static readonly string rootUssClassName = ussClassName + "__root";
         static readonly string dragBarUssClassName = ussClassName + "__dragbar";
         static readonly string gridviewUssClassName = ussClassName + "__gridview";
+        static readonly string gridviewUssBodyClassName = ussClassName + "__body";
         static readonly string thumbnailSizeSliderUssClassName = ussClassName + "__thumbnail-slider";
         static readonly string contextMenuAnchorUssClassName = ussClassName + "__context-menu-anchor";
         static readonly string titleClassName = $"{ussClassName}__title";
         static readonly string exportButtonUssClassName = ussClassName + "__export-button";
         static readonly string bookmarkFilterButtonUssClassName = ussClassName + "__bookmark-filter-button";
+        static readonly string refineUssClassName = ussClassName + "__refine";
+        static readonly string elevationUssClassName = "appui-elevation-8";
 
         const float k_DefaultThumbnailSize = 240;
 
-        Model m_CurrentModel;
+        protected Model m_CurrentModel;
 
         List<Artifact> m_ItemsList = new();
         List<Artifact> m_FilteredItemsList = new();
 
         bool m_Inited;
 
-        AppUI.UI.GridView m_GridView;
+        protected BaseGridView m_GridView;
 
         Dragger m_HorizontalDraggable;
 
         VisualElement m_DraggableContainer;
 
-        SliderFloat m_ThumbnailSizeSlider;
+        protected SliderFloat m_ThumbnailSizeSlider;
 
         SearchBar m_SearchBar;
 
@@ -52,6 +56,7 @@ namespace Unity.Muse.Common
         readonly List<MuseShortcut> m_DeleteShortcuts;
 
         int m_CountPerRow = 2;
+        internal float defaultThumbnailSize { get; set; } = k_DefaultThumbnailSize;
 
         VisualElement m_VerticalScrollerDragContainer;
         public VisualElement content;
@@ -63,11 +68,11 @@ namespace Unity.Muse.Common
         Dictionary<Artifact, ArtifactView> m_ViewCache;
 
         IEnumerable<int> m_PreviousSelectedIndices;
-
         public AssetsList()
         {
             this.ApplyTemplate(PackageResources.assetsListTemplate);
             Init();
+            AddToClassList(rootUssClassName);
 
             m_DeleteShortcuts = new List<MuseShortcut>
             {
@@ -85,10 +90,16 @@ namespace Unity.Muse.Common
 
         void OnResizeBarDrag(Dragger manipulator)
         {
-            var width = content.resolvedStyle.width;
+            var width = content.layout.width;
             width -= manipulator.deltaPos.x;
-            content.style.width = width;
-            OnResized?.Invoke();
+            var totalWidth = parent.layout.width;
+            width = Mathf.Clamp(width, MainUI.k_AssetListMinWidth, totalWidth - MainUI.k_NodeListMinWidth);
+
+            if (!Mathf.Approximately(width, content.layout.width))
+            {
+                content.style.width = width;
+                OnResized?.Invoke();
+            }
         }
 
         public void SetModel(Model model) => SetModel(model, false);
@@ -100,27 +111,15 @@ namespace Unity.Muse.Common
 
             UnSubscribeToModelEvents();
             m_CurrentModel = model;
-            m_CurrentMode = m_CurrentModel ? m_CurrentModel.CurrentMode : ModesFactory.GetModeKeyFromIndex(0);
             SubscribeToModelEvents();
 
-            if (m_CurrentModel != null)
-            {
-                m_BookmarkManager = m_CurrentModel.GetData<BookmarkManager>();
-                m_BookmarkFilterButton.selected = m_BookmarkManager?.isFilterEnabled ?? false;
-
-                SetArtifacts(m_CurrentModel.AssetsData);
-                OnArtifactSelected(m_CurrentModel.SelectedArtifact);
-            }
-            else
-                SetArtifacts(null);
-
-            FilterItemsSource();
-            UpdateExportButton();
+            UpdateView();
         }
 
         void SubscribeToModelEvents()
         {
-            if(m_CurrentModel == null) return;
+            if(!m_CurrentModel)
+                return;
 
             m_CurrentModel.OnArtifactAdded += OnArtifactAdded;
             m_CurrentModel.OnArtifactRemoved += OnArtifactRemoved;
@@ -134,29 +133,17 @@ namespace Unity.Muse.Common
             m_CurrentModel.OnModified += OnModelDataModified;
         }
 
-        void OnRefineArtifactChanged(Artifact artifact)
-        {
-            m_Title.text = m_CurrentModel.isRefineMode ? "Refinements" : "Generations";
-            // Simulate a switch to another model to trigger a full asset refresh.
-            // The switch needs a separate frame to execute in order to let the canvas
-            // frame properly.
-            var model = m_CurrentModel;
-            SetModel(null);
-            schedule.Execute(() =>
-            {
-                SetModel(model);
-                UpdateView();
+        public virtual RefineAssetView CreateRefineAssetView() {return null;}
 
-                schedule.Execute(() =>
-                {
-                    OnArtifactSelected(artifact);
-                });
-            });
+        protected virtual void OnRefineArtifactChanged(Artifact artifact)
+        {
+            UpdateView();
         }
 
         void UnSubscribeToModelEvents()
         {
-            if(m_CurrentModel == null) return;
+            if (!m_CurrentModel)
+                return;
 
             m_CurrentModel.OnArtifactAdded -= OnArtifactAdded;
             m_CurrentModel.OnArtifactRemoved -= OnArtifactRemoved;
@@ -187,20 +174,24 @@ namespace Unity.Muse.Common
             FilterItemsSource();
         }
 
-        void Init()
+        protected virtual void Init()
         {
             m_ViewCache = new(new ArtifactComparer());
             passMask = Passes.Clear | Passes.OutsetShadows | Passes.BackgroundColor;
             content = this.Q<VisualElement>(classes: ussClassName);
             m_ContextMenuAnchor = this.Q<VisualElement>(contextMenuAnchorUssClassName);
             m_PreviousSelectedIndices = new List<int>();
-            m_GridView = this.Q<AppUI.UI.GridView>(gridviewUssClassName);
+
+            m_GridView ??= InstantiateGridView();
+            var bodyElement = this.Q<VisualElement>(gridviewUssBodyClassName);
+            bodyElement.Add(m_GridView);
+            m_GridView.name = gridviewUssClassName;
+            m_GridView.AddToClassList(gridviewUssClassName);
             m_GridView.allowNoSelection = true;
             m_GridView.makeItem = MakeItemView;
             m_GridView.bindItem = BindGridItem;
             m_GridView.operationMask &= ~AppUI.UI.GridView.GridOperations.Cancel;
             m_GridView.columnCount = 2;
-            m_GridView.itemHeight = (int)k_DefaultThumbnailSize;
             m_GridView.selectionType = SelectionType.Multiple;
             m_GridView.selectionChanged += OnGridViewSelectionChanged;
             m_GridView.contextClicked += OnGridViewContextClick;
@@ -252,6 +243,12 @@ namespace Unity.Muse.Common
             RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
         }
 
+        protected virtual BaseGridView InstantiateGridView() =>
+            new GridView
+            {
+                itemHeight = (int) k_DefaultThumbnailSize
+            };
+
         void OnToggleFilter()
         {
             SetFilter(!m_BookmarkManager.isFilterEnabled);
@@ -296,16 +293,12 @@ namespace Unity.Muse.Common
             }
 
             var search = m_SearchBar?.value?.ToLower();
-            var type = ArtifactFactory.GetTypeForMode(m_CurrentMode);
             m_FilteredItemsList.Clear();
             foreach (var item in m_ItemsList)
             {
-                if (item.GetType() == type)
-                {
-                    var prompt = item.GetOperator<PromptOperator>()?.GetPrompt()?.ToLower();
-                    if (prompt != null && (string.IsNullOrEmpty(search) || prompt.Contains(search)))
-                        m_FilteredItemsList.Add(item);
-                }
+                var prompt = item.GetOperator<PromptOperator>()?.GetPrompt()?.ToLower();
+                if (prompt != null && (string.IsNullOrEmpty(search) || prompt.Contains(search)))
+                    m_FilteredItemsList.Add(item);
             }
 
             var isBookmarkFilterEnabled = m_BookmarkManager.isFilterEnabled;
@@ -318,7 +311,7 @@ namespace Unity.Muse.Common
 
         void OnGridViewSelectionChanged(IEnumerable<object> selectedItems)
         {
-            if (m_CurrentModel == null)
+            if (!m_CurrentModel)
                 return;
 
             //Don't unselect items in refine mode
@@ -344,6 +337,7 @@ namespace Unity.Muse.Common
         /// Get the list of artifact views from the assets list.
         /// </summary>
         internal IEnumerable<ArtifactView> GetViews => m_GridView.Query<ArtifactView>().ToList();
+
         /// <summary>
         /// Get the related view for a given artifact.
         /// </summary>
@@ -356,7 +350,7 @@ namespace Unity.Muse.Common
 
         void OnGridViewDragStarted(PointerMoveEvent evt)
         {
-            if (m_CurrentModel == null)
+            if (!m_CurrentModel)
                 return;
 
             var selection = new List<object>(m_GridView.selectedItems);
@@ -368,11 +362,13 @@ namespace Unity.Muse.Common
             foreach (var item in m_GridView.selectedIndices)
             {
                 var artifact = m_FilteredItemsList[item];
-                artifacts.Add(artifact);
-
-                var artifactView = GetView(artifact);
-                if(artifactView == null)
+                var mainArtifactView = GetView(artifact);
+                if(mainArtifactView == null)
                     continue;
+
+                // Use GetSelectedArtifact to determine the selected artifact view
+                var artifactView = mainArtifactView.GetSelectedArtifact(evt);
+                artifacts.Add(artifactView.Artifact);
 
                 var clonedElement = new Image
                 {
@@ -393,8 +389,8 @@ namespace Unity.Muse.Common
                 };
 
                 m_ClonedElements.Add(clonedElement);
-                if(artifactView.panel != null)
-                    artifactView.panel.visualTree.Add(clonedElement);
+                if(mainArtifactView.panel != null)
+                    mainArtifactView.panel.visualTree.Add(clonedElement);
             }
 
             m_CurrentModel.DragStart(artifacts);
@@ -484,7 +480,7 @@ namespace Unity.Muse.Common
 
         void OnGridViewDoubleClick(int indexUnderCursor)
         {
-            if (m_CurrentModel == null)
+            if (!m_CurrentModel)
                 return;
 
             if (indexUnderCursor < 0 || indexUnderCursor >= m_GridView.itemsSource.Count)
@@ -496,7 +492,7 @@ namespace Unity.Muse.Common
 
         void OnGridViewContextClick(PointerDownEvent evt)
         {
-            if (m_CurrentModel == null)
+            if (!m_CurrentModel)
                 return;
 
             var selection = new List<object>(m_GridView.selectedItems);
@@ -686,14 +682,14 @@ namespace Unity.Muse.Common
             RefreshThumbnailSize();
         }
 
-        void RefreshThumbnailSize()
+        protected void RefreshThumbnailSize()
         {
-            var size = m_ThumbnailSizeSlider.value * k_DefaultThumbnailSize;
+            var size = m_ThumbnailSizeSlider.value * defaultThumbnailSize;
 
             var sizeAndMargin = size;
 
-            var width = m_GridView.scrollView.contentContainer.resolvedStyle.width;
-            var newCountPerRow = Mathf.FloorToInt(width / sizeAndMargin);
+            var width = m_GridView.scrollView.contentContainer.layout.width;
+            var newCountPerRow = Mathf.CeilToInt(width / sizeAndMargin);
 
             newCountPerRow = Mathf.Max(1, newCountPerRow);
 
@@ -703,24 +699,40 @@ namespace Unity.Muse.Common
                 m_GridView.columnCount = m_CountPerRow;
             }
 
-            var itemHeight = Mathf.FloorToInt(width / m_CountPerRow);
+            if (m_GridView is GridView gridView)
+            {
+                var itemHeight = width / m_CountPerRow;
+                gridView.itemHeight = Mathf.CeilToInt(itemHeight);
+            }
+        }
 
-            if (Math.Abs(itemHeight - m_GridView.itemHeight) > 1)
-                m_GridView.itemHeight = itemHeight;
+        void RestoreGridViewSelection(IEnumerable<object> previousSelection)
+        {
+            var indices = m_FilteredItemsList
+                .Select((a, i) => (a, i))
+                .Where(pair => previousSelection.Contains(pair.a))
+                .Select(pair => pair.i);
+            m_GridView.SetSelectionWithoutNotify(indices);
+            m_CurrentModel.ArtifactSelected(m_GridView.selectedItems.FirstOrDefault() as Artifact);
         }
 
         void OnArtifactRemoved(Artifact[] artifacts)
         {
+            var currentSelection = m_GridView.selectedItems.ToList();
             foreach (var artifact in artifacts)
+            {
                 m_ItemsList.RemoveAll(item => item == (object) artifact);
-
+            }
             FilterItemsSource();
+            RestoreGridViewSelection(currentSelection);
         }
 
-        void OnArtifactAdded(Artifact artifact)
+        protected virtual void OnArtifactAdded(Artifact artifact)
         {
+            var currentSelection = m_GridView.selectedItems.ToList();
             m_ItemsList.Insert(0, artifact);
             FilterItemsSource();
+            RestoreGridViewSelection(currentSelection);
         }
 
         ArtifactView GetArtifactView(Artifact artifact)
@@ -729,6 +741,7 @@ namespace Unity.Muse.Common
                 return view;
 
             var result = artifact.CreateView();
+            result.SetModel(m_CurrentModel);
             ObjectUtils.Retain(result.Preview, panel);
             m_ViewCache.Add(artifact, result);
             return result;
@@ -756,8 +769,33 @@ namespace Unity.Muse.Common
 
         public void UpdateView()
         {
+            m_CurrentMode = m_CurrentModel ? m_CurrentModel.CurrentMode : ModesFactory.GetModeKeyFromIndex(0);
+
+            if (m_CurrentModel)
+            {
+                m_BookmarkManager = m_CurrentModel.GetData<BookmarkManager>();
+                m_BookmarkFilterButton.selected = m_BookmarkManager?.isFilterEnabled ?? false;
+
+                SetArtifacts(m_CurrentModel.AssetsData);
+                OnArtifactSelected(m_CurrentModel.SelectedArtifact);
+                m_Title.text = m_CurrentModel.isRefineMode ? "Refinements" : "Generations";
+            }
+            else
+            {
+                SetArtifacts(null);
+                m_Title.text = "Generations";
+            }
+
+            FilterItemsSource();
+            UpdateExportButton();
+
             foreach (var artifactView in GetViews)
+            {
                 artifactView.UpdateView();
+            }
+
+            content.EnableInClassList(refineUssClassName, m_CurrentModel?.isRefineMode is true);
+            content.EnableInClassList(elevationUssClassName, m_CurrentModel?.isRefineMode is true);
         }
 
         void OnDeselectAll()
@@ -782,21 +820,14 @@ namespace Unity.Muse.Common
                 if (item == artifact)
                 {
                     m_GridView.SetSelectionWithoutNotify(new[] {idx});
-                    m_GridView.ScrollToItem(idx);
+                    ScrollToItem(idx);
                     break;
                 }
             }
         }
-        public void ScrollToItem(int index)
+        void ScrollToItem(int index)
         {
-            m_GridView.ScrollToItem(index);
-        }
-
-        public void ScrollToItem(string guid)
-        {
-            var index = m_FilteredItemsList.FindIndex(x => x.Guid == guid);
-            if(index > 0)
-                ScrollToItem(index);
+            m_GridView.schedule.Execute(() => m_GridView.ScrollToItem(index));
         }
 
         void OnModelDataModified()

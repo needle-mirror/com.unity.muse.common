@@ -8,7 +8,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// A Manipulator that allows the user to scroll a target element using your finger or mouse click and drag.
     /// </summary>
-    public class Scrollable : Manipulator
+    internal class Scrollable : Manipulator
     {
         readonly Action<Scrollable> m_DownHandler;
 

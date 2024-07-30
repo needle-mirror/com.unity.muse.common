@@ -14,7 +14,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class DoubleField : NumericalField<double>
+    internal partial class DoubleField : NumericalField<double>
     {
         /// <summary>
         /// Default constructor.
@@ -79,12 +79,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Factory class to instantiate a <see cref="DoubleField"/> using the data read from a UXML file.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<DoubleField, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<DoubleField, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="DoubleField"/>.
         /// </summary>
-        public new class UxmlTraits : NumericalField<double>.UxmlTraits { }
+        internal new class UxmlTraits : NumericalField<double>.UxmlTraits { }
 #endif
     }
 }

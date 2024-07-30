@@ -16,7 +16,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class CircularProgress : Progress
+    internal partial class CircularProgress : Progress
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
 
@@ -29,9 +29,11 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The CircularProgress main styling class.
         /// </summary>
-        public new static readonly string ussClassName = "appui-circular-progress";
+        public new const string ussClassName = "appui-circular-progress";
 
         static readonly int k_InnerRadius = Shader.PropertyToID("_InnerRadius");
+        
+        static readonly int k_Rounded = Shader.PropertyToID("_Rounded");
 
         static readonly int k_Start = Shader.PropertyToID("_Start");
 
@@ -67,7 +69,7 @@ namespace Unity.Muse.AppUI.UI
             get => m_InnerRadius;
             set
             {
-                var changed = m_InnerRadius != value;
+                var changed = !Mathf.Approximately(m_InnerRadius, value);
                 m_InnerRadius = value;
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
@@ -104,7 +106,7 @@ namespace Unity.Muse.AppUI.UI
             if (!rect.IsValid())
                 return;
 
-            var dpi = Mathf.Max(Platform.mainScreenScale, 1f);
+            var dpi = Mathf.Max(Platform.scaleFactor, 1f);
             var rectSize = rect.size * dpi;
 
             if (!rectSize.IsValidForTextureSize())
@@ -128,6 +130,7 @@ namespace Unity.Muse.AppUI.UI
 
             s_Material.SetColor(k_Color, colorOverride);
             s_Material.SetFloat(k_InnerRadius, innerRadius);
+            s_Material.SetInt(k_Rounded, roundedProgressCorners ? 1 : 0);
             s_Material.SetFloat(k_Start, 0);
             s_Material.SetFloat(k_End, value);
             s_Material.SetFloat(k_BufferStart, 0);
@@ -150,12 +153,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Defines the UxmlFactory for the CircularProgress.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<CircularProgress, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<CircularProgress, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="CircularProgress"/>.
         /// </summary>
-        public new class UxmlTraits : Progress.UxmlTraits { }
+        internal new class UxmlTraits : Progress.UxmlTraits { }
 #endif
     }
 }

@@ -10,7 +10,7 @@ namespace Unity.AppUI.MVVM
     /// <summary>
     /// An interface expanding <see cref="IRelayCommand"/> to support asynchronous operations.
     /// </summary>
-    public interface IAsyncRelayCommand : IRelayCommand, INotifyPropertyChanged
+    internal interface IAsyncRelayCommand : IRelayCommand, INotifyPropertyChanged
     {
         /// <summary>
         /// Gets the last scheduled <see cref="Task"/>, if available.
@@ -74,7 +74,7 @@ namespace Unity.AppUI.MVVM
     /// A generic interface representing a more specific version of <see cref="IAsyncRelayCommand"/>.
     /// </summary>
     /// <typeparam name="T"> The type used as argument for the interface methods.</typeparam>
-    public interface IAsyncRelayCommand<in T> : IAsyncRelayCommand, IRelayCommand<T>
+    internal interface IAsyncRelayCommand<in T> : IAsyncRelayCommand, IRelayCommand<T>
     {
         /// <summary>
         /// Provides a strongly-typed variant of <see cref="IAsyncRelayCommand.ExecuteAsync(object)"/>.

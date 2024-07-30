@@ -16,8 +16,15 @@ namespace Unity.Muse.Common
         /// </summary>
         public string title;
         public string version;
+        public bool supportCostSimulation;
         public bool enabled;
+        public string group;
+        public int group_order;
+        public string icon_path;
+        public string icon_label;
+        public string assetslist_type;
         public OperatorData[] operators;
+        public string eula_url;
     }
     [Serializable]
     internal struct Modes
@@ -32,7 +39,21 @@ namespace Unity.Muse.Common
         [Preserve]
         static ModesFactory()
         {
+            // required for some modes
+            OperatorsFactory.RegisterDefaultOperators();
             LoadMuseModes();
+        }
+
+        // This is a separate class to avoid ordering issues between the ModesFactory static ctor and external uimodes
+        // injecting modes
+        internal static class ModeLoader
+        {
+            internal static event Func<IEnumerable<ModeStruct>> OnLoadingModes;
+
+            internal static IEnumerable<ModeStruct> OnOnLoadingModes()
+            {
+                return OnLoadingModes?.Invoke() ?? Enumerable.Empty<ModeStruct>();
+            }
         }
 
         static Dictionary<string, ModeStruct> modes
@@ -57,6 +78,10 @@ namespace Unity.Muse.Common
                     k_Modes[mode.type] = mode;
                 }
             }
+
+            foreach (var modeStruct in ModeLoader.OnOnLoadingModes())
+                k_Modes[modeStruct.type] = modeStruct;
+            OnModesChanged();
         }
 
         /// <summary>
@@ -75,7 +100,7 @@ namespace Unity.Muse.Common
             var result = new List<string>();
             foreach (var val in modes.Values)
             {
-                result.Add(val.label);
+                result.Add(val.type);
             }
 
             return result;
@@ -136,6 +161,17 @@ namespace Unity.Muse.Common
             return GetOperators(modeStruct.operators);
         }
 
+        public static bool IsCostSimulationSupportedForMode(string mode)
+        {
+            if (!modes.TryGetValue(mode, out var modeStruct))
+            {
+                Debug.LogError("Mode: "+ mode + " can't be found");
+                return false;
+            }
+
+            return modeStruct.supportCostSimulation;
+        }
+
         public static IEnumerable<IOperator> GetOperators(OperatorData[] operators)
         {
             var result = new List<IOperator>();
@@ -145,15 +181,24 @@ namespace Unity.Muse.Common
                 var operatorInstance = OperatorsFactory.GetOperatorInstance(op.type);
                 if (operatorInstance == null)
                 {
-                    Debug.LogError("Can't create: Unity.Muse.Common."+ op.type + " can't be found");
+                    Debug.LogError("Can't create: " + op.type + " can't be found");
                     continue;
                 }
                 operatorInstance.SetOperatorData(op);
+                if (op.hideable)
+                    operatorInstance.Hidden = true;
 
                 result.Add(operatorInstance);
             }
 
             return result;
+        }
+
+        public static event Action ModesChanged; 
+
+        internal static void OnModesChanged()
+        {
+            ModesChanged?.Invoke();
         }
     }
 }

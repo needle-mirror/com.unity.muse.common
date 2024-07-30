@@ -10,7 +10,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// The Avatar variant.
     /// </summary>
-    public enum AvatarVariant
+    internal enum AvatarVariant
     {
         /// <summary>
         /// Display the Avatar component as a square.
@@ -34,7 +34,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class Avatar : BaseVisualElement, ISizeableElement
+    internal partial class Avatar : BaseVisualElement, ISizeableElement
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         internal static readonly BindingId backgroundColorProperty = nameof(backgroundColor);
@@ -53,22 +53,24 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The Avatar main styling class.
         /// </summary>
-        public static readonly string ussClassName = "appui-avatar";
+        public const string ussClassName = "appui-avatar";
 
         /// <summary>
         /// The Avatar container styling class.
         /// </summary>
-        public static readonly string containerUssClassName = ussClassName + "__container";
+        public const string containerUssClassName = ussClassName + "__container";
 
         /// <summary>
         /// The Avatar size styling class.
         /// </summary>
-        public static readonly string sizeUssClassName = ussClassName + "--size-";
+        [EnumName("GetSizeUssClassName", typeof(Size))]
+        public const string sizeUssClassName = ussClassName + "--size-";
         
         /// <summary>
         /// The Avatar variant styling class.
         /// </summary>
-        public static readonly string variantUssClassName = ussClassName + "--";
+        [EnumName("GetVariantUssClassName", typeof(AvatarVariant))]
+        public const string variantUssClassName = ussClassName + "--";
         
         const Size k_DefaultSize = Size.M;
         
@@ -106,9 +108,9 @@ namespace Unity.Muse.AppUI.UI
             get => m_Size;
             set
             {
-                RemoveFromClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                RemoveFromClassList(GetSizeUssClassName(m_Size));
                 m_Size = value;
-                AddToClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                AddToClassList(GetSizeUssClassName(m_Size));
             }
         }
 
@@ -126,9 +128,9 @@ namespace Unity.Muse.AppUI.UI
             get => m_Variant;
             set
             {
-                RemoveFromClassList(variantUssClassName + m_Variant.ToString().ToLower());
+                RemoveFromClassList(GetVariantUssClassName(m_Variant));
                 m_Variant = value;
-                AddToClassList(variantUssClassName + m_Variant.ToString().ToLower());
+                AddToClassList(GetVariantUssClassName(m_Variant));
             }
         }
 
@@ -278,12 +280,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Defines the UxmlFactory for the Avatar.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<Avatar, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<Avatar, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="Avatar"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             
             readonly UxmlColorAttributeDescription m_BackgroundColor = new UxmlColorAttributeDescription

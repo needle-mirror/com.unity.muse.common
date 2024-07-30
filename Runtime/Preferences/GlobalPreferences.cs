@@ -14,9 +14,10 @@ namespace Unity.Muse.Common
     {
         const string k_AssetsRoot = "Assets";
         internal static event Action preferencesChanged;
-        
+        internal static event Action OnReady;
+
         static IMusePreferences s_Preferences;
-        
+
         static readonly Dictionary<string, Func<string>> k_Callbacks = new Dictionary<string, Func<string>>();
 
 #if !UNITY_EDITOR
@@ -28,8 +29,12 @@ namespace Unity.Muse.Common
         {
             s_Preferences = preferences;
             s_Preferences.changed += OnPreferencesChanged;
+            OnReady?.Invoke();
+            OnPreferencesChanged();
         }
-        
+
+        internal static bool IsReady => s_Preferences != null;
+
         static void OnPreferencesChanged() => preferencesChanged?.Invoke();
 
         public static void Delete<T>(string preferenceName, PreferenceScope scope = PreferenceScope.Project)
@@ -74,36 +79,36 @@ namespace Unity.Muse.Common
             set => s_Preferences.Set(nameof(usage), value, PreferenceScope.Project);
         }
 
-        /// <summary>
-        /// Has the trial dialog been shown at least once to this user?
-        /// </summary>
-        public static bool trialDialogShown
-        {
-            get => s_Preferences.Get<bool>(nameof(trialDialogShown), PreferenceScope.Project, defaultValue: new());
-            set => s_Preferences.Set(nameof(trialDialogShown), value, PreferenceScope.Project);
-        }
-
-        /// <summary>
-        /// If the subscriptStart message has been displayed or not (should be displayed only once per user lifetime)
-        /// </summary>
-        public static bool subscriptionStartDisplayed
-        {
-            get => s_Preferences.Get<bool>(nameof(subscriptionStartDisplayed), PreferenceScope.User);
-            set => s_Preferences.Set(nameof(subscriptionStartDisplayed), value, PreferenceScope.User);
-        }
-        
         public static bool deleteWithoutWarning
         {
             get => s_Preferences.Get<bool>(nameof(deleteWithoutWarning), PreferenceScope.Project);
             set => s_Preferences.Set(nameof(deleteWithoutWarning), value, PreferenceScope.Project);
         }
-        
+
         public static CanvasControlScheme canvasControlScheme
         {
             get => s_Preferences.Get<CanvasControlScheme>(nameof(canvasControlScheme), PreferenceScope.Project, CanvasControlScheme.Editor);
             set => s_Preferences.Set(nameof(canvasControlScheme), value, PreferenceScope.Project);
         }
-        
+
+        /// <summary>
+        /// Has the onboarding been shown already?
+        /// </summary>
+        public static bool onboardingShown
+        {
+            get => s_Preferences.Get<bool>(nameof(onboardingShown), PreferenceScope.Project, defaultValue: new());
+            set => s_Preferences.Set(nameof(onboardingShown), value, PreferenceScope.Project);
+        }
+
+        /// <summary>
+        /// Has the explore window been shown already?
+        /// </summary>
+        public static bool exploreShown
+        {
+            get => s_Preferences.Get<bool>(nameof(exploreShown), PreferenceScope.User, defaultValue: new());
+            set => s_Preferences.Set(nameof(exploreShown), value, PreferenceScope.User);
+        }
+
         public static string GetMuseAssetGeneratedFolderPathFromMode(string currentMode)
         {
             var directory = k_AssetsRoot;
@@ -128,7 +133,7 @@ namespace Unity.Muse.Common
             return !string.IsNullOrWhiteSpace(museAssetPath) && museAssetPath.StartsWith(k_AssetsRoot) &&
                    (!checkIfExists || Directory.Exists(museAssetPath));
         }
-        
+
         internal static string SanitizeMuseGeneratedPath(string path)
         {
             return IsValidMuseGeneratedPath(path) ? path : k_AssetsRoot;

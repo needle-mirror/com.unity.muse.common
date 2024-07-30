@@ -8,21 +8,31 @@ namespace Unity.Muse.Common
     [Serializable]
     internal class GenerateOperator : IOperator
     {
-        public string OperatorName => "GenerateOperator";
+        private const string defaultOperation = "TextToImage";
+        private const string defaultGenerationCount = "1";
+        public virtual string OperatorName => "GenerateOperator";
 
         /// <summary>
         /// Human-readable label for the operator.
         /// </summary>
         public string Label => "Generate";
 
+        public virtual string GenerateType => "Images";
+
         event Action OnDataUpdate;
 
         [SerializeField]
-        OperatorData m_OperatorData;
+        internal OperatorData m_OperatorData;
 
-        public GenerateOperator()
+        public GenerateOperator(): this(defaultOperation, defaultGenerationCount){}
+        
+        public GenerateOperator(string initialOperation, string initialGenerationCount)
         {
-            m_OperatorData = new OperatorData(OperatorName, "0.0.1", new[] { "TextToImage", "4" }, false);
+            m_OperatorData = new OperatorData(
+                OperatorName, 
+                "1.0.0",
+                new[] { initialOperation, initialGenerationCount }, 
+                true);
         }
 
         public bool IsSavable()
@@ -33,6 +43,11 @@ namespace Unity.Muse.Common
         public int GetCount()
         {
             return int.Parse(m_OperatorData.settings[1]);
+        }
+
+        public void SetCount(int count)
+        {
+            m_OperatorData.settings[1] = count.ToString();
         }
 
         public void SetDropdownValue(int mode)
@@ -46,10 +61,29 @@ namespace Unity.Muse.Common
             return new VisualElement();
         }
 
-        public VisualElement GetOperatorView(Model model)
+        public virtual void SetupGeneratorCountSlider(GenerateOperatorUI ui)
         {
-            var ui = new GenerateOperatorUI(model, m_OperatorData, OnDataUpdate);
+            ui.SetupGeneratorCountSlider(GenerateType);
+        }
 
+        public virtual void SetupGenerateButton(GenerateOperatorUI ui)
+        {
+            ui.SetupGenerateButton();
+        }
+
+        public virtual GenerateOperatorUI CreateGenerateOperatorUI()
+        {
+            return new GenerateOperatorUI();
+        }
+
+        public virtual VisualElement GetOperatorView(Model model)
+        {
+            var ui = CreateGenerateOperatorUI();
+            ui.SetupLoading();
+            ui.SetupUIBasics(model, m_OperatorData);
+            SetupGeneratorCountSlider(ui);
+            SetupGenerateButton(ui);
+            ui.SubscribeToEvents(OnDataUpdate);
             return ui;
         }
 
@@ -79,7 +113,7 @@ namespace Unity.Muse.Common
             OnDataUpdate?.Invoke();
         }
 
-        void SetSettings(IReadOnlyList<string> settings)
+        internal void SetSettings(IReadOnlyList<string> settings)
         {
             m_OperatorData.settings[0] = settings[0];
             m_OperatorData.settings[1] = settings[1];
@@ -87,7 +121,7 @@ namespace Unity.Muse.Common
             OnDataUpdate?.Invoke();
         }
 
-        string[] GetSettings()
+        internal string[] GetSettings()
         {
             return m_OperatorData.settings;
         }
@@ -104,9 +138,14 @@ namespace Unity.Muse.Common
 
         public bool Hidden { get; set; }
 
-        public IOperator Clone()
+        public virtual GenerateOperator CreateGenerateOperator()
         {
-            var result = new GenerateOperator();
+            return new GenerateOperator();
+        }
+
+        public virtual IOperator Clone()
+        {
+            var result = CreateGenerateOperator();
             var operatorData = new OperatorData();
             operatorData.FromJson(GetOperatorData().ToJson());
             result.SetOperatorData(operatorData);

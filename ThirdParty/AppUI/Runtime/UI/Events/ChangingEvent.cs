@@ -8,12 +8,12 @@ namespace Unity.Muse.AppUI.UI
     /// Interface that must be implemented to UI components which can change their value progressively, like a <see cref="Slider"/>.
     /// </summary>
     /// <typeparam name="TValueType">The type of value handled by the UI component.</typeparam>
-    public interface INotifyValueChanging<TValueType> : INotifyValueChanged<TValueType> { }
+    internal interface INotifyValueChanging<TValueType> : INotifyValueChanged<TValueType> { }
 
     /// <summary>
     /// Extensions for <see cref="INotifyValueChanging{TValueType}"/>.
     /// </summary>
-    public static class NotifyValueChangingExtensions
+    internal static class NotifyValueChangingExtensions
     {
         /// <summary>
         /// Register a callback which will be invoked when the UI component's value is changing.
@@ -52,7 +52,7 @@ namespace Unity.Muse.AppUI.UI
     /// THe value changing event.
     /// </summary>
     /// <typeparam name="TValueType">The type of value handled by the UI component.</typeparam>
-    public class ChangingEvent<TValueType> : EventBase<ChangingEvent<TValueType>>
+    internal class ChangingEvent<TValueType> : EventBase<ChangingEvent<TValueType>>
     {
         /// <summary>
         /// The previous value.

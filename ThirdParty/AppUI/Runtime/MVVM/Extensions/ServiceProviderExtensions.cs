@@ -9,7 +9,7 @@ namespace Unity.AppUI.MVVM
     /// <summary>
     /// Extension methods for <see cref="IServiceProvider"/>.
     /// </summary>
-    public static class ServiceProviderExtensions
+    internal static class ServiceProviderExtensions
     {
         /// <summary>
         /// Gets a service from the service provider.

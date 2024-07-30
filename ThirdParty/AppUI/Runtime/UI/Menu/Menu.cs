@@ -14,22 +14,22 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class Menu : BaseVisualElement
+    internal partial class Menu : BaseVisualElement
     {
         /// <summary>
         /// The Menu main styling class.
         /// </summary>
-        public static readonly string ussClassName = "appui-menu";
+        public const string ussClassName = "appui-menu";
 
         /// <summary>
         /// The Menu container styling class.
         /// </summary>
-        public static readonly string containerUssClassName = ussClassName + "__container";
+        public const string containerUssClassName = ussClassName + "__container";
 
         /// <summary>
         /// The Menu selectable mode styling class.
         /// </summary>
-        public static readonly string selectableUssClassName = ussClassName + "--selectable";
+        public const string selectableUssClassName = ussClassName + "--selectable";
 
         readonly ScrollView m_ScrollView;
 
@@ -115,12 +115,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Class to be able to instantiate a <see cref="Menu"/> from UXML.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<Menu, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<Menu, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="Menu"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             /// <summary>
             /// Initializes the VisualElement from the UXML attributes.

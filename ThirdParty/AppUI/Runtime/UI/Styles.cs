@@ -5,7 +5,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// The sizing of UI components.
     /// </summary>
-    public enum Size
+    internal enum Size
     {
         /// <summary>
         /// Small
@@ -26,7 +26,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// The spacing of UI components.
     /// </summary>
-    public enum Spacing
+    internal enum Spacing
     {
         /// <summary>
         /// None
@@ -52,7 +52,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// General usage styling classes for UI components.
     /// </summary>
-    public static class Styles
+    internal static class Styles
     {
         /// <summary>
         /// The styling class used to hide an element completely.
@@ -123,10 +123,57 @@ namespace Unity.Muse.AppUI.UI
         /// Used in popups to hide the arrow/tip.
         /// </summary>
         public const string noArrowUssClassName = "no-arrow";
+        
+        /// <summary>
+        /// The styling class prefix used to set a cursor.
+        /// </summary>
+        public const string cursorUsClassNamePrefix = "cursor--";
 
         /// <summary>
         /// The styling class used to set a "keyboard-focus" pseudo-state on a element.
         /// </summary>
         public const string keyboardFocusUssClassName = "keyboard-focus";
+        
+        /// <summary>
+        /// Converts a <see cref="Size"/> to a <see cref="IconSize"/>.
+        /// </summary>
+        /// <param name="size"> The size to convert. </param>
+        /// <returns> The converted <see cref="IconSize"/>. </returns>
+        /// <exception cref="ArgumentOutOfRangeException"> Thrown when an unknown <see cref="Size"/> is provided. </exception>
+        public static IconSize ToIconSize(this Size size)
+        {
+            switch (size)
+            {
+                case Size.S:
+                    return IconSize.S;
+                case Size.M:
+                    return IconSize.M;
+                case Size.L:
+                    return IconSize.L;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(size), size, null);
+            }
+        }
+        
+        /// <summary>
+        /// Converts a <see cref="IconSize"/> to a <see cref="Size"/>.
+        /// </summary>
+        /// <param name="size"> The size to convert. </param>
+        /// <returns> The converted <see cref="Size"/>. </returns>
+        /// <exception cref="ArgumentOutOfRangeException"> Thrown when an unknown <see cref="IconSize"/> is provided. </exception>
+        public static Size ToSize(this IconSize size)
+        {
+            switch (size)
+            {
+                case IconSize.S:
+                    return Size.S;
+                case IconSize.M:
+                    return Size.M;
+                case IconSize.L:
+                    return Size.L;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(size), size, null);
+            }
+        }
     }
 }

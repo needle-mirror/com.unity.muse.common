@@ -15,7 +15,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class ActionBar : BaseVisualElement
+    internal partial class ActionBar : BaseVisualElement
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         internal static readonly BindingId messageProperty = nameof(message);
@@ -32,22 +32,22 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The ActionBar main styling class.
         /// </summary>
-        public static readonly string ussClassName = "appui-actionbar";
+        public const string ussClassName = "appui-actionbar";
 
         /// <summary>
         /// The ActionBar action group styling class.
         /// </summary>
-        public static readonly string actionGroupUssClassName = ussClassName + "__actiongroup";
+        public const string actionGroupUssClassName = ussClassName + "__actiongroup";
 
         /// <summary>
         /// The ActionBar checkbox styling class.
         /// </summary>
-        public static readonly string checkboxUssClassName = ussClassName + "__checkbox";
+        public const string checkboxUssClassName = ussClassName + "__checkbox";
         
         /// <summary>
         /// The ActionBar label styling class.
         /// </summary>
-        public static readonly string labelUssClassName = ussClassName + "__label";
+        public const string labelUssClassName = ussClassName + "__label";
 
         readonly ActionGroup m_ActionGroup;
 
@@ -248,12 +248,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The UXML factory for the <see cref="ActionBar"/>.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<ActionBar, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<ActionBar, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="ActionBar"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             readonly UxmlStringAttributeDescription m_Message = new UxmlStringAttributeDescription
             {

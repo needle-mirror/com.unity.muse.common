@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.Threading.Tasks;
 using UnityEditor;
@@ -43,3 +44,4 @@ namespace Unity.Muse.Common
         }
     }
 }
+#endif

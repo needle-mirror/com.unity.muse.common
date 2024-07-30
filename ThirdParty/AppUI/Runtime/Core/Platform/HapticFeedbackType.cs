@@ -3,7 +3,7 @@ namespace Unity.AppUI.Core
     /// <summary>
     /// The type of haptic feedback to trigger.
     /// </summary>
-    public enum HapticFeedbackType
+    internal enum HapticFeedbackType
     {
         /// <summary>
         /// No haptic feedback will be triggered with this value.

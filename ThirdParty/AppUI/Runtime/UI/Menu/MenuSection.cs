@@ -12,7 +12,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class MenuSection : BaseVisualElement
+    internal partial class MenuSection : BaseVisualElement
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -28,12 +28,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The MenuSection title styling class.
         /// </summary>
-        public static readonly string titleUssClassName = ussClassName + "__title";
+        public const string titleUssClassName = ussClassName + "__title";
 
         /// <summary>
         /// The MenuSection container styling class.
         /// </summary>
-        public static readonly string containerUssClassName = ussClassName + "__container";
+        public const string containerUssClassName = ussClassName + "__container";
 
         readonly VisualElement m_Container;
 
@@ -95,12 +95,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The MenuSection UXML factory.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<MenuSection, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<MenuSection, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="MenuSection"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             readonly UxmlStringAttributeDescription m_Title = new UxmlStringAttributeDescription
             {

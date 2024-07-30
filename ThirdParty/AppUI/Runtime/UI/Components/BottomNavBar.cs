@@ -13,12 +13,12 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class BottomNavBar : BaseVisualElement
+    internal partial class BottomNavBar : BaseVisualElement
     {
         /// <summary>
         /// The BottomNavBar's USS class name.
         /// </summary>
-        public static readonly string ussClassName = "appui-bottom-navbar";
+        public const string ussClassName = "appui-bottom-navbar";
 
         /// <summary>
         /// The content container of the BottomNavBar.
@@ -42,7 +42,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class BottomNavBarItem : BaseVisualElement, IPressable
+    internal partial class BottomNavBarItem : BaseVisualElement, IPressable
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         internal static readonly BindingId iconProperty = nameof(icon);
@@ -58,17 +58,17 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The BottomNavBarItem's USS class name.
         /// </summary>
-        public static readonly string ussClassName = "appui-bottom-navbar-item";
+        public const string ussClassName = "appui-bottom-navbar-item";
         
         /// <summary>
         /// The BottomNavBarItem's icon USS class name.
         /// </summary>
-        public static readonly string iconUssClassName = ussClassName + "__icon";
+        public const string iconUssClassName = ussClassName + "__icon";
         
         /// <summary>
         /// The BottomNavBarItem's label USS class name.
         /// </summary>
-        public static readonly string labelUssClassName = ussClassName + "__label";
+        public const string labelUssClassName = ussClassName + "__label";
 
         Icon m_Icon;
         

@@ -8,7 +8,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// The variant of the <see cref="HelpText"/>.
     /// </summary>
-    public enum HelpTextVariant
+    internal enum HelpTextVariant
     {
         /// <summary>
         /// The default variant.
@@ -32,7 +32,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class HelpText : LocalizedTextElement
+    internal partial class HelpText : LocalizedTextElement
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -43,12 +43,13 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The HelpText main styling class.
         /// </summary>
-        public new static readonly string ussClassName = "appui-help-text";
+        public new const string ussClassName = "appui-help-text";
         
         /// <summary>
         /// The HelpText variant styling class.
         /// </summary>
-        public static readonly string variantUssClassName = ussClassName + "--";
+        [EnumName("GetVariantUssClassName", typeof(HelpTextVariant))]
+        public const string variantUssClassName = ussClassName + "--";
 
         HelpTextVariant m_Variant;
 
@@ -67,9 +68,9 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_Variant != value;
-                RemoveFromClassList(variantUssClassName + m_Variant.ToString().ToLower());
+                RemoveFromClassList(GetVariantUssClassName(m_Variant));
                 m_Variant = value;
-                AddToClassList(variantUssClassName + m_Variant.ToString().ToLower());
+                AddToClassList(GetVariantUssClassName(m_Variant));
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
@@ -102,12 +103,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Factory class to instantiate a <see cref="HelpText"/> using the data read from a UXML file.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<HelpText, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<HelpText, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="HelpText"/>.
         /// </summary>
-        public new class UxmlTraits : LocalizedTextElement.UxmlTraits
+        internal new class UxmlTraits : LocalizedTextElement.UxmlTraits
         {
             readonly UxmlEnumAttributeDescription<HelpTextVariant> m_Variant = new UxmlEnumAttributeDescription<HelpTextVariant>
             {

@@ -8,7 +8,7 @@ namespace Unity.AppUI.Core
     /// A <see cref="MonoBehaviour"/> which allows to display a <see cref="UIDocument"/> in World-Space.
     /// </summary>
     [RequireComponent(typeof(UIDocument))]
-    public class WorldSpaceUIDocument : MonoBehaviour
+    internal class WorldSpaceUIDocument : MonoBehaviour
     {
         /// <summary>
         /// The camera used to raycast against World-Space UI Panels.

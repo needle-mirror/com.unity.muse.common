@@ -15,7 +15,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class ColorWheel : BaseVisualElement, IInputElement<float>, INotifyValueChanging<float>
+    internal partial class ColorWheel : BaseVisualElement, IInputElement<float>, INotifyValueChanging<float>
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
  
@@ -52,22 +52,22 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The ColorWheel main styling class.
         /// </summary>
-        public static readonly string ussClassName = "appui-colorwheel";
+        public const string ussClassName = "appui-colorwheel";
 
         /// <summary>
         /// The ColorWheel image styling class.
         /// </summary>
-        public static readonly string imageUssClassName = ussClassName + "__image";
+        public const string imageUssClassName = ussClassName + "__image";
 
         /// <summary>
         /// The ColorWheel thumb styling class.
         /// </summary>
-        public static readonly string thumbUssClassName = ussClassName + "__thumb";
+        public const string thumbUssClassName = ussClassName + "__thumb";
 
         /// <summary>
         /// The ColorWheel thumb swatch styling class.
         /// </summary>
-        public static readonly string thumbSwatchUssClassName = ussClassName + "__thumbswatch";
+        public const string thumbSwatchUssClassName = ussClassName + "__thumbswatch";
 
         static readonly CustomStyleProperty<Color> k_UssCheckerColor1 = new CustomStyleProperty<Color>("--checker-color-1");
 
@@ -734,7 +734,7 @@ namespace Unity.Muse.AppUI.UI
             if (!rect.IsValid())
                 return;
 
-            var dpi = Mathf.Max(Platform.mainScreenScale, 1f);
+            var dpi = Mathf.Max(Platform.scaleFactor, 1f);
             var texSize = rect.size * dpi;
 
             if (!texSize.IsValidForTextureSize())
@@ -788,12 +788,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Instantiates an <see cref="ColorWheel"/> using the data read from a UXML file.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<ColorWheel, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<ColorWheel, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="ColorWheel"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             readonly UxmlFloatAttributeDescription m_Value = new UxmlFloatAttributeDescription
             {

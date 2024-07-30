@@ -12,7 +12,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// The state of the DropZone.
     /// </summary>
-    public enum DropZoneState
+    internal enum DropZoneState
     {
         /// <summary>
         /// The default state of the DropZone.
@@ -36,7 +36,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class DropZone : BaseVisualElement
+    internal partial class DropZone : BaseVisualElement
     {
         /// <summary>
         /// Delegate used to find any droppable object(s) that can be dropped on the target using the current drag and drop path data.
@@ -44,7 +44,7 @@ namespace Unity.Muse.AppUI.UI
         /// <param name="path">The path data from the current drag and drop operation.</param>
         /// <param name="droppable">The droppable object(s) found.</param>
         /// <returns>True if the target accepts the drag, false otherwise.</returns>
-        public delegate bool TryGetDroppableFromPathHandler(string path, out object droppable);
+        internal delegate bool TryGetDroppableFromPathHandler(string path, out object droppable);
         
         /// <summary>
         /// Delegate used to find any droppable object(s) that can be dropped on the target using the current drag and drop objects data.
@@ -52,39 +52,40 @@ namespace Unity.Muse.AppUI.UI
         /// <param name="objects">The objects data from the current drag and drop operation.</param>
         /// <param name="droppables">The droppable object(s) found.</param>
         /// <returns>True if the target accepts the drag, false otherwise.</returns>
-        public delegate bool TryGetDroppablesFromUnityObjectsHandler(UnityEngine.Object[] objects, out List<object> droppables);
+        internal delegate bool TryGetDroppablesFromUnityObjectsHandler(UnityEngine.Object[] objects, out List<object> droppables);
         
         /// <summary>
         /// Delegate used to find any droppable object(s) that can be dropped on the target.
         /// </summary>
         /// <param name="droppables">The droppable object(s) found.</param>
         /// <returns>True if the target accepts the drag, false otherwise.</returns>
-        public delegate bool TryGetDroppablesHandler(out List<object> droppables);
+        internal delegate bool TryGetDroppablesHandler(out List<object> droppables);
         
         /// <summary>
         /// The DropZone main styling class.
         /// </summary>
-        public static readonly string ussClassName = "appui-dropzone";
+        public const string ussClassName = "appui-dropzone";
         
         /// <summary>
         /// The DropZone frame styling class.
         /// </summary>
-        public static readonly string frameUssClassName = ussClassName + "__frame";
+        public const string frameUssClassName = ussClassName + "__frame";
         
         /// <summary>
         /// The DropZone background styling class.
         /// </summary>
-        public static readonly string backgroundUssClassName = ussClassName + "__background";
+        public const string backgroundUssClassName = ussClassName + "__background";
         
         /// <summary>
         /// The DropZone state styling class.
         /// </summary>
-        public static readonly string stateUssClassName = ussClassName + "--";
+        [EnumName("GetDropZoneStateUssClassName", typeof(DropZoneState))]
+        public const string stateUssClassName = ussClassName + "--";
         
         /// <summary>
         /// The DropZone visible indicator styling class.
         /// </summary>
-        public static readonly string visibleIndicatorUssClassName = ussClassName + "--visible-indicator";
+        public const string visibleIndicatorUssClassName = ussClassName + "--visible-indicator";
         
         readonly ExVisualElement m_DropZoneFrame;
 
@@ -196,9 +197,9 @@ namespace Unity.Muse.AppUI.UI
             get => m_DropZoneState;
             set
             {
-                RemoveFromClassList(stateUssClassName + m_DropZoneState.ToString().ToLower());
+                RemoveFromClassList(GetDropZoneStateUssClassName(m_DropZoneState));
                 m_DropZoneState = value;
-                AddToClassList(stateUssClassName + m_DropZoneState.ToString().ToLower());
+                AddToClassList(GetDropZoneStateUssClassName(m_DropZoneState));
             }
         }
         
@@ -311,12 +312,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The UXML factory for the DropZone.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<DropZone, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<DropZone, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="DropZone"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits { }
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits { }
         
 #endif
     }

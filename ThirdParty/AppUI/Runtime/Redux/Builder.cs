@@ -9,7 +9,7 @@ namespace Unity.AppUI.Redux
     /// This builder does not require you to create Action Creators. It will automatically create them for you.
     /// </summary>
     /// <typeparam name="TState"> The type of the state slice. </typeparam>
-    public class SliceReducerSwitchBuilder<TState>
+    internal class SliceReducerSwitchBuilder<TState>
     {
         readonly List<object> m_Reducers = new List<object>();
         readonly Dictionary<object, string> m_ReducerNames = new Dictionary<object, string>();
@@ -166,7 +166,7 @@ namespace Unity.AppUI.Redux
     /// You must have created Action Creators for each action type you want to handle prior to using this.
     /// </summary>
     /// <typeparam name="TState"> The type of the state slice. </typeparam>
-    public class ReducerSwitchBuilder<TState>
+    internal class ReducerSwitchBuilder<TState>
     {
         readonly List<KeyValuePair<object, object>> m_CaseReducers = new List<KeyValuePair<object, object>>();
 

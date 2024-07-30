@@ -9,7 +9,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// Sizing values for <see cref="Text"/> UI element.
     /// </summary>
-    public enum TextSize
+    internal enum TextSize
     {
         /// <summary>
         /// Extra-extra-small
@@ -58,7 +58,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public sealed partial class Text : LocalizedTextElement
+    internal sealed partial class Text : LocalizedTextElement
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -71,17 +71,18 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The Text main styling class.
         /// </summary>
-        public new static readonly string ussClassName = "appui-text";
+        public new const string ussClassName = "appui-text";
 
         /// <summary>
         /// The Text primary variant styling class.
         /// </summary>
-        public static readonly string primaryUssClassName = ussClassName + "--primary";
+        public const string primaryUssClassName = ussClassName + "--primary";
 
         /// <summary>
         /// The Text size styling class.
         /// </summary>
-        public static readonly string sizeUssClassName = ussClassName + "--size-";
+        [EnumName("GetSizeUssClassName", typeof(TextSize))]
+        public const string sizeUssClassName = ussClassName + "--size-";
 
         TextSize m_Size = TextSize.M;
 
@@ -145,9 +146,9 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_Size != value;
-                RemoveFromClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                RemoveFromClassList(GetSizeUssClassName(m_Size));
                 m_Size = value;
-                AddToClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                AddToClassList(GetSizeUssClassName(m_Size));
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
@@ -161,12 +162,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Factory class to instantiate a <see cref="Text"/> using the data read from a UXML file.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<Text, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<Text, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="Text"/>.
         /// </summary>
-        public new class UxmlTraits : LocalizedTextElement.UxmlTraits
+        internal new class UxmlTraits : LocalizedTextElement.UxmlTraits
         {
             
             readonly UxmlBoolAttributeDescription m_Primary = new UxmlBoolAttributeDescription

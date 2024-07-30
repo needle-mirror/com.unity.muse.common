@@ -10,7 +10,7 @@ namespace Unity.AppUI.MVVM
     /// This class is intended to be used as a base class for a MonoBehaviour that is attached to a GameObject in a scene.
     /// </summary>
     /// <typeparam name="T"> The type of the app to build. It is expected that this type is a subclass of <see cref="App"/>. </typeparam>
-    public class UIToolkitAppBuilder<T> : MonoBehaviour where T : App
+    internal class UIToolkitAppBuilder<T> : MonoBehaviour where T : App
     {
         /// <summary>
         /// The UIDocument to host the app in.

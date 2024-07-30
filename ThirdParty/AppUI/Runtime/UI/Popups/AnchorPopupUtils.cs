@@ -7,7 +7,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// Utility class to compute the position of a popup based on the anchor's position and size.
     /// </summary>
-    public static class AnchorPopupUtils
+    internal static class AnchorPopupUtils
     {
         static void CrossSnapHorizontally(ref PositionResult result, Rect screenRect, Rect elementRect, bool shouldCrossSnap)
         {

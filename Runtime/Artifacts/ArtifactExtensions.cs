@@ -34,7 +34,20 @@ namespace Unity.Muse.Common
         /// <returns></returns>
         public static T GetOperator<T>(this IEnumerable<IOperator> operators) where T: class, IOperator
         {
-            return operators?.FirstOrDefault(x => x.GetType() == typeof(T)) as T;
+            return operators?.FirstOrDefault(x => x.GetType() == typeof(T) || x.GetType().IsSubclassOf(typeof(T))) as T;
+        }
+
+        /// <summary>
+        /// Utility method to get operators of a certain type with a certain key from a list of operators.
+        /// </summary>
+        /// <param name="operators">The operators to filter.</param>
+        /// <param name="key">The operator key being searched</param>
+        /// <typeparam name="T">Type of operators to get.</typeparam>
+        /// <returns></returns>
+        public static T GetOperatorByKey<T>(this IEnumerable<IOperator> operators, string key) where T: class, IOperator
+        {
+            return operators?.FirstOrDefault(x => (x.GetType() == typeof(T) || x.GetType().IsSubclassOf(typeof(T)))
+                && x.GetOperatorKey() == key) as T;
         }
 
         /// <summary>

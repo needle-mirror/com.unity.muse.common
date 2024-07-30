@@ -30,7 +30,9 @@ namespace Unity.Muse.Common
                 return null;
             }
 
-            return (Artifact)Activator.CreateInstance(type);
+            var instance = (Artifact)Activator.CreateInstance(type);
+            instance.mode = mode;
+            return instance;
         }
     }
 }

@@ -11,7 +11,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// A CanvasBackground is a VisualElement used as the background of a Canvas.
     /// </summary>
-    public class CanvasBackground : BaseVisualElement
+    internal class CanvasBackground : BaseVisualElement
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
 	    internal static readonly BindingId thickLinesProperty = nameof(thickLines);
@@ -482,7 +482,6 @@ namespace Unity.Muse.AppUI.UI
 	        GL.Clear(true, true, Color.clear);
 
 	        const float minSpacing = 2f;
-	        var dpiScaleFactor = Mathf.Clamp(Platform.mainScreenScale, 1f, 2f);
 	        var maxSpacing = m_Spacing;
 	        var newSpacing = m_Spacing;
 	        var targetSpacing = newSpacing * nextGridScaleFactor;

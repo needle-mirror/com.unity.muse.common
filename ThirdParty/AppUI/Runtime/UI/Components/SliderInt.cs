@@ -15,7 +15,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class SliderInt : SliderBase<int>
+    internal partial class SliderInt : SliderBase<int>
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -147,12 +147,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Factory class to instantiate a <see cref="SliderInt"/> using the data read from a UXML file.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<SliderInt, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<SliderInt, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="SliderInt"/>.
         /// </summary>
-        public new class UxmlTraits : SliderBase<int>.UxmlTraits
+        internal new class UxmlTraits : SliderBase<int>.UxmlTraits
         {
             readonly UxmlIntAttributeDescription m_HighValue = new UxmlIntAttributeDescription
             {

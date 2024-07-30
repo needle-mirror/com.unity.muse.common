@@ -1,9 +1,11 @@
+using System;
+
 namespace Unity.AppUI.Core
 {
     /// <summary>
     /// Extension methods for strings.
     /// </summary>
-    public static class StringExtensions
+    internal static class StringExtensions
     {
         /// <summary>
         /// Capitalizes the first letter of a string.

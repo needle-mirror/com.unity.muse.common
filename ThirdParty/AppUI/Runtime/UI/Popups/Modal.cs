@@ -8,7 +8,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// The FullScreen mode used by a <see cref="Modal"/> component.
     /// </summary>
-    public enum ModalFullScreenMode
+    internal enum ModalFullScreenMode
     {
         /// <summary>
         /// The <see cref="Modal"/> is displayed as a normal size.
@@ -33,7 +33,7 @@ namespace Unity.Muse.AppUI.UI
     /// request a <see cref="Popup.Dismiss(DismissType)"/> if this component is displayed
     /// inside a <see cref="Popup"/> component.
     /// </summary>
-    public interface IDismissInvocator
+    internal interface IDismissInvocator
     {
         /// <summary>
         /// Event triggered when the UI component wants to request a <see cref="Popup.Dismiss(DismissType)"/>
@@ -44,7 +44,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// The Modal Popup class.
     /// </summary>
-    public sealed class Modal : Popup<Modal>
+    internal sealed class Modal : Popup<Modal>
     {
         /// <summary>
         /// Default constructor.
@@ -112,13 +112,13 @@ namespace Unity.Muse.AppUI.UI
         /// </summary>
         class ModalVisualElement : VisualElement
         {
-            public static readonly string ussClassName = "appui-modal";
+            public const string ussClassName = "appui-modal";
 
-            public static readonly string fullScreenUssClassName = ussClassName + "--fullscreen";
+            public const string fullScreenUssClassName = ussClassName + "--fullscreen";
 
-            public static readonly string fullScreenTakeOverUssClassName = ussClassName + "--fullscreen-takeover";
+            public const string fullScreenTakeOverUssClassName = ussClassName + "--fullscreen-takeover";
 
-            public static readonly string contentContainerUssClassName = ussClassName + "__content";
+            public const string contentContainerUssClassName = ussClassName + "__content";
 
             readonly VisualElement m_ContentContainer;
 

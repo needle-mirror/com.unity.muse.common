@@ -23,12 +23,15 @@ namespace Unity.Muse.Common
         bool m_Initialized;
 
         ActionGroup m_ActionGroup;
-        List<ICanvasTool> m_Tools;
+        List<ICanvasTool> m_Tools = new();
+        List<string> m_ToolNames;
 
         VisualElement m_LefContentContainer;
         VisualElement m_RightContentContainer;
 
         private ActionButton m_CloseButton;
+
+        VisualElement m_ToolContainer;
 
 #if ENABLE_UXML_TRAITS
         internal new class UxmlFactory : UxmlFactory<ControlToolbar, UxmlTraits> { }
@@ -79,7 +82,8 @@ namespace Unity.Muse.Common
 
         void Unbind()
         {
-            if(m_Model == null) return;
+            if(!m_Model) 
+                return;
 
             m_Model.OnActiveToolChanged -= OnActiveToolChanged;
             m_Model.OnArtifactSelected -= OnArtifactSelected;
@@ -117,17 +121,7 @@ namespace Unity.Muse.Common
 
             m_ActionGroup ??= this.Q<ActionGroup>(k_ActionGroupUssClassName);
             m_ActionGroup.Clear();
-
-            m_Tools ??= new List<ICanvasTool>();
-            m_Tools.Clear();
-
-            m_Tools.AddRange(AvailableToolsFactory.GetAvailableTools(m_Model));
-
-            var toolContainer = this.panel.visualTree.Q("control-top-content");
-            foreach (var tool in m_Tools)
-            {
-                toolContainer.Add(tool.GetToolView());
-            }
+            m_ToolContainer = panel.visualTree.Q("control-top-content");
 
             UpdateView();
             m_Initialized = true;
@@ -142,10 +136,8 @@ namespace Unity.Muse.Common
         void CleanToolbar()
         {
             RemoveSettings();
-            if (m_Model != null)
-            {
+            if (m_Model)
                 m_Model.SetActiveTool(null);
-            }
         }
 
         void RemoveSettings()
@@ -157,8 +149,30 @@ namespace Unity.Muse.Common
             }
         }
 
+        void PopulateToolbarContainer()
+        {
+            var toolNames = AvailableToolsFactory.GetAvailableToolNames(m_Model);
+            if (m_ToolNames != null && m_ToolNames.SequenceEqual(toolNames))
+                return;
+
+            m_ToolNames = toolNames;
+            
+            foreach (var tool in m_Tools)
+            {
+                (tool as IDisposable)?.Dispose();
+            }            
+            m_Tools = AvailableToolsFactory.GetAvailableTools(m_Model);
+            m_ToolContainer.Clear();
+            foreach (var tool in m_Tools)
+            {
+                m_ToolContainer.Add(tool.GetToolView());
+            }
+        }
+
         public void UpdateView()
         {
+            PopulateToolbarContainer();
+            
             if (m_Tools == null)
                 return;
             
@@ -169,7 +183,7 @@ namespace Unity.Muse.Common
                 var toolView = tool.GetToolView();
                 toolView?.EnableInClassList(Styles.hiddenUssClassName, !enabled);
 
-                if (!enabled && m_Model != null && m_Model.ActiveTool == tool)
+                if (!enabled && m_Model && m_Model.ActiveTool == tool)
                     m_Model.SetActiveTool(null);
             }
 

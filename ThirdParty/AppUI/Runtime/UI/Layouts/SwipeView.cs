@@ -18,12 +18,12 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class SwipeViewItem : BaseVisualElement
+    internal partial class SwipeViewItem : BaseVisualElement
     {
         /// <summary>
         /// The main styling class of the SwipeViewItem. This is the class that is used in the USS file.
         /// </summary>
-        public static readonly string ussClassName = "appui-swipeview-item";
+        public const string ussClassName = "appui-swipeview-item";
 
         /// <summary>
         /// The index of the item in the SwipeView.
@@ -50,12 +50,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Defines the UxmlFactory for the SwipeViewItem.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<SwipeViewItem, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<SwipeViewItem, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="SwipeViewItem"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
 
         }
@@ -72,7 +72,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class SwipeView : BaseVisualElement, INotifyValueChanged<int>
+    internal partial class SwipeView : BaseVisualElement, INotifyValueChanged<int>
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -117,17 +117,18 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The main styling class of the SwipeView. This is the class that is used in the USS file.
         /// </summary>
-        public static readonly string ussClassName = "appui-swipeview";
+        public const string ussClassName = "appui-swipeview";
 
         /// <summary>
         /// The styling class applied to the container of the SwipeView.
         /// </summary>
-        public static readonly string containerUssClassName = ussClassName + "__container";
+        public const string containerUssClassName = ussClassName + "__container";
 
         /// <summary>
         /// The styling class applied to the SwipeView depending on its orientation.
         /// </summary>
-        public static readonly string variantUssClassName = ussClassName + "--";
+        [EnumName("GetDirectionUssClassName", typeof(Direction))]
+        public const string variantUssClassName = ussClassName + "--";
         
         /// <summary>
         /// The default duration of the auto play animation.
@@ -341,10 +342,10 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_Direction != value;
-                RemoveFromClassList(variantUssClassName + m_Direction.ToString().ToLower());
+                RemoveFromClassList(GetDirectionUssClassName(m_Direction));
                 m_Direction = value;
                 m_Scrollable.direction = value == Direction.Horizontal ? ScrollViewMode.Horizontal : ScrollViewMode.Vertical;
-                AddToClassList(variantUssClassName + m_Direction.ToString().ToLower());
+                AddToClassList(GetDirectionUssClassName(m_Direction));
                 SetValueWithoutNotify(this.value);
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
@@ -1215,12 +1216,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Defines the UxmlFactory for the SwipeView.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<SwipeView, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<SwipeView, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="SwipeView"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             readonly UxmlEnumAttributeDescription<Direction> m_Direction = new UxmlEnumAttributeDescription<Direction>()
             {

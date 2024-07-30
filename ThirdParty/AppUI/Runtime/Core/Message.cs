@@ -5,7 +5,7 @@ namespace Unity.AppUI.Core
     /// <summary>
     /// An object passed in a message queue.
     /// </summary>
-    public class Message
+    internal class Message
     {
         const int k_MaxPoolSize = 50;
 

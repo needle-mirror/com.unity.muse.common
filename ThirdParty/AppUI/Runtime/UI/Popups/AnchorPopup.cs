@@ -9,7 +9,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// Interface that should be implemented in UI elements that can be anchored to another UI element.
     /// </summary>
-    public interface IPlaceableElement
+    internal interface IPlaceableElement
     {
         /// <summary>
         /// The popover placement.
@@ -26,7 +26,7 @@ namespace Unity.Muse.AppUI.UI
     /// The strategy used to determine if a click is outside of the popup.
     /// </summary>
     [Flags]
-    public enum OutsideClickStrategy
+    internal enum OutsideClickStrategy
     {
         /// <summary>
         /// A click is considered outside if the cursor position is outside of the popup's bounds.
@@ -43,7 +43,7 @@ namespace Unity.Muse.AppUI.UI
     /// Base class for Popup that can be anchored to another UI Element.
     /// </summary>
     /// <typeparam name="T">The sealed anchor popup class type.</typeparam>
-    public abstract class AnchorPopup<T> : Popup<T> where T : AnchorPopup<T>
+    internal abstract class AnchorPopup<T> : Popup<T> where T : AnchorPopup<T>
     {
         const long k_AnchorUpdateInterval = 8L;
         

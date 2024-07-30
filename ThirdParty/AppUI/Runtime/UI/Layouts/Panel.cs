@@ -20,7 +20,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class Panel : VisualElement
+    internal partial class Panel : VisualElement
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         internal static readonly BindingId scaleProperty = nameof(scale);
@@ -41,12 +41,13 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Main Uss Class Name.
         /// </summary>
-        public static readonly string ussClassName = "appui";
+        public const string ussClassName = "appui";
         
         /// <summary>
         /// Prefix used in App UI context USS classes.
         /// </summary>
-        public static readonly string contextPrefix = "appui--";
+        [EnumName("GetLayoutDirectionUssClassName", typeof(Dir))]
+        public const string contextPrefix = "appui--";
         
         /// <summary>
         /// The name of the main UI layer.
@@ -196,9 +197,9 @@ namespace Unity.Muse.AppUI.UI
             if (m_PreviousTheme != newTheme)
             {
                 if (m_PreviousTheme != null)
-                    RemoveFromClassList(contextPrefix + m_PreviousTheme);
+                    RemoveFromClassList(MemoryUtils.Concatenate(contextPrefix, m_PreviousTheme));
                 if (newTheme != null)
-                    AddToClassList(contextPrefix + newTheme);
+                    AddToClassList(MemoryUtils.Concatenate(contextPrefix, newTheme));
 
                 m_PreviousTheme = newTheme;
             }
@@ -214,9 +215,9 @@ namespace Unity.Muse.AppUI.UI
             if (m_PreviousScale != newScale)
             {
                 if (m_PreviousScale != null)
-                    RemoveFromClassList(contextPrefix + m_PreviousScale);
+                    RemoveFromClassList(MemoryUtils.Concatenate(contextPrefix, m_PreviousScale));
                 if (newScale != null) 
-                    AddToClassList(contextPrefix + newScale);
+                    AddToClassList(MemoryUtils.Concatenate(contextPrefix, newScale));
             
                 m_PreviousScale = newScale;
             }
@@ -232,9 +233,9 @@ namespace Unity.Muse.AppUI.UI
             // cannot check if previous value is different than the new one here because its an enum
             // but we don't need to check if class list contains the new/old values because it is already
             // checked by UIElements API
-            AddToClassList(contextPrefix + newDir.ToString().ToLower());
+            AddToClassList(GetLayoutDirectionUssClassName(newDir));
             if (m_PreviousDir != newDir)
-                RemoveFromClassList(contextPrefix + m_PreviousDir.ToString().ToLower());
+                RemoveFromClassList(GetLayoutDirectionUssClassName(m_PreviousDir));
             
             m_PreviousDir = newDir;
         }
@@ -249,9 +250,9 @@ namespace Unity.Muse.AppUI.UI
             if (m_PreviousLang != newLang)
             {
                 if (m_PreviousLang != null)
-                    RemoveFromClassList(contextPrefix + m_PreviousLang);
+                    RemoveFromClassList(MemoryUtils.Concatenate(contextPrefix, m_PreviousLang));
                 if (newLang != null)
-                    AddToClassList(contextPrefix + newLang);
+                    AddToClassList(MemoryUtils.Concatenate(contextPrefix, newLang));
 
                 m_PreviousLang = newLang;
             }
@@ -573,12 +574,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Class used to create instances of <see cref="Panel"/> from UXML.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<Panel, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<Panel, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="Panel"/>.
         /// </summary>
-        public new class UxmlTraits : VisualElement.UxmlTraits
+        internal new class UxmlTraits : VisualElement.UxmlTraits
         {
             readonly UxmlStringAttributeDescription m_Lang = new UxmlStringAttributeDescription
             {

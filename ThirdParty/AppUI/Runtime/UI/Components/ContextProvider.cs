@@ -14,12 +14,12 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement] 
 #endif
-    public partial class ContextProvider : BaseVisualElement
+    internal partial class ContextProvider : BaseVisualElement
     {
         /// <summary>
         /// Main Uss Class Name.
         /// </summary>
-        public static readonly string ussClassName = "appui-context-provider";
+        public const string ussClassName = "appui-context-provider";
         
         /// <summary>
         /// Default constructor.
@@ -35,7 +35,7 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// A class responsible for creating a <see cref="ContextProvider"/> from UXML.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<ContextProvider, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<ContextProvider, UxmlTraits> { }
 #endif
     }
 }

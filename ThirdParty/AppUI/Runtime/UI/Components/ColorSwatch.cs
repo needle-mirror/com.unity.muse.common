@@ -15,7 +15,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class ColorSwatch : BaseVisualElement, INotifyValueChanged<Gradient>, ISizeableElement
+    internal partial class ColorSwatch : BaseVisualElement, INotifyValueChanged<Gradient>, ISizeableElement
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -34,22 +34,23 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The ColorSwatch main styling class.
         /// </summary>
-        public static readonly string ussClassName = "appui-colorswatch";
+        public const string ussClassName = "appui-colorswatch";
 
         /// <summary>
         /// The ColorSwatch image styling class.
         /// </summary>
-        public static readonly string imageUssClassName = ussClassName + "__image";
+        public const string imageUssClassName = ussClassName + "__image";
 
         /// <summary>
         /// The ColorSwatch size styling class.
         /// </summary>
-        public static readonly string sizeUssClassName = ussClassName + "--size-";
+        [EnumName("GetSizeUssClassName", typeof(Size))]
+        public const string sizeUssClassName = ussClassName + "--size-";
 
         /// <summary>
         /// The ColorSwatch round styling class.
         /// </summary>
-        public static readonly string roundUssClassName = ussClassName + "--round";
+        public const string roundUssClassName = ussClassName + "--round";
 
         static readonly CustomStyleProperty<Color> k_UssCheckerColor1 = new CustomStyleProperty<Color>("--checker-color-1");
 
@@ -182,9 +183,9 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_Size != value;
-                RemoveFromClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                RemoveFromClassList(GetSizeUssClassName(m_Size));
                 m_Size = value;
-                AddToClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                AddToClassList(GetSizeUssClassName(m_Size));
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
@@ -322,7 +323,7 @@ namespace Unity.Muse.AppUI.UI
             if (!rect.IsValid())
                 return;
 
-            var dpi = Mathf.Max(Platform.mainScreenScale, 1f);
+            var dpi = Mathf.Max(Platform.scaleFactor, 1f);
             var texSize = rect.size * dpi;
 
             if (!texSize.IsValidForTextureSize())
@@ -389,12 +390,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Instantiates an <see cref="ColorSwatch"/> using the data read from a UXML file.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<ColorSwatch, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<ColorSwatch, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="ColorSwatch"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             readonly UxmlEnumAttributeDescription<Size> m_Size = new UxmlEnumAttributeDescription<Size>
             {

@@ -8,7 +8,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// This is the base class for any UI component that needs to be displayed over the rest of the user interface.
     /// </summary>
-    public abstract class Popup
+    internal abstract class Popup
     {
         /// <summary>
         /// The average duration of a frame in milliseconds. Used to delay position calculations.
@@ -297,7 +297,7 @@ namespace Unity.Muse.AppUI.UI
     /// A generic base class for popups.
     /// </summary>
     /// <typeparam name="T">A sealed popup class type.</typeparam>
-    public abstract class Popup<T> : Popup where T : Popup<T>
+    internal abstract class Popup<T> : Popup where T : Popup<T>
     {
         /// <summary>
         /// The last focused element before the popup was shown.

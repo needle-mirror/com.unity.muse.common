@@ -13,12 +13,12 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class SearchBar : TextField
+    internal partial class SearchBar : TextField
     {
         /// <summary>
         /// The SearchBar main styling class.
         /// </summary>
-        public new static readonly string ussClassName = "appui-searchbar";
+        public new const string ussClassName = "appui-searchbar";
 
         /// <summary>
         /// Default Constructor.
@@ -45,7 +45,7 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Factory class to instantiate a <see cref="SearchBar"/> using the data read from a UXML file.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<SearchBar, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<SearchBar, UxmlTraits> { }
         
 #endif
     }

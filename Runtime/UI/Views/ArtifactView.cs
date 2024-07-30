@@ -52,7 +52,9 @@ namespace Unity.Muse.Common
         Branch = UserDefined + 14,
         GenerationSettings = UserDefined + 15,
         Feedback = UserDefined + 16,
-        FeedbackLike = UserDefined + 17
+        FeedbackLike = UserDefined + 17,
+        RemoveBackground = UserDefined + 18,
+        UsePrompt = UserDefined + 19
     }
 
     internal abstract class ArtifactView : VisualElement
@@ -70,6 +72,35 @@ namespace Unity.Muse.Common
 
         protected Artifact m_Artifact = null;
 
+        protected readonly StackIndicator m_StackIndicator;
+
+        List<ArtifactView> childrenViews = new();
+
+        public List<ArtifactView> CreateChildrenViews()
+        {
+            List<Artifact> children = m_Artifact.children;
+            var views = new List<ArtifactView>();
+            foreach (var child in children)
+            {
+                views.Add(child.CreateView());
+            }
+            childrenViews = views;
+            return views;
+        }
+
+        public ArtifactView GetSelectedArtifact(PointerMoveEvent evt)
+        {
+            foreach (var childView in childrenViews)
+            {
+                var childBounds = childView.worldBound;
+                if (childBounds.Contains(evt.position))
+                {
+                    return childView;
+                }
+            }
+            return this;
+        }
+
         public virtual bool TryGoToRefineMode()
         {
             return false;
@@ -77,8 +108,9 @@ namespace Unity.Muse.Common
 
         protected void OnActionMenu(VisualElement menuAnchor)
         {
-            if (CurrentModel == null)
+            if (!CurrentModel)
                 return;
+
             CurrentModel.DeselectAll();
             CurrentModel.ArtifactSelected(Artifact);
             var actionContext = new ActionContext(new List<ArtifactView> { this });
@@ -183,7 +215,6 @@ namespace Unity.Muse.Common
                     CurrentModel.Branch(m_Artifact);
                     break;
                 case Actions.CreateVariations:
-                    CurrentModel.DeselectAll();
                     var numVariations = CurrentModel.CurrentOperators.GetOperator<GenerateOperator>()?.GetCount() ?? 4;
                     (m_Artifact as IVariateArtifact)?.Variate(CurrentModel, numVariations);
                     break;
@@ -191,11 +222,19 @@ namespace Unity.Muse.Common
                     CurrentModel.SetAsThumbnail(m_Artifact);
                     break;
                 case Actions.Upscale:
-                    CurrentModel.DeselectAll();
                     (m_Artifact as IUpscaleArtifact)?.Upscale(CurrentModel);
                     break;
                 case Actions.SetAsReference:
                     CurrentModel.SetReferenceOperator(m_Artifact);
+                    break;
+                case Actions.RemoveBackground:
+                    (m_Artifact as IRemoveBackgroundArtifact)?.RemoveBackground(CurrentModel);
+                    break;
+                case Actions.UsePrompt:
+                    var toOperator = CurrentModel.CurrentOperators.GetOperator<PromptOperator>();
+                    var fromOperator = m_Artifact.GetOperators().GetOperator<PromptOperator>();
+                    toOperator.SetPrompt(fromOperator.GetPrompt());
+                    toOperator.SetNegativePrompt(fromOperator.GetNegativePrompt());
                     break;
             }
         }
@@ -208,9 +247,9 @@ namespace Unity.Muse.Common
         {
             m_Artifact = artifact;
 
+            m_StackIndicator = new StackIndicator();
             CurrentModel = this.GetContext<Model>();
             this.RegisterContextChangedCallback<Model>(ContextChanged);
-            RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
         }
 
         void ContextChanged(ContextChangedEvent<Model> evt)
@@ -218,28 +257,28 @@ namespace Unity.Muse.Common
             SetModel(evt.context);
         }
 
-        void SetModel(Model model)
+        public void SetModel(Model model)
         {
             if (CurrentModel == model)
                 return;
 
-            Unbind();
+            UnSubscribeFromModelEvents();
             CurrentModel = model;
-            Bind();
+            SubscribeToModelEvents();
         }
 
-        void Bind()
+        protected virtual void SubscribeToModelEvents()
         {
-            if (CurrentModel != null)
+            if (CurrentModel)
             {
                 CurrentModel.OnArtifactRemoved += OnArtifactRemoved;
                 CurrentModel.GetData<BookmarkManager>().OnModified += OnBookmarkChanged;
             }
         }
 
-        void Unbind()
+        protected virtual void UnSubscribeFromModelEvents()
         {
-            if (CurrentModel != null)
+            if (CurrentModel)
             {
                 CurrentModel.OnArtifactRemoved -= OnArtifactRemoved;
                 CurrentModel.GetData<BookmarkManager>().OnModified -= OnBookmarkChanged;
@@ -250,14 +289,8 @@ namespace Unity.Muse.Common
         {
             if (artifacts.Contains(m_Artifact))
             {
-                Unbind();
+                UnSubscribeFromModelEvents();
             }
-        }
-
-        void OnGeometryChanged(GeometryChangedEvent evt)
-        {
-            EnableInClassList("muse-artifact--with-refinements",
-                CurrentModel && !CurrentModel.isRefineMode && Artifact.history.Count > 1);
         }
 
         public virtual void DragEditor() { }
@@ -267,7 +300,15 @@ namespace Unity.Muse.Common
             return (null, null);
         }
 
-        public virtual void UpdateView() { }
+        public virtual void UpdateView()
+        {
+            var count = Artifact.history.Count;
+            EnableInClassList("muse-artifact--with-refinements",
+                CurrentModel && !CurrentModel.isRefineMode && count > 1);
+            if (m_StackIndicator.parent  == null)
+                Add(m_StackIndicator);
+            m_StackIndicator.count = count;
+        }
 
         /// <summary>
         /// Refine clicked action

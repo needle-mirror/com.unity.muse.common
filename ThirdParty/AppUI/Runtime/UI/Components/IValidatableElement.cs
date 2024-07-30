@@ -11,7 +11,7 @@ namespace Unity.Muse.AppUI.UI
     /// </remarks>
     /// </summary>
     /// <typeparam name="TValueType">The type of the `value`.</typeparam>
-    public interface IValidatableElement<TValueType> : INotifyValueChanged<TValueType>
+    internal interface IValidatableElement<TValueType> : INotifyValueChanged<TValueType>
     {
         /// <summary>
         /// **True** if the current value set on the UI element is invalid, **False** otherwise.

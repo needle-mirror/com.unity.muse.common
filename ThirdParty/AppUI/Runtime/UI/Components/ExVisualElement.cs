@@ -11,7 +11,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// Styling properties that can be applied to a <see cref="ExVisualElement"/>.
     /// </summary>
-    public struct AdditionalStyle
+    internal struct AdditionalStyle
     {
         /// <summary>
         /// The outline offset.
@@ -87,7 +87,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// The style of a border.
     /// </summary>
-    public enum BorderStyle
+    internal enum BorderStyle
     {
         /// <summary>
         /// No border.
@@ -116,7 +116,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class ExVisualElement : BaseVisualElement
+    internal partial class ExVisualElement : BaseVisualElement
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -132,7 +132,7 @@ namespace Unity.Muse.AppUI.UI
         /// Rendering passes that will be executed. This is used to optimize and fine-tune the rendering.
         /// </summary>
         [Flags]
-        public enum Passes
+        internal enum Passes
         {
             /// <summary>
             /// The clear pass. This will clear the render texture.
@@ -598,7 +598,7 @@ namespace Unity.Muse.AppUI.UI
 
         internal static Vector2Int GetRenderTextureSize(Rect renderRect, int maxSize = 1024)
         {
-            var dpi = Mathf.Clamp(Platform.mainScreenScale, 1, 2);
+            var dpi = Mathf.Clamp(Platform.scaleFactor, 1, 2);
             int width, height;
 
             if (renderRect.height > renderRect.width)
@@ -735,12 +735,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Factory class to instantiate a <see cref="ExVisualElement"/> using the data read from a UXML file.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<ExVisualElement, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<ExVisualElement, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="ExVisualElement"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits { }
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits { }
 #endif
     }
 }

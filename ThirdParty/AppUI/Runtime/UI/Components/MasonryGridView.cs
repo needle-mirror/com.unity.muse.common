@@ -15,17 +15,26 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class MasonryGridView : BaseGridView
+    internal partial class MasonryGridView : BaseGridView
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
         internal static readonly BindingId packProperty = new BindingId(nameof(pack));
         
 #endif
+        /// <summary>
+        /// The USS class name of a <see cref="MasonryGridView"/>.
+        /// </summary>
         public static readonly string masonryGridViewUssClassName = ussClassName + "--masonry";
         
+        /// <summary>
+        /// The column container USS class name of a <see cref="MasonryGridView"/>.
+        /// </summary>
         public static readonly string columnContainerUssClassName = ussClassName + "__row";
         
+        /// <summary>
+        /// The columns USS class name of a <see cref="MasonryGridView"/>.
+        /// </summary>
         public static readonly string columnUssClassName = ussClassName + "__column";
         
         readonly ObjectPool<VisualElement> m_ItemPool;
@@ -358,7 +367,7 @@ namespace Unity.Muse.AppUI.UI
         /// <remarks>
         /// This class is added to every <see cref="VisualElement"/> created from UXML.
         /// </remarks>
-        public new class UxmlFactory : UxmlFactory<MasonryGridView, UxmlTraits> {}
+        internal new class UxmlFactory : UxmlFactory<MasonryGridView, UxmlTraits> {}
 
         /// <summary>
         /// Defines <see cref="UxmlTraits"/> for the <see cref="MasonryGridView"/>.
@@ -366,7 +375,7 @@ namespace Unity.Muse.AppUI.UI
         /// <remarks>
         /// This class defines the GridView element properties that you can use in a UI document asset (UXML file).
         /// </remarks>
-        public new class UxmlTraits : BaseGridView.UxmlTraits
+        internal new class UxmlTraits : BaseGridView.UxmlTraits
         {
             readonly UxmlBoolAttributeDescription m_Pack = new UxmlBoolAttributeDescription
             {

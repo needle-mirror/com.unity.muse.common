@@ -28,27 +28,28 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The AssetTargetField main styling class.
         /// </summary>
-        public static readonly string ussClassName = "appui-assettargetfield";
+        public const string ussClassName = "appui-assettargetfield";
 
         /// <summary>
         /// The AssetTargetField icon styling class.
         /// </summary>
-        public static readonly string iconUssClassName = ussClassName + "__icon";
+        public const string iconUssClassName = ussClassName + "__icon";
 
         /// <summary>
         /// The AssetTargetField label styling class.
         /// </summary>
-        public static readonly string labelUssClassName = ussClassName + "__label";
+        public const string labelUssClassName = ussClassName + "__label";
 
         /// <summary>
         /// The AssetTargetField type label styling class.
         /// </summary>
-        public static readonly string typeLabelUssClassName = ussClassName + "__typelabel";
+        public const string typeLabelUssClassName = ussClassName + "__typelabel";
 
         /// <summary>
         /// The AssetTargetField size styling class.
         /// </summary>
-        public static readonly string sizeUssClassName = ussClassName + "--size-";
+        [EnumName("GetSizeUssClassName", typeof(Size))]
+        public const string sizeUssClassName = ussClassName + "--size-";
 
         readonly Icon m_IconElement;
 
@@ -151,9 +152,9 @@ namespace Unity.Muse.AppUI.UI
             get => m_Size;
             set
             {
-                RemoveFromClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                RemoveFromClassList(GetSizeUssClassName(m_Size));
                 m_Size = value;
-                AddToClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                AddToClassList(GetSizeUssClassName(m_Size));
             }
         }
 
@@ -201,12 +202,12 @@ namespace Unity.Muse.AppUI.UI
         }
 
 #if ENABLE_UXML_TRAITS
-        public new class UxmlFactory : UxmlFactory<AssetTargetField, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<AssetTargetField, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="AssetTargetField"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             
             readonly UxmlBoolAttributeDescription m_Invalid = new UxmlBoolAttributeDescription

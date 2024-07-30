@@ -12,13 +12,8 @@ namespace Unity.Muse.Common.Editor
         const string s_StatusMenuItem = "Muse/Internals/Client Status";
         const string s_ResetSettingsMenuItem = "Muse/Internals/Reset Settings";
         const string s_ShowDialogsMenuItem = "Muse/Internals/Show Dialog";
+        const string s_ShowDialogExploreMenuItem = "Muse/Internals/Show Explore Dialog";
         const string s_ShowCloudInfoMenuItem = "Muse/Internals/Cloud Info";
-
-        static void RunAll(Action<AccountController> action)
-        {
-            foreach (var controller in AccountController.controllers)
-                action(controller);
-        }
 
         [MenuItem("internal:" + s_ShowCloudInfoMenuItem)]
         static void CloudInfo()
@@ -69,27 +64,28 @@ namespace Unity.Muse.Common.Editor
         [MenuItem("internal:" + s_ResetSettingsMenuItem)]
         static void ResetSettings()
         {
-            GlobalPreferences.Delete<bool>(nameof(GlobalPreferences.subscriptionStartDisplayed));
             GlobalPreferences.Delete<UsageInfo>(nameof(GlobalPreferences.usage));
+            GlobalPreferences.Delete<UsageInfo>(nameof(GlobalPreferences.exploreShown));
+            GlobalPreferences.Delete<UsageInfo>(nameof(GlobalPreferences.onboardingShown));
         }
 
         [MenuItem("internal:Muse/Internals/Update entitlements")]
         static void UpdateEntitlements()
         {
-            AccountInfo.Instance.UpdateEntitlements();
+            _ = AccountInfo.Instance.UpdateEntitlements();
         }
 
         [MenuItem("internal:Muse/Internals/Set usage")]
         static void SetUsage()
         {
-            var options = EditorUtility.DisplayDialogComplex("Set Muse Points", "Set the muse points you want.", "Set to 0", "Set to 40000", "Add 5000");
+            var options = EditorUtility.DisplayDialogComplex("Set Muse Points", "Set the muse points you want.", "Set to 0", "Set to a lot", "Add 5000");
 
             var usage = AccountInfo.Instance.Usage;
 
             if (options == 0)
                 usage.used = 0;
             else if (options == 1)
-                usage.used = 40000;
+                usage.used = 4000000;
             else if (options == 2)
                 usage.used += 5000;
 
@@ -123,30 +119,27 @@ namespace Unity.Muse.Common.Editor
             var options2 = 0;
             var options = EditorUtility.DisplayDialogComplex("Show dialogs", "Choose the dialog you want to display.", "Sign in", "Trial Confirm", "More");
             if (options == 2)
-                options2 = EditorUtility.DisplayDialogComplex("Show dialogs", "Choose the dialog you want to display.", "Start trial", "Data opt-in", "Trial Started");
+                options2 = EditorUtility.DisplayDialogComplex("Show dialogs", "Choose the dialog you want to display.", "Start trial", "Data opt-in", "Explore");
 
-            foreach (var dialog in AccountController.controllers)
+            if (options == 0)
+                IntroductionManipulator.current.DisplaySignIn();
+            if (options == 1)
+                IntroductionManipulator.current.DisplayStartTrialConfirm();
+            if (options == 2)
             {
-                if (!dialog.IsInvalid)
-                {
-                    if (options == 0)
-                        RunAll(controller => controller.DisplaySignIn());
-                    if (options == 1)
-                        RunAll(controller => controller.DisplayStartTrialConfirm());
-                    if (options == 2)
-                    {
-                        if (options2 == 0)
-                            RunAll(controller => controller.DisplayStartTrial());
-                        if (options2 == 1)
-                            RunAll(controller => controller.DisplayDataOptIn());
-                        if (options2 == 2)
-                        {
-                            AccountInfo.Instance.SubscriptionStartDisplayed = false;
-                            dialog.AccountDropdown?.ShowSubscriptionStartMessage();
-                        }
-                    }
-                }
+                if (options2 == 0)
+                    IntroductionManipulator.current.DisplayStartTrial();
+                if (options2 == 1)
+                    IntroductionManipulator.current.DisplayDataOptIn();
+                if (options2 == 2)
+                    IntroductionManipulator.current.DisplayExplore();
             }
+        }
+
+        [MenuItem("internal:" + s_ShowDialogExploreMenuItem)]
+        static void ShowExploreDialog()
+        {
+            ExploreWindow.ShowExplore();
         }
     }
 }

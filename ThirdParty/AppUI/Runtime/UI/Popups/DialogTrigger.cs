@@ -13,7 +13,7 @@ namespace Unity.Muse.AppUI.UI
     /// Note that pressing the Esc key will close the Dialog regardless of its type.
     /// </remarks>
     /// </summary>
-    public enum PopupPresentationType
+    internal enum PopupPresentationType
     {
         /// <summary>
         /// Modal Dialogs create an underlay that blocks access to the underlying user interface until the Dialog is closed.
@@ -52,7 +52,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// Same as <see cref="PopupPresentationType"/> but for Mobile explicitly.
     /// </summary>
-    public enum MobilePopupPresentationType
+    internal enum MobilePopupPresentationType
     {
         /// <summary>
         /// Modal Dialogs create an underlay that blocks access to the underlying user interface until the Dialog is closed.
@@ -88,7 +88,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class DialogTrigger : BaseVisualElement
+    internal partial class DialogTrigger : BaseVisualElement
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -676,12 +676,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Class used to instantiate <see cref="DialogTrigger"/> from UXML.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<DialogTrigger, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<DialogTrigger, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="DialogTrigger"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             readonly UxmlStringAttributeDescription m_Anchor = new UxmlStringAttributeDescription
             {

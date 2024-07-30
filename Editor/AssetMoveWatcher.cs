@@ -9,7 +9,7 @@ namespace Unity.Muse.Common.Editor
         static AssetMoveResult OnWillMoveAsset(string sourcePath, string destinationPath)
         {
             var model = AssetDatabase.LoadAssetAtPath<Model>(sourcePath);
-            if (model != null)
+            if (model)
             {
                 foreach (var editor in Resources.FindObjectsOfTypeAll<MuseEditor>())
                 {

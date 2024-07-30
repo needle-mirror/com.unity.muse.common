@@ -4,6 +4,21 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2024-07-30
+
+### Added
+
+- Muse Chat context retrieval and plugin integration.
+
+### Changed
+
+- Change NodesList UI definition so that it can be reuse in other EditorWindow.
+- Change Muse Account dropdown style.
+
+### Fixed
+
+- Fix selection changing when adding/removing items in the Generations list.
+
 ## [1.0.0] - 2024-04-15
 
 ### Changed

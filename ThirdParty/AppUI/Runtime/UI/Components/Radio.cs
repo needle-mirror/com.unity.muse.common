@@ -14,7 +14,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class Radio : BaseVisualElement, IValidatableElement<bool>, IPressable
+    internal partial class Radio : BaseVisualElement, IValidatableElement<bool>, IPressable
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -30,37 +30,40 @@ namespace Unity.Muse.AppUI.UI
         
         internal static readonly BindingId valueProperty = nameof(value);
         
+        internal static readonly BindingId keyProperty = nameof(key);
+        
 #endif
         
         /// <summary>
         /// The Radio main styling class.
         /// </summary>
-        public static readonly string ussClassName = "appui-radio";
+        public const string ussClassName = "appui-radio";
 
         /// <summary>
         /// The Radio size styling class.
         /// </summary>
-        public static readonly string sizeUssClassName = ussClassName + "--size-";
+        [EnumName("GetSizeUssClassName", typeof(Size))]
+        public const string sizeUssClassName = ussClassName + "--size-";
 
         /// <summary>
         /// The Radio emphasized mode styling class.
         /// </summary>
-        public static readonly string emphasizedUssClassName = ussClassName + "--emphasized";
+        public const string emphasizedUssClassName = ussClassName + "--emphasized";
 
         /// <summary>
         /// The Radio button styling class.
         /// </summary>
-        public static readonly string boxUssClassName = ussClassName + "__button";
+        public const string boxUssClassName = ussClassName + "__button";
 
         /// <summary>
         /// The Radio checkmark styling class.
         /// </summary>
-        public static readonly string checkmarkUssClassName = ussClassName + "__checkmark";
+        public const string checkmarkUssClassName = ussClassName + "__checkmark";
 
         /// <summary>
         /// The Radio label styling class.
         /// </summary>
-        public static readonly string labelUssClassName = ussClassName + "__label";
+        public const string labelUssClassName = ussClassName + "__label";
 
         readonly LocalizedTextElement m_Label;
 
@@ -74,6 +77,10 @@ namespace Unity.Muse.AppUI.UI
 
         Func<bool, bool> m_ValidateValue;
 
+        string m_Key;
+
+        RadioGroup m_Group;
+
         /// <summary>
         /// Default constructor.
         /// </summary>
@@ -86,7 +93,7 @@ namespace Unity.Muse.AppUI.UI
             pickingMode = PickingMode.Position;
             tabIndex = 0;
 
-            var radioIcon = new Icon { name = checkmarkUssClassName, iconName = "radio-bullet", pickingMode = PickingMode.Ignore };
+            var radioIcon = new VisualElement { name = checkmarkUssClassName, pickingMode = PickingMode.Ignore };
             radioIcon.AddToClassList(checkmarkUssClassName);
             m_Box = new ExVisualElement { name = boxUssClassName, pickingMode = PickingMode.Ignore, passMask = 0 };
             m_Box.AddToClassList(boxUssClassName);
@@ -100,9 +107,13 @@ namespace Unity.Muse.AppUI.UI
             size = Size.M;
             emphasized = false;
             invalid = false;
+            key = null;
             SetValueWithoutNotify(false);
 
             this.AddManipulator(new KeyboardFocusController(OnKeyboardFocusIn, OnPointerFocusIn));
+            
+            RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
+            RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
         }
 
         /// <summary>
@@ -121,6 +132,31 @@ namespace Unity.Muse.AppUI.UI
                 this.AddManipulator(m_Clickable);
             }
         }
+        
+        /// <summary>
+        /// The Radio key.
+        /// </summary>
+#if ENABLE_RUNTIME_DATA_BINDINGS
+        [CreateProperty]
+#endif
+#if ENABLE_UXML_SERIALIZED_DATA
+        [UxmlAttribute]
+#endif
+        public string key
+        {
+            get => m_Key;
+            set
+            {
+                var changed = m_Key != value;
+                m_Key = value;
+                TryAddToGroup();
+                
+#if ENABLE_RUNTIME_DATA_BINDINGS
+                if (changed)
+                    NotifyPropertyChanged(in keyProperty);
+#endif
+            }
+        }
 
         /// <summary>
         /// The Radio size.
@@ -137,9 +173,9 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_Size != value;
-                RemoveFromClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                RemoveFromClassList(GetSizeUssClassName(m_Size));
                 m_Size = value;
-                AddToClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                AddToClassList(GetSizeUssClassName(m_Size));
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
@@ -295,17 +331,38 @@ namespace Unity.Muse.AppUI.UI
             m_Box.passMask = ExVisualElement.Passes.Clear | ExVisualElement.Passes.Outline;
         }
         
+        void OnAttachToPanel(AttachToPanelEvent evt)
+        {
+            TryAddToGroup();
+        }
+        
+        void TryAddToGroup()
+        {
+            m_Group?.RemoveRadio(this);
+            var group = GetFirstAncestorOfType<RadioGroup>();
+            if (group != null && m_Group != group)
+            {
+                m_Group = group;
+                m_Group.AddRadio(this);
+            }
+        }
+        
+        void OnDetachFromPanel(DetachFromPanelEvent evt)
+        {
+            m_Group?.RemoveRadio(this);
+        }
+        
 #if ENABLE_UXML_TRAITS
 
         /// <summary>
         /// Factory class to instantiate a <see cref="Radio"/> using the data read from a UXML file.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<Radio, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<Radio, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="Radio"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             readonly UxmlBoolAttributeDescription m_Emphasized = new UxmlBoolAttributeDescription
             {
@@ -330,6 +387,12 @@ namespace Unity.Muse.AppUI.UI
                 name = "value",
                 defaultValue = false
             };
+            
+            readonly UxmlStringAttributeDescription m_Key = new UxmlStringAttributeDescription
+            {
+                name = "key",
+                defaultValue = null
+            };
 
             /// <summary>
             /// Initializes the VisualElement from the UXML attributes.
@@ -346,6 +409,7 @@ namespace Unity.Muse.AppUI.UI
                 element.emphasized = m_Emphasized.GetValueFromBag(bag, cc);
                 element.value = m_Value.GetValueFromBag(bag, cc);
                 element.label = m_Label.GetValueFromBag(bag, cc);
+                element.key = m_Key.GetValueFromBag(bag, cc);
             }
         }
         

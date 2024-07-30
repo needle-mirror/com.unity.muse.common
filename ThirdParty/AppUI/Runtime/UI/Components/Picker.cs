@@ -13,7 +13,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// The type of selection for a Picker.
     /// </summary>
-    public enum PickerSelectionType
+    internal enum PickerSelectionType
     {
         /// <summary>
         /// The Picker allows only one item to be selected.
@@ -32,12 +32,12 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class PickerItem : BaseVisualElement, IPressable
+    internal partial class PickerItem : BaseVisualElement, IPressable
     {
         /// <summary>
         /// The main styling class for the PickerItem.
         /// </summary>
-        public static readonly string ussClassName = "appui-picker-item";
+        public const string ussClassName = "appui-picker-item";
 
         Pressable m_Clickable;
 
@@ -117,7 +117,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public abstract partial class Picker : ExVisualElement, IInputElement<IEnumerable<int>>, ISizeableElement, IPressable
+    internal abstract partial class Picker : ExVisualElement, IInputElement<IEnumerable<int>>, ISizeableElement, IPressable
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -148,42 +148,43 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The Picker main styling class.
         /// </summary>
-        public static readonly string ussClassName = "appui-picker";
+        public const string ussClassName = "appui-picker";
 
         /// <summary>
         /// The Picker title container styling class.
         /// </summary>
-        public static readonly string titleContainerUssClassName = ussClassName + "__titlecontainer";
+        public const string titleContainerUssClassName = ussClassName + "__titlecontainer";
 
         /// <summary>
         /// The Picker title styling class.
         /// </summary>
-        public static readonly string titleUssClassName = ussClassName + "__title";
+        public const string titleUssClassName = ussClassName + "__title";
 
         /// <summary>
         /// The Picker trailing container styling class.
         /// </summary>
-        public static readonly string trailingContainerUssClassName = ussClassName + "__trailingcontainer";
+        public const string trailingContainerUssClassName = ussClassName + "__trailingcontainer";
 
         /// <summary>
         /// The Picker caret styling class.
         /// </summary>
-        public static readonly string caretUssClassName = ussClassName + "__caret";
+        public const string caretUssClassName = ussClassName + "__caret";
 
         /// <summary>
         /// The Picker size styling class.
         /// </summary>
-        public static readonly string sizeUssClassName = ussClassName + "--size-";
+        [EnumName("GetSizeUssClassName", typeof(Size))]
+        public const string sizeUssClassName = ussClassName + "--size-";
 
         /// <summary>
         /// The Picker emphasized mode styling class.
         /// </summary>
-        public static readonly string emphasizedUssClassName = ussClassName + "--emphasized";
+        public const string emphasizedUssClassName = ussClassName + "--emphasized";
 
         /// <summary>
         /// The Picker menu styling class.
         /// </summary>
-        public static readonly string appuiPickerMenu = ussClassName + "__menu";
+        public const string appuiPickerMenu = ussClassName + "__menu";
 
         /// <summary>
         /// The list of items contained in the Picker.
@@ -376,6 +377,7 @@ namespace Unity.Muse.AppUI.UI
                     return;
 
                 m_SourceItems = value;
+                this.value = m_DefaultValue;
                 m_ValueSet = false;
                 RefreshUI();
                 
@@ -399,9 +401,9 @@ namespace Unity.Muse.AppUI.UI
             get => m_Size;
             set
             {
-                RemoveFromClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                RemoveFromClassList(GetSizeUssClassName(m_Size));
                 m_Size = value;
-                AddToClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                AddToClassList(GetSizeUssClassName(m_Size));
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 NotifyPropertyChanged(in sizeProperty);
@@ -527,6 +529,9 @@ namespace Unity.Muse.AppUI.UI
         /// <param name="newValue"> The new value to set. </param>
         public void SetValueWithoutNotify(IEnumerable<int> newValue)
         {
+            if (sourceItems == null)
+                return;
+            
             var values = newValue != null ? new List<int>(newValue) : new List<int>();
             foreach (var nv in values)
             {
@@ -730,7 +735,7 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="Picker"/>.
         /// </summary>
-        public new class UxmlTraits : ExVisualElement.UxmlTraits
+        internal new class UxmlTraits : ExVisualElement.UxmlTraits
         {
             
             readonly UxmlBoolAttributeDescription m_Emphasized = new UxmlBoolAttributeDescription
@@ -787,7 +792,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public abstract partial class Picker<TItemType, TTitleType> : Picker
+    internal abstract partial class Picker<TItemType, TTitleType> : Picker
         where TItemType : BaseVisualElement, new()
         where TTitleType : BaseVisualElement, new()
     {
@@ -1002,7 +1007,7 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="Picker{T,TU}"/>.
         /// </summary>
-        public new class UxmlTraits : Picker.UxmlTraits { }
+        internal new class UxmlTraits : Picker.UxmlTraits { }
         
 #endif
     }

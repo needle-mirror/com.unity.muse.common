@@ -93,7 +93,7 @@ namespace Unity.Muse.AppUI.UI
 
             // 4 - If the tne new tooltip is not null, start delay
             if (hasTooltip)
-                ShowTooltip();
+                ShowTooltip(m_AnchorElement?.GetContext<TooltipDelayContext>()?.tooltipDelayMs ?? defaultDelayMs);
         }
 
         void OnTooltipTemplateOrContentChanged()
@@ -112,10 +112,9 @@ namespace Unity.Muse.AppUI.UI
             return force || target.panel.contextType == ContextType.Player;
         }
 
-        void ShowTooltip()
+        void ShowTooltip(int delayMs)
         {
-            var delay = m_AnchorElement?.GetContext<TooltipDelayContext>()?.tooltipDelayMs ?? defaultDelayMs;
-            m_ScheduledItem?.ExecuteLater(delay);
+            m_ScheduledItem?.ExecuteLater(delayMs);
         }
 
         void StartFadeIn()

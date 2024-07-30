@@ -15,7 +15,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class RangeSliderInt : RangeSliderBase<Vector2Int, int>
+    internal partial class RangeSliderInt : RangeSliderBase<Vector2Int, int>
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -204,12 +204,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Factory class to instantiate a <see cref="RangeSliderInt"/> using the data read from a UXML file.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<RangeSliderInt, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<RangeSliderInt, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="RangeSliderInt"/>.
         /// </summary>
-        public new class UxmlTraits : RangeSliderBase<Vector2Int, int>.UxmlTraits
+        internal new class UxmlTraits : RangeSliderBase<Vector2Int, int>.UxmlTraits
         {
             readonly UxmlIntAttributeDescription m_HighValue = new UxmlIntAttributeDescription
             {

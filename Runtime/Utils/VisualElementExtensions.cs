@@ -73,5 +73,15 @@ namespace Unity.Muse.Common.Utils
         {
             element.style.display = display ? DisplayStyle.Flex : DisplayStyle.None;
         }
+
+        public static float GetPixelWidth(this VisualElement element)
+        {
+            return element.resolvedStyle.width * Unity.AppUI.Core.Platform.scaleFactor;
+        }
+
+        public static float GetPixelHeight(this VisualElement element)
+        {
+            return element.resolvedStyle.height * Unity.AppUI.Core.Platform.scaleFactor;
+        }
     }
 }

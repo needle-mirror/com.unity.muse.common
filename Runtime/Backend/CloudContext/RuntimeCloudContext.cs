@@ -8,9 +8,8 @@ namespace Unity.Muse.Common
 {
     [Preserve]
     [Serializable]
-    internal class RuntimeCloudContext : MonoBehaviour, ICloudContext
+    class RuntimeCloudContext : MonoBehaviour, ICloudContext
     {
-        public double TimeSinceStartup => Time.unscaledTimeAsDouble;
         List<ICloudContext.Callback> m_DeferredCallbackList = new();
         HashSet<ICloudContext.Callback> m_PerTickCallbackList = new();
 
@@ -30,19 +29,9 @@ namespace Unity.Muse.Common
             CloudContextFactory.SetCloudContext(null);
         }
 
-        public void RegisterNextFrameCallback(ICloudContext.Callback cb)
+        void ICloudContext.RegisterNextFrameCallback(ICloudContext.Callback cb)
         {
             m_DeferredCallbackList.Add(cb);
-        }
-
-        public void RegisterForTickCallback(ICloudContext.Callback cb)
-        {
-            m_PerTickCallbackList.Add(cb);
-        }
-
-        public void UnregisterForTickCallback(ICloudContext.Callback cb)
-        {
-            m_PerTickCallbackList.Remove(cb);
         }
 
         void Update()

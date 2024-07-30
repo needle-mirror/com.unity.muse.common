@@ -5,7 +5,6 @@ using UnityEngine.Scripting;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.PackageManager;
-using UnityEditor.PackageManager.Requests;
 #endif
 
 namespace Unity.Muse.Common
@@ -15,7 +14,7 @@ namespace Unity.Muse.Common
         public const string keyPrefix = "Unity.Muse.Common.Preferences.";
         public const string defaultImportFolderPath = "Assets";
 
-        const string k_PackageName = "com.unity.muse.common";
+        public const string packageName = "com.unity.muse.common";
         const string k_PackageVersionKey = "Unity.Muse.Common.Version";
 
         static Dictionary<string, string> s_PlayerPreferences = new()
@@ -89,6 +88,9 @@ namespace Unity.Muse.Common
 
             private static void OnEditorUpdate()
             {
+                if (Application.isPlaying)
+                    return;
+
                 if (s_EditorUpdateFrames < 10)
                 {
                     s_EditorUpdateFrames++;
@@ -112,7 +114,7 @@ namespace Unity.Muse.Common
                 {
                     foreach (var package in request.Result)
                     {
-                        if (package.name == k_PackageName)
+                        if (package.name == packageName)
                         {
                             var version = package.version;
                             if (PlayerPrefs.HasKey(k_PackageVersionKey))

@@ -8,7 +8,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// An Action has been triggered.
     /// </summary>
-    public class ActionTriggeredEvent : EventBase<ActionTriggeredEvent>
+    internal class ActionTriggeredEvent : EventBase<ActionTriggeredEvent>
     {
         /// <summary>
         /// Resets all event members to their initial values.

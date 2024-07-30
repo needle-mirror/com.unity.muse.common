@@ -6,7 +6,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// Extensions for the <see cref="TextField"/> class.
     /// </summary>
-    public static class TextFieldExtensions
+    internal static class TextFieldExtensions
     {
         /// <summary>
         /// Make the cursor blink.

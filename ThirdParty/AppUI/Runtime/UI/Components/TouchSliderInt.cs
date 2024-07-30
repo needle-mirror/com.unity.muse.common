@@ -16,7 +16,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class TouchSliderInt : TouchSlider<int>
+    internal partial class TouchSliderInt : TouchSlider<int>
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -145,12 +145,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Factory class to instantiate a <see cref="TouchSliderInt"/> using the data read from a UXML file.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<TouchSliderInt, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<TouchSliderInt, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="TouchSliderInt"/>.
         /// </summary>
-        public new class UxmlTraits : TouchSlider<int>.UxmlTraits
+        internal new class UxmlTraits : TouchSlider<int>.UxmlTraits
         {
             readonly UxmlStringAttributeDescription m_HighValue = new UxmlStringAttributeDescription { name = "high-value", defaultValue = "1" };
 

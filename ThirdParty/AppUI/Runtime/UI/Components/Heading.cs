@@ -10,7 +10,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// Heading sizing.
     /// </summary>
-    public enum HeadingSize
+    internal enum HeadingSize
     {
         /// <summary>
         /// Double Extra-small
@@ -54,7 +54,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public sealed partial class Heading : LocalizedTextElement
+    internal sealed partial class Heading : LocalizedTextElement
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -67,17 +67,18 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The Heading main styling class.
         /// </summary>
-        public new static readonly string ussClassName = "appui-heading";
+        public new const string ussClassName = "appui-heading";
 
         /// <summary>
         /// The Heading primary variant styling class.
         /// </summary>
-        public static readonly string primaryUssClassName = ussClassName + "--primary";
+        public const string primaryUssClassName = ussClassName + "--primary";
 
         /// <summary>
         /// The Heading size styling class.
         /// </summary>
-        public static readonly string sizeUssClassName = ussClassName + "--size-";
+        [EnumName("GetSizeUssClassName", typeof(HeadingSize))]
+        public const string sizeUssClassName = ussClassName + "--size-";
 
         HeadingSize m_Size = HeadingSize.M;
 
@@ -142,9 +143,9 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_Size != value;
-                RemoveFromClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                RemoveFromClassList(GetSizeUssClassName(m_Size));
                 m_Size = value;
-                AddToClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                AddToClassList(GetSizeUssClassName(m_Size));
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
@@ -158,12 +159,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Factory class to instantiate a <see cref="Heading"/> using the data read from a UXML file.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<Heading, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<Heading, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="Heading"/>.
         /// </summary>
-        public new class UxmlTraits : LocalizedTextElement.UxmlTraits
+        internal new class UxmlTraits : LocalizedTextElement.UxmlTraits
         {
             
             readonly UxmlBoolAttributeDescription m_Primary = new UxmlBoolAttributeDescription

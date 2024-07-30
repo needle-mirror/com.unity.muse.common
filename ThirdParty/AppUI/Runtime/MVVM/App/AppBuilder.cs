@@ -5,7 +5,7 @@ namespace Unity.AppUI.MVVM
     /// <summary>
     /// A builder to create an App instance with required services.
     /// </summary>
-    public class AppBuilder
+    internal class AppBuilder
     {
         readonly AppUIServiceCollection m_Services = new AppUIServiceCollection();
         
@@ -24,7 +24,7 @@ namespace Unity.AppUI.MVVM
         /// </summary>
         /// <typeparam name="T"> The type of the app to build. It is expected that this type is a subclass of <see cref="App"/>. </typeparam>
         /// <returns> The instantiated AppBuilder. </returns>
-        public static AppBuilder InstantiateWith<T>() where T : class, IApp
+        internal static AppBuilder InstantiateWith<T>() where T : class, IApp
         {
             var builder = new AppBuilder();
             builder.services.TryAddSingleton<IApp, T>();

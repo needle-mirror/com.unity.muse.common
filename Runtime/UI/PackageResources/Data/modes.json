@@ -4,9 +4,14 @@
     {
       "type": "TextToImage",
       "label": "Materials",
-      "title": "Material Generator",
+      "title": "Texture Generator",
       "version": "1.0",
       "enabled": true,
+      "group": "Materials",
+      "group_order": 0,
+      "icon_path": "Packages/com.unity.muse.common/PackageResources/Logos/UnityIcon.png",
+      "icon_label": "Unity",
+
       "operators": [
         {
           "type": "GenerateOperator",

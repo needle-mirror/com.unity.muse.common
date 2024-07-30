@@ -14,7 +14,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class Mask : Image
+    internal partial class Mask : Image
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -35,7 +35,7 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The Mask main styling class.
         /// </summary>
-        public new static readonly string ussClassName = "appui-mask";
+        public new const string ussClassName = "appui-mask";
 
         /// <summary>
         /// The content container of this element.
@@ -178,7 +178,7 @@ namespace Unity.Muse.AppUI.UI
             get => m_Radius;
             set
             {
-                var changed = m_Radius != value;
+                var changed = !Mathf.Approximately(m_Radius, value);
                 m_Radius = value;
                 GenerateTextures();
                 MarkDirtyRepaint();
@@ -302,7 +302,7 @@ namespace Unity.Muse.AppUI.UI
             if (!rect.IsValid())
                 return;
 
-            var dpi = Mathf.Max(Platform.mainScreenScale, 1f);
+            var dpi = Mathf.Max(Platform.scaleFactor, 1f);
             var texSize = rect.size * dpi;
 
             if (!texSize.IsValidForTextureSize())
@@ -346,12 +346,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Factory class to instantiate a <see cref="Mask"/> using the data read from a UXML file.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<Mask, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<Mask, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="ExVisualElement"/>.
         /// </summary>
-        public new class UxmlTraits : Image.UxmlTraits
+        internal new class UxmlTraits : Image.UxmlTraits
         {
             readonly UxmlColorAttributeDescription m_InnerMaskColor = new UxmlColorAttributeDescription
             {

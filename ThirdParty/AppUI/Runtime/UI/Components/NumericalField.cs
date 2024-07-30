@@ -16,7 +16,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif 
-    public abstract partial class NumericalField<TValueType> : ExVisualElement, IInputElement<TValueType>, ISizeableElement, INotifyValueChanging<TValueType>
+    internal abstract partial class NumericalField<TValueType> : ExVisualElement, IInputElement<TValueType>, ISizeableElement, INotifyValueChanging<TValueType>
         where TValueType : struct, IComparable, IComparable<TValueType>, IFormattable
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
@@ -47,27 +47,28 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The NumericalField input container styling class.
         /// </summary>
-        public static readonly string inputContainerUssClassName = ussClassName + "__inputcontainer";
+        public const string inputContainerUssClassName = ussClassName + "__inputcontainer";
 
         /// <summary>
         /// The NumericalField input styling class.
         /// </summary>
-        public static readonly string inputUssClassName = ussClassName + "__input";
+        public const string inputUssClassName = ussClassName + "__input";
 
         /// <summary>
         /// The NumericalField unit styling class.
         /// </summary>
-        public static readonly string unitUssClassName = ussClassName + "__unit";
+        public const string unitUssClassName = ussClassName + "__unit";
 
         /// <summary>
         /// The NumericalField trailing container styling class.
         /// </summary>
-        public static readonly string trailingContainerUssClassName = ussClassName + "__trailingcontainer";
+        public const string trailingContainerUssClassName = ussClassName + "__trailingcontainer";
 
         /// <summary>
         /// The NumericalField size styling class.
         /// </summary>
-        public static readonly string sizeUssClassName = ussClassName + "--size-";
+        [EnumName("GetSizeUssClassName", typeof(Size))]
+        public const string sizeUssClassName = ussClassName + "--size-";
 
         /// <summary>
         /// The input container.
@@ -301,9 +302,9 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_Size != value;
-                RemoveFromClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                RemoveFromClassList(GetSizeUssClassName(m_Size));
                 m_Size = value;
-                AddToClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                AddToClassList(GetSizeUssClassName(m_Size));
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
@@ -507,7 +508,7 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="NumericalField{TValueType}"/>.
         /// </summary>
-        public new class UxmlTraits : ExVisualElement.UxmlTraits
+        internal new class UxmlTraits : ExVisualElement.UxmlTraits
         {
             readonly UxmlStringAttributeDescription m_HighValue = new UxmlStringAttributeDescription { name = "high-value", defaultValue = null };
 

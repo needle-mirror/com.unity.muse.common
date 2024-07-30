@@ -10,7 +10,7 @@ namespace Unity.Muse.Common
         public abstract void Clear();
         public abstract bool IsInCache(Artifact artifact);
         public abstract void Write(Artifact artifact, byte[] value);
-        public abstract Object Read(Artifact artifact);
+        public abstract object Read(Artifact artifact);
         public abstract byte[] ReadRawData(Artifact artifact);
         public abstract void Prune();
         public abstract void Delete(Artifact artifact);

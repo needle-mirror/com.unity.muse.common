@@ -23,7 +23,7 @@ namespace Unity.AppUI.Undo
     /// command *macros*, and supports the concept of a *clean state*.
     /// </para>
     /// </summary>
-    public class UndoStack
+    internal class UndoStack
     {
         readonly List<UndoCommand> m_Commands = new List<UndoCommand>();
         

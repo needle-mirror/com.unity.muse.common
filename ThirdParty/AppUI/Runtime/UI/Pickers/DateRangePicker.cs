@@ -15,7 +15,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class DateRangePicker : BaseDatePicker, INotifyValueChanged<DateRange>
+    internal partial class DateRangePicker : BaseDatePicker, INotifyValueChanged<DateRange>
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
 
@@ -121,12 +121,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Class used to create instances of <see cref="DateRangePicker"/> from UXML.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<DateRangePicker, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<DateRangePicker, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="DateRangePicker"/>.
         /// </summary>
-        public new class UxmlTraits : BaseDatePicker.UxmlTraits
+        internal new class UxmlTraits : BaseDatePicker.UxmlTraits
         {
             readonly UxmlStringAttributeDescription m_Value = new UxmlStringAttributeDescription
             {

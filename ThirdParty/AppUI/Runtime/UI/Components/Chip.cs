@@ -13,7 +13,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class Chip : BaseVisualElement, IPressable
+    internal partial class Chip : BaseVisualElement, IPressable
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
 
@@ -32,7 +32,7 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The possible variants for a <see cref="Chip"/>.
         /// </summary>
-        public enum Variant
+        internal enum Variant
         {
             /// <summary>
             /// The <see cref="Chip"/> is displayed with a fill color.
@@ -49,47 +49,48 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The Chip main styling class.
         /// </summary>
-        public static readonly string ussClassName = "appui-chip";
+        public const string ussClassName = "appui-chip";
 
         /// <summary>
         /// The Chip variant styling class.
         /// </summary>
-        public static readonly string variantUssClassName = ussClassName + "--";
+        [EnumName("GetVariantUssClassName", typeof(Variant))]
+        public const string variantUssClassName = ussClassName + "--";
 
         /// <summary>
         /// The Chip Clickable variant styling class.
         /// </summary>
-        public static readonly string clickableUssClassName = ussClassName + "--clickable";
+        public const string clickableUssClassName = ussClassName + "--clickable";
 
         /// <summary>
         /// The Chip Deletable variant styling class.
         /// </summary>
-        public static readonly string deletableUssClassName = ussClassName + "--deletable";
+        public const string deletableUssClassName = ussClassName + "--deletable";
         
         /// <summary>
         /// The Chip with ornament variant styling class.
         /// </summary>
-        public static readonly string withOrnamentUssClassName = ussClassName + "--with-ornament";
+        public const string withOrnamentUssClassName = ussClassName + "--with-ornament";
 
         /// <summary>
         /// The Chip label styling class.
         /// </summary>
-        public static readonly string labelUssClassName = ussClassName + "__label";
+        public const string labelUssClassName = ussClassName + "__label";
 
         /// <summary>
         /// The Chip ornament container styling class.
         /// </summary>
-        public static readonly string ornamentContainerUssClassName = ussClassName + "__ornament-container";
+        public const string ornamentContainerUssClassName = ussClassName + "__ornament-container";
 
         /// <summary>
         /// The Chip delete Button styling class.
         /// </summary>
-        public static readonly string deleteButtonUssClassName = ussClassName + "__delete-button";
+        public const string deleteButtonUssClassName = ussClassName + "__delete-button";
 
         /// <summary>
         /// The Chip delete Icon styling class.
         /// </summary>
-        public static readonly string deleteIconUssClassName = ussClassName + "__delete-icon";
+        public const string deleteIconUssClassName = ussClassName + "__delete-icon";
 
         static readonly CustomStyleProperty<Color> k_UssColor = new CustomStyleProperty<Color>("--chip-color");
 
@@ -159,9 +160,9 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_Variant != value;
-                RemoveFromClassList(variantUssClassName + m_Variant.ToString().ToLower());
+                RemoveFromClassList(GetVariantUssClassName(m_Variant));
                 m_Variant = value;
-                AddToClassList(variantUssClassName + m_Variant.ToString().ToLower());
+                AddToClassList(GetVariantUssClassName(m_Variant));
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
@@ -320,12 +321,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Defines the UxmlFactory for the Chip.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<Chip, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<Chip, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="Chip"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             
             

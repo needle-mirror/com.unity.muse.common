@@ -15,7 +15,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class TextArea : ExVisualElement, IInputElement<string>, INotifyValueChanging<string>
+    internal partial class TextArea : ExVisualElement, IInputElement<string>, INotifyValueChanging<string>
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -43,27 +43,27 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The TextArea main styling class.
         /// </summary>
-        public static readonly string ussClassName = "appui-textarea";
+        public const string ussClassName = "appui-textarea";
 
         /// <summary>
         /// The TextArea input container styling class.
         /// </summary>
-        public static readonly string scrollViewUssClassName = ussClassName + "__scrollview";
+        public const string scrollViewUssClassName = ussClassName + "__scrollview";
 
         /// <summary>
         /// The TextArea resize handle styling class.
         /// </summary>
-        public static readonly string resizeHandleUssClassName = ussClassName + "__resize-handle";
+        public const string resizeHandleUssClassName = ussClassName + "__resize-handle";
 
         /// <summary>
         /// The TextArea input styling class.
         /// </summary>
-        public static readonly string inputUssClassName = ussClassName + "__input";
+        public const string inputUssClassName = ussClassName + "__input";
 
         /// <summary>
         /// The TextArea placeholder styling class.
         /// </summary>
-        public static readonly string placeholderUssClassName = ussClassName + "__placeholder";
+        public const string placeholderUssClassName = ussClassName + "__placeholder";
         
         const bool k_IsReadOnlyDefault = false;
         
@@ -599,12 +599,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Factory class to instantiate a <see cref="TextArea"/> using the data read from a UXML file.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<TextArea, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<TextArea, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="TextArea"/>.
         /// </summary>
-        public new class UxmlTraits : ExVisualElement.UxmlTraits
+        internal new class UxmlTraits : ExVisualElement.UxmlTraits
         {
             readonly UxmlStringAttributeDescription m_Placeholder = new()
             {

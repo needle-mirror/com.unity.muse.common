@@ -27,7 +27,7 @@ namespace Unity.Muse.Common
         public string OperatorName  => "ReferenceOperator";
 
         public string Label => "Input Image";
-
+        
         [SerializeField]
         OperatorData m_OperatorData;
 
@@ -55,12 +55,21 @@ namespace Unity.Muse.Common
         public VisualElement GetOperatorView(Model model)
         {
             if (m_View != null)
+            {
                 m_View.dataChanged -= OnViewDataChanged;
+                m_View.closeButtonClicked -= OnCloseButtonClicked;
+            }
 
             m_View = new ReferenceOperatorView(model);
             m_View.dataChanged += OnViewDataChanged;
+            m_View.closeButtonClicked += OnCloseButtonClicked;
             UpdateView();
             return m_View;
+            
+            void OnCloseButtonClicked()
+            {
+                model.SetOperatorVisibility(this, false);
+            }
         }
 
         void UpdateView()
@@ -82,8 +91,10 @@ namespace Unity.Muse.Common
             else
                 m_View.SetShapeImageWithoutNotify(img);
             m_View.SetStrengthWithoutNotify(strength);
+            m_View.SetVisibility(!Hidden);
+            m_View.SetCloseButtonVisibility(GetOperatorData().hideable);
         }
-
+        
         void OnViewDataChanged()
         {
             var guid = m_View.GetGuid();

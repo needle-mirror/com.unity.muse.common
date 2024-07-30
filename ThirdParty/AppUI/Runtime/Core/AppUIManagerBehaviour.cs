@@ -10,8 +10,40 @@ namespace Unity.AppUI.Core
     /// </remarks>
     /// </summary>
     [DisallowMultipleComponent]
-    public class AppUIManagerBehaviour : MonoBehaviour
+    internal class AppUIManagerBehaviour : MonoBehaviour
     {
+        internal static AppUIManagerBehaviour instance { get; private set; }
+        
+        /// <summary>
+        /// Creates the AppUIManagerBehaviour instance.
+        /// </summary>
+        [RuntimeInitializeOnLoadMethod(loadType: RuntimeInitializeLoadType.AfterSceneLoad)]
+        public static void Create()
+        {
+            if (!instance)
+            {
+                var availableUpdaters = Resources.FindObjectsOfTypeAll<AppUIManagerBehaviour>();
+                if (availableUpdaters is {Length: > 0})
+                {
+                    for (var i = availableUpdaters.Length - 1; i >= 0; i--)
+                    {
+                        Destroy(availableUpdaters[i].gameObject);
+                    }
+                }
+                var obj = new GameObject("AppUIUpdater")
+                {
+                    hideFlags = HideFlags.HideAndDontSave
+                };
+                instance = obj.AddComponent<AppUIManagerBehaviour>();
+                DontDestroyOnLoad(obj);
+            }
+        }
+
+        void OnApplicationQuit()
+        {
+            Destroy(gameObject);
+        }
+
         void Update()
         {
             if (!Application.isEditor)
@@ -24,6 +56,15 @@ namespace Unity.AppUI.Core
         void OnNativeMessageReceived(string message)
         {
             Platform.HandleNativeMessage(message);
+        }
+
+        void OnApplicationFocus(bool hasFocus)
+        {
+            if (!Application.isEditor)
+            {
+                AppUI.EnsureInitialized();
+                AppUI.OnApplicationFocus(hasFocus);
+            }
         }
     }
 }

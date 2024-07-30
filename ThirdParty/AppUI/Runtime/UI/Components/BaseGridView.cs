@@ -21,7 +21,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public abstract partial class BaseGridView : BindableElement, ISerializationCallbackReceiver
+    internal abstract partial class BaseGridView : BindableElement, ISerializationCallbackReceiver
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -1307,7 +1307,7 @@ namespace Unity.Muse.AppUI.UI
         /// <remarks>
         /// This class defines the BaseGridView element properties that you can use in a UI document asset (UXML file).
         /// </remarks>
-        public new class UxmlTraits : BindableElement.UxmlTraits
+        internal new class UxmlTraits : BindableElement.UxmlTraits
         {
             readonly UxmlEnumAttributeDescription<SelectionType> m_SelectionType = new UxmlEnumAttributeDescription<SelectionType>
             {

@@ -12,7 +12,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class Toggle : BaseVisualElement, IInputElement<bool>, IPressable
+    internal partial class Toggle : BaseVisualElement, IInputElement<bool>, IPressable
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -29,37 +29,37 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The Toggle main styling class.
         /// </summary>
-        public static readonly string ussClassName = "appui-toggle";
+        public const string ussClassName = "appui-toggle";
         
         /// <summary>
         /// The Toggle size styling class.
         /// </summary>
-        public static readonly string sizeUssClassName = ussClassName + "--size-";
+        public const string sizeUssClassName = ussClassName + "--size-";
 
         /// <summary>
         /// The Toggle box styling class.
         /// </summary>
-        public static readonly string boxUssClassName = ussClassName + "__box";
+        public const string boxUssClassName = ussClassName + "__box";
 
         /// <summary>
         /// The Toggle box padded styling class.
         /// </summary>
-        public static readonly string paddedBoxUssClassName = ussClassName + "__boxpadded";
+        public const string paddedBoxUssClassName = ussClassName + "__boxpadded";
 
         /// <summary>
         /// The Toggle checkmark container styling class.
         /// </summary>
-        public static readonly string checkmarkContainerUssClassName = ussClassName + "__checkmarkcontainer";
+        public const string checkmarkContainerUssClassName = ussClassName + "__checkmarkcontainer";
 
         /// <summary>
         /// The Toggle checkmark styling class.
         /// </summary>
-        public static readonly string checkmarkUssClassName = ussClassName + "__checkmark";
+        public const string checkmarkUssClassName = ussClassName + "__checkmark";
 
         /// <summary>
         /// The Toggle label styling class.
         /// </summary>
-        public static readonly string labelUssClassName = ussClassName + "__label";
+        public const string labelUssClassName = ussClassName + "__label";
 
         readonly LocalizedTextElement m_Label;
 
@@ -83,10 +83,9 @@ namespace Unity.Muse.AppUI.UI
             tabIndex = 0;
             clickable = new Pressable(OnClick);
 
-            var checkmark = new Icon
+            var checkmark = new VisualElement
             {
                 name = checkmarkUssClassName,
-                iconName = "radio-bullet",
                 pickingMode = PickingMode.Ignore,
                 usageHints = UsageHints.DynamicTransform,
             };
@@ -259,12 +258,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Factory class to instantiate a <see cref="Toggle"/> using the data read from a UXML file.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<Toggle, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<Toggle, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="Toggle"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             readonly UxmlStringAttributeDescription m_Label = new UxmlStringAttributeDescription
             {

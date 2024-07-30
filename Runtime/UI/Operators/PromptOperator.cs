@@ -11,25 +11,27 @@ namespace Unity.Muse.Common
     internal class PromptOperator : IOperator, ISerializationCallbackReceiver
     {
         public const int MinimumPromptLength = 1;
-        public string OperatorName => "PromptOperator";
+        public virtual string OperatorName => "PromptOperator";
 
         /// <summary>
         /// Human-readable label for the operator.
         /// </summary>
         public string Label => "Prompt";
 
-        event Action OnDataUpdate;
+        protected event Action OnDataUpdate;
+        protected event Action OnIsSetChanged;
 
         [SerializeField]
-        OperatorData m_OperatorData;
+        protected OperatorData m_OperatorData;
 
-        TextArea m_PromptField;
+        protected TextArea m_PromptField;
         TextArea m_NegPromptField;
-        bool m_LastKeyReturn;
-        Model m_Model;
+        protected bool m_LastKeyReturn;
+        protected Model m_Model;
 
-        private const int k_PromptIndex = 0;
-        private const int k_NegPromptIndex = 1;
+        protected const int k_PromptIndex = 0;
+        protected const int k_NegPromptIndex = 1;
+        protected bool m_PromptHasValue;
 
         public PromptOperator()
         {
@@ -52,7 +54,7 @@ namespace Unity.Muse.Common
             return new VisualElement();
         }
 
-        public VisualElement GetOperatorView(Model model)
+        public virtual VisualElement GetOperatorView(Model model)
         {
             m_PromptField?.UnregisterCallback<KeyDownEvent>(OnKeyDown);
             m_PromptField?.UnregisterValueChangingCallback(ValueChangedCallback);
@@ -161,7 +163,7 @@ namespace Unity.Muse.Common
             return UI;
         }
 
-        void OnOnDataUpdate()
+        protected void OnOnDataUpdate()
         {
             if (m_OperatorData.settings[k_PromptIndex] != "")
             {
@@ -170,13 +172,23 @@ namespace Unity.Muse.Common
             }
         }
 
-        void ValueChangedCallback(ChangingEvent<string> evt)
+        protected void ValueChangedCallback(ChangingEvent<string> evt)
         {
             m_OperatorData.settings[k_PromptIndex] = m_PromptField.value;
             m_Model.SetCurrentPrompt(m_PromptField.value);
+            HandleChangeIsSet();
         }
 
-        void OnKeyDown(KeyDownEvent evt)
+        protected void HandleChangeIsSet()
+        {
+            if (m_PromptHasValue != IsPromptValid())
+            {
+                m_PromptHasValue = IsPromptValid();
+                OnIsSetChanged?.Invoke();
+            }
+        }
+
+        protected void OnKeyDown(KeyDownEvent evt)
         {
             if ((evt.keyCode == KeyCode.Tab || evt.keyCode == KeyCode.None && evt.character == '\t') && !evt.shiftKey)
             {
@@ -266,7 +278,7 @@ namespace Unity.Muse.Common
         /// Clones the operator.
         /// </summary>
         /// <returns>The cloned operator.</returns>
-        public IOperator Clone()
+        public virtual IOperator Clone()
         {
             var result = new PromptOperator();
             var operatorData = new OperatorData();
@@ -315,7 +327,7 @@ namespace Unity.Muse.Common
             if (m_PromptField != null)
                 m_PromptField.value = promptText;
 
-            if(m_Model == null)
+            if (!m_Model)
                 return;
 
             m_Model.SetCurrentPrompt(promptText);
@@ -381,7 +393,7 @@ namespace Unity.Muse.Common
 
         void TryGenerate()
         {
-            if (m_Model == null)
+            if (!m_Model)
                 return;
 
             if (m_Model.GetData<GenerateButtonData>().isEnabled)

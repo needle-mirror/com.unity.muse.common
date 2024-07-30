@@ -21,7 +21,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class LocalizedTextElement : BaseTextElement
+    internal partial class LocalizedTextElement : BaseTextElement
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -34,7 +34,7 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The main USS class name of this element.
         /// </summary>
-        public new static readonly string ussClassName = "appui-localized-text";
+        public new const string ussClassName = "appui-localized-text";
         
         static readonly CustomStyleProperty<int> k_FontWeightProperty = new ("--unity-font-weight");
 
@@ -282,12 +282,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Uxml factory for the <see cref="LocalizedTextElement"/>.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<LocalizedTextElement, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<LocalizedTextElement, UxmlTraits> { }
 
         /// <summary>
         /// Uxml traits for the <see cref="LocalizedTextElement"/>.
         /// </summary>
-        public new class UxmlTraits : BaseTextElement.UxmlTraits
+        internal new class UxmlTraits : BaseTextElement.UxmlTraits
         {
             /// <summary>
             /// Initialize the <see cref="LocalizedTextElement"/> using the attribute bag.

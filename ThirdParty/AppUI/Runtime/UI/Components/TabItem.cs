@@ -16,7 +16,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class TabItem : BaseVisualElement, ISelectableElement, IPressable
+    internal partial class TabItem : BaseVisualElement, ISelectableElement, IPressable
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -32,17 +32,17 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The TabItem main styling class.
         /// </summary>
-        public static readonly string ussClassName = "appui-tabitem";
+        public const string ussClassName = "appui-tabitem";
 
         /// <summary>
         /// The TabItem label styling class.
         /// </summary>
-        public static readonly string labelUssClassName = ussClassName + "__label";
+        public const string labelUssClassName = ussClassName + "__label";
 
         /// <summary>
         /// The TabItem icon styling class.
         /// </summary>
-        public static readonly string iconUssClassName = ussClassName + "__icon";
+        public const string iconUssClassName = ussClassName + "__icon";
 
         readonly Icon m_Icon;
 
@@ -183,12 +183,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Factory class to instantiate a <see cref="TabItem"/> using the data read from a UXML file.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<TabItem, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<TabItem, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="TabItem"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             
             readonly UxmlStringAttributeDescription m_Icon = new UxmlStringAttributeDescription

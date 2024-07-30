@@ -8,7 +8,7 @@ namespace Unity.AppUI.Core
     /// When you create a new <see cref="Handler"/> it is bound to a <see cref="Looper"/>.
     /// It will deliver messages to that Looper's message queue and execute them.
     /// </summary>
-    public class Handler
+    internal class Handler
     {
         readonly Func<Message, bool> m_Callback;
 

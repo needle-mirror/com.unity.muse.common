@@ -9,7 +9,7 @@ namespace Unity.AppUI.Core
     /// An object that contains its own message queue and its own running loop for dequeuing messages to pass
     /// them to <see cref="Handler"/> targets.
     /// </summary>
-    public class Looper
+    internal class Looper
     {
         const int k_MaxMessagesPerFrame = 100;
 

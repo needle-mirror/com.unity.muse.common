@@ -16,7 +16,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class SVSquare : BaseVisualElement, IInputElement<Vector2>, INotifyValueChanging<Vector2>
+    internal partial class SVSquare : BaseVisualElement, IInputElement<Vector2>, INotifyValueChanging<Vector2>
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -43,22 +43,22 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The SVSquare main styling class.
         /// </summary>
-        public static readonly string ussClassName = "appui-svsquare";
+        public const string ussClassName = "appui-svsquare";
 
         /// <summary>
         /// The SVSquare image styling class.
         /// </summary>
-        public static readonly string imageUssClassName = ussClassName + "__image";
+        public const string imageUssClassName = ussClassName + "__image";
 
         /// <summary>
         /// The SVSquare thumb styling class.
         /// </summary>
-        public static readonly string thumbUssClassName = ussClassName + "__thumb";
+        public const string thumbUssClassName = ussClassName + "__thumb";
 
         /// <summary>
         /// The SVSquare thumb swatch styling class.
         /// </summary>
-        public static readonly string thumbSwatchUssClassName = ussClassName + "__thumbswatch";
+        public const string thumbSwatchUssClassName = ussClassName + "__thumbswatch";
 
         static readonly int k_Color = Shader.PropertyToID("_Color");
 
@@ -476,7 +476,7 @@ namespace Unity.Muse.AppUI.UI
             if (!rect.IsValid())
                 return;
 
-            var dpi = Mathf.Max(Platform.mainScreenScale, 1f);
+            var dpi = Mathf.Max(Platform.scaleFactor, 1f);
             var texSize = rect.size * dpi;
 
             if (!texSize.IsValidForTextureSize())
@@ -510,12 +510,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Factory class to instantiate a <see cref="SVSquare"/> using the data read from a UXML file.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<SVSquare, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<SVSquare, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="SVSquare"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             readonly UxmlFloatAttributeDescription m_Brightness = new UxmlFloatAttributeDescription
             {

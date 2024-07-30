@@ -47,5 +47,27 @@ namespace Unity.Muse.Common
 
             return tex;
         }
+
+        public static Texture2D CopyTexture2D(Texture2D src)
+        {
+            var dest = new Texture2D(src.width, src.height);
+            if (src.isReadable)
+            {
+                dest.SetPixels(src.GetPixels());
+                dest.Apply();
+            }
+            else
+            {
+                var rt = RenderTexture.GetTemporary(src.width, src.height, 0, RenderTextureFormat.Default, RenderTextureReadWrite.Linear);
+                Graphics.Blit(src, rt);
+                var prev = RenderTexture.active;
+                RenderTexture.active = rt;
+                dest.ReadPixels(new Rect(0, 0, src.width, src.height), 0, 0);
+                dest.Apply();
+                RenderTexture.active = prev;
+                RenderTexture.ReleaseTemporary(rt);
+            }
+            return dest;
+        }
     }
 }

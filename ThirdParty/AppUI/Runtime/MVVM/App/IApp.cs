@@ -5,7 +5,7 @@ namespace Unity.AppUI.MVVM
     /// <summary>
     /// Interface for an application.
     /// </summary>
-    public interface IApp : IDisposable
+    internal interface IApp : IDisposable
     {
         /// <summary>
         /// Called to initialize the application.

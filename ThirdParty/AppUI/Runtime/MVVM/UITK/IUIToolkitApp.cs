@@ -7,7 +7,7 @@ namespace Unity.AppUI.MVVM
     /// <summary>
     /// Interface for the application using UI Toolkit.
     /// </summary>
-    public interface IUIToolkitApp : IApp
+    internal interface IUIToolkitApp : IApp
     {
         /// <summary>
         /// The main page of the application.

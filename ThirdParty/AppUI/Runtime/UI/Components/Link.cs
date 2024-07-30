@@ -11,7 +11,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class Link : LocalizedTextElement, IPressable
+    internal partial class Link : LocalizedTextElement, IPressable
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -24,12 +24,13 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The Link's USS class name.
         /// </summary>
-        public new static readonly string ussClassName = "appui-link";
+        public new const string ussClassName = "appui-link";
         
         /// <summary>
         /// The Link's size USS class name.
         /// </summary>
-        public static readonly string sizeUssClassName = ussClassName + "--size-";
+        [EnumName("GetSizeUssClassName", typeof(TextSize))]
+        public const string sizeUssClassName = ussClassName + "--size-";
         
         Pressable m_Clickable;
 
@@ -69,9 +70,9 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_Size != value;
-                RemoveFromClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                RemoveFromClassList(GetSizeUssClassName(m_Size));
                 m_Size = value;
-                AddToClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                AddToClassList(GetSizeUssClassName(m_Size));
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
@@ -142,12 +143,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Defines the UxmlFactory for the Link.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<Link, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<Link, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the UXML traits for the Link.
         /// </summary>
-        public new class UxmlTraits : LocalizedTextElement.UxmlTraits
+        internal new class UxmlTraits : LocalizedTextElement.UxmlTraits
         {
             
             readonly UxmlEnumAttributeDescription<TextSize> m_Size = new UxmlEnumAttributeDescription<TextSize>

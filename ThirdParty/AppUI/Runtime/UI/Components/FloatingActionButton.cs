@@ -1,4 +1,5 @@
 using System;
+using Unity.AppUI.Core;
 using UnityEngine.UIElements;
 #if ENABLE_RUNTIME_DATA_BINDINGS
 using Unity.Properties;
@@ -12,7 +13,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class FloatingActionButton : ExVisualElement, IPressable
+    internal partial class FloatingActionButton : ExVisualElement, IPressable
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -27,17 +28,23 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The Floating Action Button's USS class name.
         /// </summary>
-        public static readonly string ussClassName = "appui-fab";
+        public const string ussClassName = "appui-fab";
+        
+        /// <summary>
+        /// The Floating Action Button's elevation USS class name.
+        /// </summary>
+        public const string elevationUssClassName = Styles.elevationUssClassName;
         
         /// <summary>
         /// The Floating Action Button's size USS class name.
         /// </summary>
-        public static readonly string sizeUssClassName = ussClassName + "--size-";
+        [EnumName("GetSizeUssClassName", typeof(Size))]
+        public const string sizeUssClassName = ussClassName + "--size-";
         
         /// <summary>
         /// The Floating Action Button's accent USS class name.
         /// </summary>
-        public static readonly string accentUssClassName = ussClassName + "--accent";
+        public const string accentUssClassName = ussClassName + "--accent";
         
         Pressable m_Clickable;
 
@@ -86,9 +93,9 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_Elevation != value;
-                RemoveFromClassList(Styles.elevationUssClassName + m_Elevation); 
+                RemoveFromClassList(MemoryUtils.Concatenate(elevationUssClassName, m_Elevation.ToString())); 
                 m_Elevation = value;
-                AddToClassList(Styles.elevationUssClassName + m_Elevation);
+                AddToClassList(MemoryUtils.Concatenate(elevationUssClassName, m_Elevation.ToString()));
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
@@ -136,9 +143,9 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_Size != value;
-                RemoveFromClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                RemoveFromClassList(GetSizeUssClassName(m_Size));
                 m_Size = value;
-                AddToClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                AddToClassList(GetSizeUssClassName(m_Size));
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
@@ -192,12 +199,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Defines the UxmlFactory for the <see cref="FloatingActionButton"/>.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<FloatingActionButton, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<FloatingActionButton, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the UXML traits for the <see cref="FloatingActionButton"/>.
         /// </summary>
-        public new class UxmlTraits : ExVisualElement.UxmlTraits
+        internal new class UxmlTraits : ExVisualElement.UxmlTraits
         {
             readonly UxmlEnumAttributeDescription<Size> m_Size = new UxmlEnumAttributeDescription<Size>
             {

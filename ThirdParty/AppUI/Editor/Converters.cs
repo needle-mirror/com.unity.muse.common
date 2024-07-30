@@ -16,7 +16,7 @@ namespace Unity.AppUI.Editor
 {
     // Generic Converters
     
-    public abstract class OptionalConverter<T> : UxmlAttributeConverter<Optional<T>>
+    internal abstract class OptionalConverter<T> : UxmlAttributeConverter<Optional<T>>
     {
         protected virtual bool TryParse(string value, out T v)
         {
@@ -38,10 +38,10 @@ namespace Unity.AppUI.Editor
         }
     }
 
-    public class OptionalValueConverter<T> : OptionalConverter<T>
+    internal class OptionalValueConverter<T> : OptionalConverter<T>
         where T : IComparable, IComparable<T>, IFormattable { }
     
-    public abstract class OptionalEnumConverter<T> : UxmlAttributeConverter<OptionalEnum<T>>
+    internal abstract class OptionalEnumConverter<T> : UxmlAttributeConverter<OptionalEnum<T>>
         where T : struct, Enum
     {
         public override OptionalEnum<T> FromString(string value)
@@ -60,11 +60,11 @@ namespace Unity.AppUI.Editor
     
     // Specific Converters
     
-    public class OptionalPopoverPlacementConverter : OptionalEnumConverter<PopoverPlacement> { }
+    internal class OptionalPopoverPlacementConverter : OptionalEnumConverter<PopoverPlacement> { }
     
-    public class OptionalDirConverter : OptionalEnumConverter<Dir> { }
+    internal class OptionalDirConverter : OptionalEnumConverter<Dir> { }
     
-    public class OptionalIntConverter : OptionalValueConverter<int>
+    internal class OptionalIntConverter : OptionalValueConverter<int>
     {
         protected override bool TryParse(string value, out int v)
         {
@@ -72,7 +72,7 @@ namespace Unity.AppUI.Editor
         }
     }
     
-    public class OptionalLongConverter : OptionalValueConverter<long>
+    internal class OptionalLongConverter : OptionalValueConverter<long>
     {
         protected override bool TryParse(string value, out long v)
         {
@@ -80,7 +80,7 @@ namespace Unity.AppUI.Editor
         }
     }
     
-    public class OptionalFloatConverter : OptionalValueConverter<float>
+    internal class OptionalFloatConverter : OptionalValueConverter<float>
     {
         protected override bool TryParse(string value, out float v)
         {
@@ -88,7 +88,7 @@ namespace Unity.AppUI.Editor
         }
     }
     
-    public class OptionalDoubleConverter : OptionalValueConverter<double>
+    internal class OptionalDoubleConverter : OptionalValueConverter<double>
     {
         protected override bool TryParse(string value, out double v)
         {
@@ -96,7 +96,7 @@ namespace Unity.AppUI.Editor
         }
     }
 
-    public class OptionalStringConverter : OptionalConverter<string>
+    internal class OptionalStringConverter : OptionalConverter<string>
     {
         protected override bool TryParse(string value, out string v)
         {
@@ -105,7 +105,7 @@ namespace Unity.AppUI.Editor
         }
     }
     
-    public class OptionalColorConverter : OptionalConverter<Color>
+    internal class OptionalColorConverter : OptionalConverter<Color>
     {
         protected override bool TryParse(string value, out Color v)
         {
@@ -113,7 +113,7 @@ namespace Unity.AppUI.Editor
         }
     }
     
-    public class OptionalRectConverter : OptionalConverter<Rect>
+    internal class OptionalRectConverter : OptionalConverter<Rect>
     {
         protected override bool TryParse(string value, out Rect v)
         {
@@ -130,7 +130,7 @@ namespace Unity.AppUI.Editor
         }
     }
 
-    public class DateConverter : UxmlAttributeConverter<Date>
+    internal class DateConverter : UxmlAttributeConverter<Date>
     {
         public override Date FromString(string value)
         {
@@ -146,7 +146,7 @@ namespace Unity.AppUI.Editor
         }
     }
 
-    public class DateRangeConverter : UxmlAttributeConverter<DateRange>
+    internal class DateRangeConverter : UxmlAttributeConverter<DateRange>
     {
         public override DateRange FromString(string value)
         {
@@ -163,7 +163,7 @@ namespace Unity.AppUI.Editor
     }
     
 #if !UNITY_2023_3_OR_NEWER
-    public class GradientConverter : UxmlAttributeConverter<Gradient>
+    internal class GradientConverter : UxmlAttributeConverter<Gradient>
     {
         public override Gradient FromString(string value)
         {

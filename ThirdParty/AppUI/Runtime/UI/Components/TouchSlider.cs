@@ -17,7 +17,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public abstract partial class TouchSlider<TValueType> : BaseSlider<TValueType, TValueType> 
+    internal abstract partial class TouchSlider<TValueType> : BaseSlider<TValueType, TValueType> 
         where TValueType : struct, IComparable, IEquatable<TValueType>
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
@@ -36,27 +36,28 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The TouchSlider container styling class.
         /// </summary>
-        public static readonly string containerUssClassName = ussClassName + "__container";
+        public const string containerUssClassName = ussClassName + "__container";
 
         /// <summary>
         /// The TouchSlider progress styling class.
         /// </summary>
-        public static readonly string progressUssClassName = ussClassName + "__progress";
+        public const string progressUssClassName = ussClassName + "__progress";
 
         /// <summary>
         /// The TouchSlider label styling class.
         /// </summary>
-        public static readonly string labelUssClassName = ussClassName + "__label";
+        public const string labelUssClassName = ussClassName + "__label";
 
         /// <summary>
         /// The TouchSlider value label styling class.
         /// </summary>
-        public static readonly string valueUssClassName = ussClassName + "__valuelabel";
+        public const string valueUssClassName = ussClassName + "__valuelabel";
 
         /// <summary>
         /// The TouchSlider size styling class.
         /// </summary>
-        public static readonly string sizeUssClassName = ussClassName + "--size-";
+        [EnumName("GetSizeUssClassName", typeof(Size))]
+        public const string sizeUssClassName = ussClassName + "--size-";
 
         readonly VisualElement m_ContainerElement;
 
@@ -149,9 +150,9 @@ namespace Unity.Muse.AppUI.UI
             get => m_Size;
             set
             {
-                RemoveFromClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                RemoveFromClassList(GetSizeUssClassName(m_Size));
                 m_Size = value;
-                AddToClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                AddToClassList(GetSizeUssClassName(m_Size));
             }
         }
 
@@ -311,7 +312,7 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="TouchSlider{TValueType}"/>.
         /// </summary>
-        public new class UxmlTraits : BaseSlider<TValueType, TValueType>.UxmlTraits
+        internal new class UxmlTraits : BaseSlider<TValueType, TValueType>.UxmlTraits
         {
             readonly UxmlStringAttributeDescription m_Label = new UxmlStringAttributeDescription { name = "label" };
 

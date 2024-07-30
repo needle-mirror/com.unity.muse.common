@@ -1,4 +1,5 @@
 using System;
+using Unity.AppUI.Core;
 using UnityEngine;
 using UnityEngine.UIElements;
 #if ENABLE_RUNTIME_DATA_BINDINGS
@@ -10,7 +11,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// Sizing values for <see cref="Icon"/> elements.
     /// </summary>
-    public enum IconSize
+    internal enum IconSize
     {
         /// <summary>
         /// Extra extra small
@@ -41,7 +42,8 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// Variant values for <see cref="Icon"/> elements.
     /// </summary>
-    public enum IconVariant
+    [GenerateLowerCaseStrings]
+    internal enum IconVariant
     {
         /// <summary>
         /// Regular
@@ -80,7 +82,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class Icon : Image
+    internal partial class Icon : Image
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -97,17 +99,18 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The Icon main styling class.
         /// </summary>
-        public new static readonly string ussClassName = "appui-icon";
+        public new const string ussClassName = "appui-icon";
 
         /// <summary>
         /// The Icon primary variant styling class.
         /// </summary>
-        public static readonly string primaryUssClassName = ussClassName + "--primary";
+        public const string primaryUssClassName = ussClassName + "--primary";
 
         /// <summary>
         /// The Icon size styling class.
         /// </summary>
-        public static readonly string sizeUssClassName = ussClassName + "--size-";
+        [EnumName("GetSizeUssClassName", typeof(IconSize))]
+        public const string sizeUssClassName = ussClassName + "--size-";
 
         string m_IconName;
 
@@ -171,9 +174,9 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_Size != value;
-                RemoveFromClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                RemoveFromClassList(GetSizeUssClassName(m_Size));
                 m_Size = value;
-                AddToClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                AddToClassList(GetSizeUssClassName(m_Size));
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
@@ -197,11 +200,11 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_IconName != value;
-                RemoveFromClassList(ussClassName + "--" + m_IconName + "--" + m_Variant.ToString().ToLower());
-                RemoveFromClassList(ussClassName + "--" + m_IconName);
+                RemoveFromClassList(MemoryUtils.Concatenate(ussClassName, "--", m_IconName, "--", m_Variant.ToLowerCase()));
+                RemoveFromClassList(MemoryUtils.Concatenate(ussClassName, "--", m_IconName));
                 m_IconName = value;
-                AddToClassList(ussClassName + "--" + m_IconName + "--" + m_Variant.ToString().ToLower());
-                AddToClassList(ussClassName + "--" + m_IconName);
+                AddToClassList(MemoryUtils.Concatenate(ussClassName, "--", m_IconName, "--", m_Variant.ToLowerCase()));
+                AddToClassList(MemoryUtils.Concatenate(ussClassName, "--", m_IconName));
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
@@ -225,11 +228,11 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_Variant != value;
-                RemoveFromClassList(ussClassName + "--" + m_IconName + "--" + m_Variant.ToString().ToLower());
-                RemoveFromClassList(ussClassName + "--" + m_IconName);
+                RemoveFromClassList(MemoryUtils.Concatenate(ussClassName, "--", m_IconName, "--", m_Variant.ToLowerCase()));
+                RemoveFromClassList(MemoryUtils.Concatenate(ussClassName, "--", m_IconName));
                 m_Variant = value;
-                AddToClassList(ussClassName + "--" + m_IconName + "--" + m_Variant.ToString().ToLower());
-                AddToClassList(ussClassName + "--" + m_IconName);
+                AddToClassList(MemoryUtils.Concatenate(ussClassName, "--", m_IconName, "--", m_Variant.ToLowerCase()));
+                AddToClassList(MemoryUtils.Concatenate(ussClassName, "--", m_IconName));
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
@@ -243,12 +246,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Factory class to instantiate a <see cref="Icon"/> using the data read from a UXML file.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<Icon, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<Icon, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="Icon"/>.
         /// </summary>
-        public new class UxmlTraits : Image.UxmlTraits
+        internal new class UxmlTraits : Image.UxmlTraits
         {
             
             readonly UxmlStringAttributeDescription m_IconName = new UxmlStringAttributeDescription

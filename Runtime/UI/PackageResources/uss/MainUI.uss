@@ -1,11 +1,11 @@
-    MainUI {
+MainUI {
     flex-grow: 1;
+    background-color: var(--appui-backgrounds-50);
 }
 
 .muse-root {
     flex-grow: 1;
     flex-shrink: 0;
-    background-color: var(--appui-backgrounds-50);
 }
 
 .muse-overlay {

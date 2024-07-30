@@ -1,6 +1,6 @@
+#if UNITY_EDITOR
 using System;
 using UnityEditor;
-using UnityEngine.Serialization;
 
 namespace Unity.Muse.Common.Account
 {
@@ -16,3 +16,4 @@ namespace Unity.Muse.Common.Account
         public ClientStatusResponse status = new();
     }
 }
+#endif

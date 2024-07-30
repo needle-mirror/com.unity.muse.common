@@ -12,22 +12,22 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class Preloader : BaseVisualElement
+    internal partial class Preloader : BaseVisualElement
     {
         /// <summary>
         /// The Preloader's USS class name.
         /// </summary>
-        public static readonly string ussClassName = "appui-preloader";
+        public const string ussClassName = "appui-preloader";
         
         /// <summary>
         /// The Preloader's circular progress USS class name.
         /// </summary>
-        public static readonly string circularProgressUssClassName = ussClassName + "__circular-progress";
+        public const string circularProgressUssClassName = ussClassName + "__circular-progress";
         
         /// <summary>
         /// The Preloader's logo USS class name.
         /// </summary>
-        public static readonly string logoUssClassName = ussClassName + "__logo";
+        public const string logoUssClassName = ussClassName + "__logo";
         
         /// <summary>
         /// Constructor.
@@ -61,12 +61,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// USS class name of elements of this type.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<Preloader, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<Preloader, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="AccordionItem"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             
         }

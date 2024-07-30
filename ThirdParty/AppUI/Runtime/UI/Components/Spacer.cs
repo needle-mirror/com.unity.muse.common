@@ -8,7 +8,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// The spacer spacing.
     /// </summary>
-    public enum SpacerSpacing
+    internal enum SpacerSpacing
     {
         /// <summary>
         /// No spacing.
@@ -52,7 +52,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class Spacer : BaseVisualElement
+    internal partial class Spacer : BaseVisualElement
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -65,12 +65,13 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The spacer's main USS class name.
         /// </summary>
-        public static readonly string ussClassName = "appui-spacer";
+        public const string ussClassName = "appui-spacer";
         
         /// <summary>
         /// The spacer's spacing USS class name.
         /// </summary>
-        public static readonly string spacingUssClassName = ussClassName + "--spacing-";
+        [EnumName("GetSpacingUssClassName", typeof(SpacerSpacing))]
+        public const string spacingUssClassName = ussClassName + "--spacing-";
 
         SpacerSpacing m_Spacing = k_DefaultSpacing;
 
@@ -101,9 +102,9 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_Spacing != value;
-                RemoveFromClassList(spacingUssClassName + m_Spacing.ToString().ToLower());
+                RemoveFromClassList(GetSpacingUssClassName(m_Spacing));
                 m_Spacing = value;
-                AddToClassList(spacingUssClassName + m_Spacing.ToString().ToLower());
+                AddToClassList(GetSpacingUssClassName(m_Spacing));
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
@@ -115,10 +116,10 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_TRAITS
 
         /// <inheritdoc cref="UnityEngine.UIElements.UxmlFactory{Spacer,UxmlTraits}"/>
-        public new class UxmlFactory : UxmlFactory<Spacer, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<Spacer, UxmlTraits> { }
         
         /// <inheritdoc cref="UnityEngine.UIElements.VisualElement.UxmlTraits"/>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             readonly UxmlEnumAttributeDescription<SpacerSpacing> m_Spacing =
                 new UxmlEnumAttributeDescription<SpacerSpacing>

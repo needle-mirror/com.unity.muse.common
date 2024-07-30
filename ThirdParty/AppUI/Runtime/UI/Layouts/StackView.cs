@@ -11,7 +11,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// The status of a StackViewItem.
     /// </summary>
-    public enum StackViewItemStatus
+    internal enum StackViewItemStatus
     {
         /// <summary>
         /// The item is not in the stack.
@@ -34,7 +34,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// The operation to perform on a StackView.
     /// </summary>
-    public enum StackViewOperation
+    internal enum StackViewOperation
     {
         /// <summary>
         /// Unused.
@@ -57,12 +57,12 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// An item in a StackView. It is a container for any UI element and must be used inside a StackView.
     /// </summary>
-    public class StackViewItem : VisualElement
+    internal class StackViewItem : VisualElement
     {
         /// <summary>
         /// The main styling class of the StackViewItem. This is the class that is used in the USS file.
         /// </summary>
-        public static readonly string ussClassName = "appui-stackview-item";
+        public const string ussClassName = "appui-stackview-item";
 
         /// <summary>
         /// Default constructor.
@@ -150,7 +150,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// An animation description. It contains the duration of the animation, the easing function and the callback.
     /// </summary>
-    public struct AnimationDescription
+    internal struct AnimationDescription
     {
         /// <summary>
         /// The duration of the animation in milliseconds.
@@ -177,7 +177,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class StackView : BaseVisualElement
+    internal partial class StackView : BaseVisualElement
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
 
@@ -207,7 +207,7 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The main styling class of the StackView. This is the class that is used in the USS file.
         /// </summary>
-        public static readonly string ussClassName = "appui-stackview";
+        public const string ussClassName = "appui-stackview";
 
         bool m_Initialized;
 
@@ -470,12 +470,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Defines the UxmlFactory for the StackView.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<StackView, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<StackView, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="StackView"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
 
         }

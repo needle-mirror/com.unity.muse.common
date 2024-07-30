@@ -38,48 +38,7 @@ namespace Unity.Muse.Common
         /// </summary>
         /// <param name="onReceived">Callback for when the artifact was successfully loaded and created. <b>T</b> will be <b>default</b> on error, and the error message will be in the 2nd parameter detailing the reason</param>
         /// <param name="useCache">When <b>true</b> will attempt to load the cached representation of this artifact from the local machine's GeneratedArtifactCache, and if not found will download it from the client. <b>false</b> will always reach out to the client and update the cache</param>
-        public virtual void GetArtifact(ArtifactCreationDelegate onReceived, bool useCache)
-        {
-            if (useCache && IsCached)
-            {
-                var artifact = ReadFromCache(out var rawData);
-                onReceived?.Invoke(artifact, rawData, string.Empty);
-
-                return;
-            }
-
-            void HandleReceiveArtifactData(object data, string msg)
-            {
-                if (!string.IsNullOrEmpty(msg))
-                {
-                    onReceived?.Invoke(default, Array.Empty<byte>(), msg);
-                    return;
-                }
-                
-                var deserializedArtifact = CreateFromData((byte[])data, true);
-                onReceived(deserializedArtifact, (byte[])data, msg);
-            }
-
-            GenerativeAIBackend.GetArtifactStatus(this,
-                (string guid,
-                    string statusEnum,
-                    float progress,
-                    string errorMsg) => {
-                    if (statusEnum == GenerativeAIBackend.StatusEnum.failed)
-                    {
-                        if (string.IsNullOrEmpty(errorMsg))
-                        {
-                            errorMsg = $"Artifact generation failed and cannot download. Status={statusEnum}. Progress={progress}. GUID={guid}";
-                        }
-
-                        onReceived?.Invoke(default, Array.Empty<byte>(), errorMsg);
-                    }
-                    else if (statusEnum == GenerativeAIBackend.StatusEnum.done)
-                    {
-                        GenerativeAIBackend.DownloadArtifact(this, HandleReceiveArtifactData);
-                    }
-                });
-        }
+        public abstract void GetArtifact(ArtifactCreationDelegate onReceived, bool useCache);
 
         //TODO: Wants to be a static constructor/factory
         public abstract T ConstructFromData(byte[] data);

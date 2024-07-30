@@ -1,15 +1,17 @@
+using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Unity.Muse.Common
 {
-    internal class ArtifactNode : VisualElement
+    class ArtifactNode : VisualElement, IDisposable
     {
         const string k_MainUssClassName = "muse-canvas-node";
 
         const string k_PreviewUssClassName = k_MainUssClassName + "__preview";
 
         Artifact m_Artifact;
+        ArtifactView m_CurrentArtifactView;
 
         public Artifact artifact
         {
@@ -32,14 +34,32 @@ namespace Unity.Muse.Common
 
         public void UpdateView()
         {
+            SetCurrentArtifactView(null);
             Clear();
 
             if (artifact is null)
                 return;
 
-            var preview = artifact.CreateCanvasView();
-            preview.AddToClassList(k_PreviewUssClassName);
-            Add(preview);
+            m_CurrentArtifactView = artifact.CreateCanvasView();
+            if (m_CurrentArtifactView == null)
+                return;
+            m_CurrentArtifactView.AddToClassList(k_PreviewUssClassName);
+            Add(m_CurrentArtifactView);
+        }
+        
+        void SetCurrentArtifactView(ArtifactView currentArtifactView)
+        {
+            if (m_CurrentArtifactView is IDisposable disposableArtifact)
+            {
+                disposableArtifact?.Dispose();
+            }
+
+            m_CurrentArtifactView = currentArtifactView;
+        }
+
+        public void Dispose()
+        {
+           SetCurrentArtifactView(null); 
         }
     }
 }

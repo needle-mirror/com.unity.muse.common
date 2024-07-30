@@ -10,7 +10,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// Extensions for <see cref="VisualElement"/> class.
     /// </summary>
-    public static class VisualElementExtensions
+    internal static class VisualElementExtensions
     {
 #if !UNITY_EDITOR && ENABLE_IL2CPP && !CONDITIONAL_WEAK_TABLE_IL2CPP
         static readonly WeakReferenceTable<VisualElement, AdditionalData> k_AdditionalDataCache =
@@ -156,7 +156,7 @@ namespace Unity.Muse.AppUI.UI
         /// Callback to populate the tooltip content.
         /// </summary>
         /// <param name="tooltip"> The tooltip element to populate.</param>
-        public delegate void TooltipContentCallback(VisualElement tooltip);
+        internal delegate void TooltipContentCallback(VisualElement tooltip);
 
         /// <summary>
         /// Set the tooltip content for a <see cref="VisualElement"/>.

@@ -7,7 +7,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// Extensions for the Gradient class.
     /// </summary>
-    public static class GradientExtensions
+    internal static class GradientExtensions
     {
         /// <summary>
         /// Try to parse a string to a Gradient.

@@ -6,7 +6,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// Extension methods for <see cref="Background"/> objects.
     /// </summary>
-    public static class BackgroundExtensions
+    internal static class BackgroundExtensions
     {
 #if !UNITY_2023_2_OR_NEWER
         /// <summary>

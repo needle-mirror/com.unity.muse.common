@@ -55,10 +55,11 @@ Canvas .selection-box {
 }
 
 .muse-canvas-node {
-    width: 512px;
-    height: 512px;
+    width: 513px;
+    height: 513px;
     position: absolute;
-    background-color: var(--appui-backgrounds-100);
+    border-width: 1px;
+    border-color: var(--appui-backgrounds-300);
 }
 
 .muse-canvas-node__preview {

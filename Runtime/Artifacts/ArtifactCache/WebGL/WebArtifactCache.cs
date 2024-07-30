@@ -108,7 +108,7 @@ namespace Unity.Muse.Common
             }
         }
 
-        public override Object Read(Artifact artifact)
+        public override object Read(Artifact artifact)
         {
             try
             {

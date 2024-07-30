@@ -9,7 +9,7 @@ namespace Unity.Muse.AppUI.UI
     /// Possible placements for a Popover.
     /// </summary>
     [Serializable]
-    public enum PopoverPlacement
+    internal enum PopoverPlacement
     {
         /// <summary>
         /// The Popover will be placed at the bottom center of the target.
@@ -175,7 +175,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// The position result data structure returned in <see cref="AnchorPopupUtils.ComputePosition"/> utility method.
     /// </summary>
-    public struct PositionResult
+    internal struct PositionResult
     {
         /// <summary>
         /// The Y Position from the top, in pixels.
@@ -226,7 +226,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// Options to pass as argument to <see cref="AnchorPopupUtils.ComputePosition"/> utility method.
     /// </summary>
-    public struct PositionOptions
+    internal struct PositionOptions
     {
         /// <summary>
         /// Constructor.
@@ -274,7 +274,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// A popup usually anchored to another UI element.
     /// </summary>
-    public sealed class Popover : AnchorPopup<Popover>
+    internal sealed class Popover : AnchorPopup<Popover>
     {
         /// <summary>
         /// Enable or disable the blocking of outside click events.
@@ -410,25 +410,25 @@ namespace Unity.Muse.AppUI.UI
         /// </summary>
         internal class PopoverVisualElement : VisualElement, IPlaceableElement
         {
-            public static readonly string ussClassName = "appui-popover";
+            public const string ussClassName = "appui-popover";
 
-            public static readonly string modalBackdropUssClassName = ussClassName + "--modal-backdrop";
+            public const string modalBackdropUssClassName = ussClassName + "--modal-backdrop";
 
-            public static readonly string popoverUssClassName = ussClassName + "__popover";
+            public const string popoverUssClassName = ussClassName + "__popover";
 
-            public static readonly string containerUssClassName = ussClassName + "__container";
+            public const string containerUssClassName = ussClassName + "__container";
 
-            public static readonly string shadowElementUssClassName = ussClassName + "__shadow-element";
+            public const string shadowElementUssClassName = ussClassName + "__shadow-element";
 
-            public static readonly string tipUssClassName = ussClassName + "__tip";
+            public const string tipUssClassName = ussClassName + "__tip";
 
-            public static readonly string upUssClassName = ussClassName + "--up";
+            public const string upUssClassName = ussClassName + "--up";
 
-            public static readonly string downUssClassName = ussClassName + "--down";
+            public const string downUssClassName = ussClassName + "--down";
 
-            public static readonly string leftUssClassName = ussClassName + "--left";
+            public const string leftUssClassName = ussClassName + "--left";
 
-            public static readonly string rightUssClassName = ussClassName + "--right";
+            public const string rightUssClassName = ussClassName + "--right";
 
             readonly VisualElement m_ContentContainer;
 

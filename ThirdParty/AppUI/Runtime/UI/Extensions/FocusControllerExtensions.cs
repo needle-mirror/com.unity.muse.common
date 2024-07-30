@@ -6,7 +6,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// Extension methods for FocusController.
     /// </summary>
-    public static class FocusControllerExtensions
+    internal static class FocusControllerExtensions
     {
         /// <summary>
         /// Focus the next element in the given direction.

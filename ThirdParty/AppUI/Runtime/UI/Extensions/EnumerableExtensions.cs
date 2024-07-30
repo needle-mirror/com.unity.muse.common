@@ -5,7 +5,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// Enumerable extension methods.
     /// </summary>
-    public static class EnumerableExtensions
+    internal static class EnumerableExtensions
     {
         /// <summary>
         /// Check if two enumerable have the same elements in the same order.
@@ -47,7 +47,7 @@ namespace Unity.Muse.AppUI.UI
         /// <param name="enumerable"> The enumerable.</param>
         /// <typeparam name="T"> The type of the enumerable.</typeparam>
         /// <returns> The first element in the enumerable, or default if the enumerable is empty.</returns>
-        public static T GetFirst<T>(IEnumerable<T> enumerable)
+        internal static T GetFirst<T>(IEnumerable<T> enumerable)
         {
             if (enumerable == null)
                 return default;
@@ -61,7 +61,7 @@ namespace Unity.Muse.AppUI.UI
         /// </summary>
         /// <param name="enumerable"> The enumerable.</param>
         /// <returns> The first integer in the enumerable, or -1 if the enumerable is empty.</returns>
-        public static int GetFirst(IEnumerable<int> enumerable)
+        internal static int GetFirst(IEnumerable<int> enumerable)
         {
             if (enumerable == null)
                 return -1;

@@ -67,5 +67,7 @@ namespace Unity.Muse.Common
             ReadFromCache(out var raw);
             return raw;
         }
+
+        public override void GetArtifact(ArtifactCreationDelegate onReceived, bool useCache) {}
     }
 }

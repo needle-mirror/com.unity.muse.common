@@ -23,7 +23,7 @@ namespace Unity.Muse.Common.Cache
         internal LiteDbArtifactCache(string path)
         {
             if (string.IsNullOrEmpty(path))
-                m_DatabasePath = Path.Combine(Application.persistentDataPath, k_DatabaseName);
+                m_DatabasePath = Path.Combine(ApplicationExtensions.museDbPath, k_DatabaseName);
             else
                 m_DatabasePath = path;
         }
@@ -100,7 +100,7 @@ namespace Unity.Muse.Common.Cache
             }
         }
 
-        public override Object Read(Artifact artifact)
+        public override object Read(Artifact artifact)
         {
             try
             {

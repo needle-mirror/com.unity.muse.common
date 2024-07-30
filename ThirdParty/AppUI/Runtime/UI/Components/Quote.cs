@@ -13,7 +13,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class Quote : BaseVisualElement
+    internal partial class Quote : BaseVisualElement
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -24,12 +24,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The Quote main styling class.
         /// </summary>
-        public static readonly string ussClassName = "appui-quote";
+        public const string ussClassName = "appui-quote";
 
         /// <summary>
         /// The Quote container styling class.
         /// </summary>
-        public static readonly string containerUssClassName = ussClassName + "__container";
+        public const string containerUssClassName = ussClassName + "__container";
 
         readonly VisualElement m_Container;
 
@@ -88,12 +88,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Defines the UxmlFactory for the Quote.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<Quote, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<Quote, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="Quote"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             
             readonly UxmlColorAttributeDescription m_Color = new UxmlColorAttributeDescription

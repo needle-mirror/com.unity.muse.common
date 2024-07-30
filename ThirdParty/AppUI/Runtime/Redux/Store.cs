@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace Unity.AppUI.Redux
 {
@@ -7,29 +9,29 @@ namespace Unity.AppUI.Redux
     /// A function that takes the current state and an action, and returns a new state.
     /// </summary>
     /// <typeparam name="TState"> The type of the state. </typeparam>
-    public delegate TState CaseReducer<TState>(TState state, Action action);
+    internal delegate TState CaseReducer<TState>(TState state, Action action);
     
     /// <summary>
     /// A function that takes the current state and an action, and returns a new state.
     /// </summary>
     /// <typeparam name="T"> The type of the action payload. </typeparam>
     /// <typeparam name="TState"> The type of the state. </typeparam>
-    public delegate TState CaseReducer<T, TState>(TState state, Action<T> action);
+    internal delegate TState CaseReducer<T, TState>(TState state, Action<T> action);
     
     /// <summary>
     /// A function that takes the current state and an action, and returns a new state.
     /// </summary>
-    public delegate object Reducer(object state, Action action);
+    internal delegate object Reducer(object state, Action action);
 
     /// <summary>
     /// A predicate function that takes an action and returns true if the action should be handled by the reducer.
     /// </summary>
-    public delegate bool ActionMatcher(Action action);
+    internal delegate bool ActionMatcher(Action action);
     
     /// <summary>
     /// A function obtained from <see cref="Store.Subscribe{TState}"/> that can be called to unsubscribe the listener.
     /// </summary>
-    public delegate bool Unsubscriber();
+    internal delegate bool Unsubscriber();
     
     /// <summary>
     /// A store holds the whole state tree of your application. The only way to change the state inside it is to dispatch an action on it.
@@ -53,7 +55,7 @@ namespace Unity.AppUI.Redux
     ///  - Reducers must not call <see cref="GetState{TState}"/><br/>
     ///  - Reducers must not call <see cref="Dispatch(Action)"/><br/>
     /// </summary>
-    public class Store
+    internal class Store
     {
         readonly Dictionary<string, object> m_State;
 
@@ -103,19 +105,13 @@ namespace Unity.AppUI.Redux
         /// <exception cref="ArgumentException"> Thrown if the reducer for the action type does not exist. </exception>
         public void Dispatch(Action action)
         {
-            if (action.type.Contains('/'))
-            {
-                DispatchSlice(action);
-                return;
-            }
-            
             foreach (var slice in m_Reducers.Keys)
             {
                 m_State[slice] = m_Reducers[slice](m_State[slice], action);
 
-                if (m_ListenerWrappers.ContainsKey(slice))
+                if (m_ListenerWrappers.TryGetValue(slice, out var wrapper))
                 {
-                    foreach (var listener in m_ListenerWrappers[slice])
+                    foreach (var listener in wrapper)
                     {
                         listener.Invoke(m_State[slice]);
                     }
@@ -127,6 +123,11 @@ namespace Unity.AppUI.Redux
         /// Dispatches an action. This is the only way to trigger a state change.
         /// </summary>
         /// <param name="actionType"> The type of the action. </param>
+        /// <remarks>
+        /// This method can't be used to dispatch Async Thunk Actions.
+        /// You need to instantiate an <see cref="AsyncThunkActionCreator{T,U}"/> and
+        /// call <see cref="AsyncThunkActionCreator{T,U}.Invoke"/> instead.
+        /// </remarks>
         public void Dispatch(string actionType)
         {
             Dispatch(CreateAction(actionType).Invoke());
@@ -138,29 +139,14 @@ namespace Unity.AppUI.Redux
         /// <param name="actionType"> The type of the action. </param>
         /// <param name="payload"> The payload of the action. </param>
         /// <typeparam name="T"> The type of the payload. </typeparam>
+        /// <remarks>
+        /// This method can't be used to dispatch Async Thunk Actions.
+        /// You need to instantiate an <see cref="AsyncThunkActionCreator{T,U}"/> and
+        /// call <see cref="AsyncThunkActionCreator{T,U}.Invoke"/> instead.
+        /// </remarks>
         public void Dispatch<T>(string actionType, T payload)
         {
             Dispatch(CreateAction<T>(actionType).Invoke(payload));
-        }
-
-        void DispatchSlice(Action action)
-        {
-            var slice = action.type[..action.type.IndexOf('/')];
-
-            if (!m_Reducers.ContainsKey(slice))
-            {
-                throw new ArgumentException($"Reducer for action type '{action.type}' does not exist.");
-            }
-
-            m_State[slice] = m_Reducers[slice](m_State[slice], action);
-
-            if (m_ListenerWrappers.ContainsKey(slice))
-            {
-                foreach (var listener in m_ListenerWrappers[slice])
-                {
-                    listener.Invoke(m_State[slice]);
-                }
-            }
         }
 
         /// <summary>
@@ -227,7 +213,7 @@ namespace Unity.AppUI.Redux
 
             // add the reducers
             var builder = new SliceReducerSwitchBuilder<TState>(name);
-            reducers(builder);
+            reducers?.Invoke(builder);
             var actionCreators = builder.BuildActionCreators();
             var reducer = CreateReducer(initialState, builder.BuildReducers(actionCreators.Values));
 
@@ -254,6 +240,7 @@ namespace Unity.AppUI.Redux
         /// </summary>
         /// <param name="type"> The type of the action. </param>
         /// <returns> A new Action. </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ActionCreator CreateAction(string type)
         {
             return new ActionCreator(type);
@@ -265,6 +252,7 @@ namespace Unity.AppUI.Redux
         /// <param name="type"> The type of the action. </param>
         /// <typeparam name="TPayload"> The type of the payload. </typeparam>
         /// <returns> A new Action. </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ActionCreator<TPayload> CreateAction<TPayload>(string type)
         {
             return new ActionCreator<TPayload>(type);
@@ -276,9 +264,26 @@ namespace Unity.AppUI.Redux
         /// <param name="type"> The type of the action. </param>
         /// <param name="actionType"> The type of the action to instantiate. </param>
         /// <returns> A new Action. </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ActionCreator CreateAction(string type, Type actionType)
         {
             return (ActionCreator)Activator.CreateInstance(actionType, type);
+        }
+        
+        /// <summary>
+        /// Create a new Async Thunk Action. See <see cref="AsyncThunkActionCreator{T,U}"/> for more information.
+        /// </summary>
+        /// <param name="type"> The type of the action. </param>
+        /// <param name="payloadCreator"> The payload creator. </param>
+        /// <param name="options"> The options for the async thunk. </param>
+        /// <returns> A new Async Thunk Action. </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static AsyncThunkActionCreator<TPayload,TThunkArg> CreateAsyncThunk<TPayload,TThunkArg>(
+            string type, 
+            AsyncThunkActionCreator<TPayload,TThunkArg>.PayloadCreator payloadCreator,
+            AsyncThunkOptions<TThunkArg> options = null)
+        {
+            return new AsyncThunkActionCreator<TPayload,TThunkArg>(type, payloadCreator, options);
         }
 
         /// <summary>

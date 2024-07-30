@@ -5,7 +5,7 @@ namespace Unity.Muse.Common
 {
     internal interface IUIMode
     {
-        void Activate(MainUI mainUI);
+        void Activate(MainUI mainUI, string modeKey);
         void Deactivate();
     }
 

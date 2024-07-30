@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Unity.Muse.AppUI.UI;
 using Unity.Muse.Common.Account;
 using UnityEditor;
@@ -10,7 +9,7 @@ using UnityEngine.UIElements;
 
 namespace Unity.Muse.Common.Editor
 {
-    internal class MuseEditor : EditorWindow, IHasCustomMenu
+    class MuseEditor : EditorWindow, IHasCustomMenu
     {
         public MainUI mainUI;
         IPanel m_Panel;
@@ -37,13 +36,9 @@ namespace Unity.Muse.Common.Editor
 
         void OnEnable()
         {
-            if (CurrentModel is not null)
-                m_Mode = CurrentModel.CurrentMode;
-
             m_SaveShortcut = new MuseShortcut("Save Changes", SaveChanges, KeyCode.S, KeyModifier.Action, source: rootVisualElement);
             MuseShortcuts.AddShortcut(m_SaveShortcut);
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
-            UpdateTitle();
             minSize = m_MinSizeWindow;
             saveChangesMessage = TextContent.savePopupMessage;
         }
@@ -86,6 +81,18 @@ namespace Unity.Muse.Common.Editor
 
             m_Mode = CurrentModel.CurrentMode;
             m_Panel = rootVisualElement.panel;
+
+            if (ModesFactory.GetModeData(m_Mode).GetValueOrDefault().type == null)
+            {
+                ModesFactory.ModesChanged += Init;
+                return;
+            }
+
+            Init();
+        }
+
+        void Init() {
+            ModesFactory.ModesChanged -= Init;
             DiscardModel = Instantiate(CurrentModel);
 
             CurrentModel.OnEditorDragStart += EditorDragStart;
@@ -94,6 +101,7 @@ namespace Unity.Muse.Common.Editor
             CurrentModel.OnMultiExport += OnMultiExport;
             CurrentModel.OnModified += OnModelDataModified;
             CurrentModel.OnGenerateButtonClicked += OnGenerateButtonClicked;
+            CurrentModel.OnCloseWindowRequested += Close;
 
             rootVisualElement.ProvideContext(CurrentModel);
             var mainui = ResourceManager.Load<VisualTreeAsset>(PackageResources.mainUITemplate);
@@ -102,7 +110,7 @@ namespace Unity.Muse.Common.Editor
             rootVisualElement.styleSheets.Add(ResourceManager.Load<StyleSheet>(PackageResources.museTheme));
             var museRoot = rootVisualElement.Q<Panel>("muse-root");
             museRoot.theme = EditorGUIUtility.isProSkin ? "editor-dark" : "editor-light";
-            mainUI.AddToClassList("unity-editor");
+            museRoot.AddToClassList("unity-editor");
             AccountController.Register(this);
 
             if (!string.IsNullOrEmpty(m_Mode))
@@ -112,6 +120,7 @@ namespace Unity.Muse.Common.Editor
             }
 
             CurrentModel.OnModeChanged += OnModeChanged;
+            UpdateTitle();
         }
 
         internal void OnModelDataModified()
@@ -149,6 +158,7 @@ namespace Unity.Muse.Common.Editor
             CurrentModel.OnMultiExport -= OnMultiExport;
             CurrentModel.OnModified -= OnModelDataModified;
             CurrentModel.OnGenerateButtonClicked -= OnGenerateButtonClicked;
+            CurrentModel.OnCloseWindowRequested -= Close;
         }
 
         void ReleaseTextures()
@@ -227,8 +237,6 @@ namespace Unity.Muse.Common.Editor
 
             if (string.IsNullOrEmpty(m_AssetPath))
                 hasUnsavedChanges = true;
-
-            UpdateTitle();
         }
 
         void OnExportArtifact(Artifact artifact)
@@ -274,7 +282,7 @@ namespace Unity.Muse.Common.Editor
 
             foreach (var artifactView in artifactViews)
             {
-                if (!artifactView.TrySaveAsset(directory, (path) => 
+                if (!artifactView.TrySaveAsset(directory, (path) =>
                 {
                     AddExportedArtifact(path, artifactView.Artifact.Guid);
                 }))
@@ -287,27 +295,43 @@ namespace Unity.Muse.Common.Editor
             }
         }
 
-        private void AddExportedArtifact(string exportedPath, string artifactGuid)
+        void AddExportedArtifact(string exportedPath, string artifactGuid)
         {
-            var relativePath = GetProjectRelativePath(exportedPath);
+            if (!TryGetProjectRelativePath(exportedPath, out var relativePath))
+                return;
 
-            var unityGuid = AssetDatabase.AssetPathToGUID(relativePath).ToString();
-
+            var unityGuid = AssetDatabase.AssetPathToGUID(relativePath);
             if (!string.IsNullOrEmpty(unityGuid) && !string.IsNullOrEmpty(artifactGuid))
             {
                 CurrentModel.AddExportedArtifact(unityGuid, artifactGuid);
+
+                SetLabelOnExportedArtifact(relativePath);
             }
         }
 
-        private static string GetProjectRelativePath(string path)
+        static void SetLabelOnExportedArtifact(string relativePath)
+        {
+            const string unityMuseAI = "Unity Muse AI";
+            var asset = AssetDatabase.LoadMainAssetAtPath(relativePath);
+            var labelList = new List<string>(AssetDatabase.GetLabels(asset));
+            if (!labelList.Contains(unityMuseAI))
+            {
+                labelList.Add(unityMuseAI);
+                AssetDatabase.SetLabels(asset, labelList.ToArray());
+            }
+        }
+
+        static bool TryGetProjectRelativePath(string path, out string relativePath)
         {
             if (!path.Contains(Application.dataPath))
             {
-                return path;
+                relativePath = path;
+                return false;
             }
 
             var projectFolderPath = Application.dataPath[..Application.dataPath.LastIndexOf("/")];
-            return path[(projectFolderPath.Length + 1)..];
+            relativePath = path[(projectFolderPath.Length + 1)..];
+            return true;
         }
 
         public override void SaveChanges()
@@ -413,7 +437,7 @@ namespace Unity.Muse.Common.Editor
             titleContent = new GUIContent(titleString, IconHelper.windowIcon);
         }
 
-        private void OnGUI()
+        void OnGUI()
         {
             CheckMaximized();
         }

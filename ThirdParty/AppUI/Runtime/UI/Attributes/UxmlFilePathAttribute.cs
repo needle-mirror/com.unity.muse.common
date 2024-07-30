@@ -6,7 +6,7 @@ namespace Unity.Muse.AppUI.UI
     /// Attribute to specify the path to the UXML file for a VisualElement
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
-    public class UxmlFilePathAttribute : Attribute
+    internal class UxmlFilePathAttribute : Attribute
     {
         /// <summary>
         /// The path to the UXML file

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using UnityEditor;
 using UnityEngine;
@@ -19,6 +20,8 @@ namespace Unity.Muse.Common
         /// LoggedIn value is only valid if Ready is true, otherwise it is unknown
         /// </summary>
         public static SignInState state => s_State;
+        public static bool IsLikelySignedIn => state is SignInState.SignedIn or SignInState.NotReady;
+        public static bool IsSignedOut => state is SignInState.SignedOut;
         static SignInState s_State = SignInState.NotReady;
 
         static void RefreshSignIn()
@@ -38,3 +41,4 @@ namespace Unity.Muse.Common
         }
     }
 }
+#endif

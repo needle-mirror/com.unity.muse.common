@@ -147,6 +147,11 @@ namespace Unity.Muse.Common.Tools
             m_Painter.brushRadius = m_BrushRadius;
             UpdateDoodleCursorStyle();
         }
+        
+        public void SetBrushColor(Color color)
+        {
+            m_Painter.paintColor = color;
+        }
 
         public void SetDoodle(byte[] doodle)
         {

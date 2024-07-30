@@ -12,12 +12,12 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class Breadcrumbs : BaseVisualElement
+    internal partial class Breadcrumbs : BaseVisualElement
     {
         /// <summary>
         /// The Breadcrumbs' USS class name.
         /// </summary>
-        public static readonly string ussClassName = "appui-breadcrumbs";
+        public const string ussClassName = "appui-breadcrumbs";
         
         /// <summary>
         /// Constructor.
@@ -32,12 +32,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// UXML Factory for Breadcrumbs.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<Breadcrumbs, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<Breadcrumbs, UxmlTraits> { }
 
         /// <summary>
         /// UXML Traits for Breadcrumbs.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             
         }
@@ -50,7 +50,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class BreadcrumbItem : Link
+    internal partial class BreadcrumbItem : Link
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         internal static readonly BindingId isCurrentProperty = nameof(isCurrent);
@@ -58,12 +58,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The BreadcrumbItem's USS class name.
         /// </summary>
-        public new static readonly string ussClassName = "appui-breadcrumb-item";
+        public new const string ussClassName = "appui-breadcrumb-item";
         
         /// <summary>
         /// The BreadcrumbItem's active USS class name.
         /// </summary>
-        public static readonly string currentUssClassName = ussClassName + "--current";
+        public const string currentUssClassName = ussClassName + "--current";
 
         /// <summary>
         /// Whether the BreadcrumbItem is the current item.
@@ -103,12 +103,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// UXML Factory for BreadcrumbItem.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<BreadcrumbItem, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<BreadcrumbItem, UxmlTraits> { }
 
         /// <summary>
         /// UXML Traits for BreadcrumbItem.
         /// </summary>
-        public new class UxmlTraits : Link.UxmlTraits
+        internal new class UxmlTraits : Link.UxmlTraits
         {
             readonly UxmlBoolAttributeDescription m_IsCurrent = new UxmlBoolAttributeDescription
             {
@@ -133,12 +133,12 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class BreadcrumbSeparator : BaseTextElement
+    internal partial class BreadcrumbSeparator : BaseTextElement
     {
         /// <summary>
         /// The BreadcrumbSeparator's USS class name.
         /// </summary>
-        public new static readonly string ussClassName = "appui-breadcrumb-separator";
+        public new const string ussClassName = "appui-breadcrumb-separator";
         
         /// <summary>
         /// Default constructor.
@@ -155,12 +155,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// UXML Factory for BreadcrumbSeparator.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<BreadcrumbSeparator, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<BreadcrumbSeparator, UxmlTraits> { }
         
         /// <summary>
         /// UXML Traits for BreadcrumbSeparator.
         /// </summary>
-        public new class UxmlTraits : BaseTextElement.UxmlTraits
+        internal new class UxmlTraits : BaseTextElement.UxmlTraits
         {
             public override void Init(VisualElement ve, IUxmlAttributes bag, CreationContext cc)
             {

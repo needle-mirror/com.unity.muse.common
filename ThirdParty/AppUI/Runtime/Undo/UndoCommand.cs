@@ -5,7 +5,7 @@ namespace Unity.AppUI.Undo
     /// <summary>
     /// Base class for undoable commands.
     /// </summary>
-    public abstract class UndoCommand
+    internal abstract class UndoCommand
     {
         /// <summary>
         /// The unique identifier of the command type.
@@ -65,7 +65,7 @@ namespace Unity.AppUI.Undo
     /// <summary>
     /// A macro command is a command that contains other commands.
     /// </summary>
-    public class MacroCommand : UndoCommand
+    internal class MacroCommand : UndoCommand
     {
         readonly List<UndoCommand> m_Commands = new List<UndoCommand>();
         

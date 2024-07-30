@@ -5,7 +5,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// Extension methods for the <see cref="Rect"/> class.
     /// </summary>
-    public static class RectExtensions
+    internal static class RectExtensions
     {
         /// <summary>
         /// Check if a given <see cref="Rect"/> has a valid width and height.

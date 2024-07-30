@@ -12,7 +12,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class IconButton : ExVisualElement, ISizeableElement, IPressable
+    internal partial class IconButton : ExVisualElement, ISizeableElement, IPressable
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -31,32 +31,33 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The IconButton main styling class.
         /// </summary>
-        public static readonly string ussClassName = "appui-button";
+        public const string ussClassName = "appui-button";
 
         /// <summary>
         /// The IconButton primary variant styling class.
         /// </summary>
-        public static readonly string primaryUssClassName = ussClassName + "--primary";
+        public const string primaryUssClassName = ussClassName + "--primary";
 
         /// <summary>
         /// The IconButton quiet mode styling class.
         /// </summary>
-        public static readonly string quietUssClassName = ussClassName + "--quiet";
+        public const string quietUssClassName = ussClassName + "--quiet";
 
         /// <summary>
         /// The IconButton leading container styling class.
         /// </summary>
-        public static readonly string containerUssClassName = ussClassName + "__leadingcontainer";
+        public const string containerUssClassName = ussClassName + "__leadingcontainer";
 
         /// <summary>
         /// The IconButton leading icon styling class.
         /// </summary>
-        public static readonly string iconUssClassName = ussClassName + "__leadingicon";
+        public const string iconUssClassName = ussClassName + "__leadingicon";
 
         /// <summary>
         /// The IconButton size styling class.
         /// </summary>
-        public static readonly string sizeUssClassName = ussClassName + "--size-";
+        [EnumName("GetSizeUssClassName", typeof(Size))]
+        public const string sizeUssClassName = ussClassName + "--size-";
 
         readonly VisualElement m_Container;
 
@@ -256,7 +257,7 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_Size != value;
-                RemoveFromClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                RemoveFromClassList(GetSizeUssClassName(m_Size));
                 m_Size = value;
                 m_Icon.size = m_Size switch
                 {
@@ -265,7 +266,7 @@ namespace Unity.Muse.AppUI.UI
                     Size.L => IconSize.L,
                     _ => IconSize.M
                 };
-                AddToClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                AddToClassList(GetSizeUssClassName(m_Size));
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
@@ -279,12 +280,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Factory class to instantiate a <see cref="IconButton"/> using the data read from a UXML file.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<IconButton, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<IconButton, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="IconButton"/>.
         /// </summary>
-        public new class UxmlTraits : ExVisualElement.UxmlTraits
+        internal new class UxmlTraits : ExVisualElement.UxmlTraits
         {
             
             readonly UxmlStringAttributeDescription m_Icon = new UxmlStringAttributeDescription

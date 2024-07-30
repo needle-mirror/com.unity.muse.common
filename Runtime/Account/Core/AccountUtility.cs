@@ -1,5 +1,6 @@
 using System;
-using UnityEngine;
+using Unity.AppUI.Core;
+using UnityEngine.UIElements;
 using Application = UnityEngine.Device.Application;
 
 namespace Unity.Muse.Common.Account
@@ -20,11 +21,15 @@ namespace Unity.Muse.Common.Account
             Application.OpenURL("https://muse.unity.com/explore");
         }
 
-        public static void UpdateMusePackages()
+        public static void DisplayThirdPartyTerms(VisualElement target, ModeStruct modeData, Action<bool> onAccept)
         {
-#if UNITY_EDITOR
-            UnityEditor.PackageManager.UI.Window.Open("com.unity.muse.common");
-#endif
+            var dialog = new ThirdPartyDialog(modeData);
+            var m = dialog.CreateModal(target);
+            dialog.OnAccept = (b) => {
+                m.Dismiss(b ? DismissType.Action : DismissType.Cancel);
+                onAccept(b);
+            };
+            m.Show();
         }
     }
 }

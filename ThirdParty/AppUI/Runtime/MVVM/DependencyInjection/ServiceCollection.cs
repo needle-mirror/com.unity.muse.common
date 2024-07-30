@@ -9,7 +9,7 @@ namespace Unity.AppUI.MVVM
     /// <summary>
     /// Default implementation of <see cref="IServiceCollection"/>.
     /// </summary>
-    public class ServiceCollection : IServiceCollection
+    internal class ServiceCollection : IServiceCollection
     {
         readonly List<ServiceDescriptor> m_Descriptors = new List<ServiceDescriptor>();
         

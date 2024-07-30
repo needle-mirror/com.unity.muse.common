@@ -7,7 +7,7 @@ namespace Unity.AppUI.MVVM
     /// <summary>
     /// A base class to implement an App instance using UI Toolkit.
     /// </summary>
-    public class App : IUIToolkitApp
+    internal class App : IUIToolkitApp
     {
         /// <summary>
         /// Event called when the application is shutting down.

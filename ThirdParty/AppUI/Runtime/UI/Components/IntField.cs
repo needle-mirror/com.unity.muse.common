@@ -14,7 +14,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class IntField : NumericalField<int>
+    internal partial class IntField : NumericalField<int>
     {
         /// <summary>
         /// Default constructor.
@@ -79,12 +79,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Factory class to instantiate a <see cref="IntField"/> using the data read from a UXML file.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<IntField, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<IntField, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="IntField"/>.
         /// </summary>
-        public new class UxmlTraits : NumericalField<int>.UxmlTraits { }
+        internal new class UxmlTraits : NumericalField<int>.UxmlTraits { }
         
 #endif
     }

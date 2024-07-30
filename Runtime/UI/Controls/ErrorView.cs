@@ -64,17 +64,18 @@ namespace Unity.Muse.Common
         /// <summary>
         /// Default Constructor
         /// </summary>
-        public ErrorView()
+        public ErrorView(StyleSheet styleSheet = null)
         {
-            InitializeView();
+            InitializeView(styleSheet);
         }
 
         /// <summary>
         /// Adding the different views to the ErrorView
         /// </summary>
-        void InitializeView()
+        void InitializeView(StyleSheet styleSheet = null)
         {
-            var styleSheet = ResourceManager.Load<StyleSheet>(PackageResources.errorViewStyleSheet);
+            if (styleSheet == null)
+                styleSheet = ResourceManager.Load<StyleSheet>(PackageResources.errorViewStyleSheet);
             styleSheets.Add(styleSheet);
 
             m_ErrorText = new Text();

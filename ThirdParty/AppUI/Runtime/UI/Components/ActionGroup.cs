@@ -16,7 +16,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class ActionGroup : BaseVisualElement
+    internal partial class ActionGroup : BaseVisualElement
     {
         
 #if ENABLE_RUNTIME_DATA_BINDINGS
@@ -42,42 +42,43 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The ActionGroup main styling class.
         /// </summary>
-        public static readonly string ussClassName = "appui-actiongroup";
+        public const string ussClassName = "appui-actiongroup";
 
         /// <summary>
         /// The ActionGroup quiet mode styling class.
         /// </summary>
-        public static readonly string quietUssClassName = ussClassName + "--quiet";
+        public const string quietUssClassName = ussClassName + "--quiet";
 
         /// <summary>
         /// The ActionGroup compact mode styling class.
         /// </summary>
-        public static readonly string compactUssClassName = ussClassName + "--compact";
+        public const string compactUssClassName = ussClassName + "--compact";
 
         /// <summary>
         /// The ActionGroup vertical mode styling class.
         /// </summary>
-        public static readonly string verticalUssClassName = ussClassName + "--";
+        [EnumName("GetDirectionUssClassName", typeof(Direction))]
+        public const string verticalUssClassName = ussClassName + "--";
 
         /// <summary>
         /// The ActionGroup justified mode styling class.
         /// </summary>
-        public static readonly string justifiedUssClassName = ussClassName + "--justified";
+        public const string justifiedUssClassName = ussClassName + "--justified";
         
         /// <summary>
         /// The ActionGroup selectable mode styling class.
         /// </summary>
-        public static readonly string selectableUssClassName = ussClassName + "--selectable";
+        public const string selectableUssClassName = ussClassName + "--selectable";
         
         /// <summary>
         /// The ActionGroup container styling class.
         /// </summary>
-        public static readonly string containerUssClassName = ussClassName + "__container";
+        public const string containerUssClassName = ussClassName + "__container";
         
         /// <summary>
         /// The ActionGroup More Button styling class.
         /// </summary>
-        public static readonly string moreButtonUssClassName = ussClassName + "__more-button";
+        public const string moreButtonUssClassName = ussClassName + "__more-button";
         
         /// <summary>
         /// Event sent when the selection changes.
@@ -228,9 +229,9 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_Direction != value;
-                RemoveFromClassList(verticalUssClassName + m_Direction.ToString().ToLower());
+                RemoveFromClassList(GetDirectionUssClassName(m_Direction));
                 m_Direction = value;
-                AddToClassList(verticalUssClassName + m_Direction.ToString().ToLower());
+                AddToClassList(GetDirectionUssClassName(m_Direction));
                 m_MoreButton.icon = m_Direction switch
                 {
                     Direction.Horizontal => "dots-three",
@@ -714,12 +715,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The UXML factory for the ActionGroup.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<ActionGroup, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<ActionGroup, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="ActionGroup"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             readonly UxmlBoolAttributeDescription m_Compact = new UxmlBoolAttributeDescription
             {

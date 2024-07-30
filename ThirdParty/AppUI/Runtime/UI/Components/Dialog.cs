@@ -13,7 +13,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public abstract partial class BaseDialog : BaseVisualElement, ISizeableElement
+    internal abstract partial class BaseDialog : BaseVisualElement, ISizeableElement
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -28,37 +28,44 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The Dialog main styling class.
         /// </summary>
-        public static readonly string ussClassName = "appui-dialog";
+        public const string ussClassName = "appui-dialog";
+
+        /// <summary>
+        /// The Dialog variant styling class.
+        /// </summary>
+        [EnumName("GetVariantUssClassName", typeof(AlertSemantic))]
+        public const string variantUssClassName = ussClassName + "--";
 
         /// <summary>
         /// The Dialog size styling class.
         /// </summary>
-        public static readonly string sizeUssClassName = ussClassName + "--size-";
+        [EnumName("GetSizeUssClassName", typeof(Size))]
+        public const string sizeUssClassName = ussClassName + "--size-";
 
         /// <summary>
         /// The Dialog heading styling class.
         /// </summary>
-        public static readonly string headingUssClassName = ussClassName + "__heading";
+        public const string headingUssClassName = ussClassName + "__heading";
 
         /// <summary>
         /// The Dialog header styling class.
         /// </summary>
-        public static readonly string headerUssClassName = ussClassName + "__header";
+        public const string headerUssClassName = ussClassName + "__header";
 
         /// <summary>
         /// The Dialog divider styling class.
         /// </summary>
-        public static readonly string dividerUssClassName = ussClassName + "__divider";
+        public const string dividerUssClassName = ussClassName + "__divider";
 
         /// <summary>
         /// The Dialog content styling class.
         /// </summary>
-        public static readonly string contentUssClassName = ussClassName + "__content";
+        public const string contentUssClassName = ussClassName + "__content";
 
         /// <summary>
         /// The Dialog button group styling class.
         /// </summary>
-        public static readonly string buttonGroupUssClassName = ussClassName + "__buttongroup";
+        public const string buttonGroupUssClassName = ussClassName + "__buttongroup";
 
         /// <summary>
         /// The container for the Dialog actions (buttons).
@@ -207,9 +214,9 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_Size != value;
-                RemoveFromClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                RemoveFromClassList(GetSizeUssClassName(m_Size));
                 m_Size = value;
-                AddToClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                AddToClassList(GetSizeUssClassName(m_Size));
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
@@ -223,7 +230,7 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="BaseDialog"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             readonly UxmlEnumAttributeDescription<Size> m_Size = new UxmlEnumAttributeDescription<Size>
             {
@@ -262,7 +269,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class Dialog : BaseDialog, IDismissInvocator
+    internal partial class Dialog : BaseDialog, IDismissInvocator
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -273,12 +280,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The Dialog close button styling class.
         /// </summary>
-        public static readonly string closeButtonUssClassName = ussClassName + "__closebutton";
+        public const string closeButtonUssClassName = ussClassName + "__closebutton";
 
         /// <summary>
         /// The Dialog dismissable mode styling class.
         /// </summary>
-        public static readonly string dismissableUssClassName = ussClassName + "--dismissable";
+        public const string dismissableUssClassName = ussClassName + "--dismissable";
 
         /// <summary>
         /// Default constructor.
@@ -344,12 +351,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Factory class to instantiate a <see cref="Dialog"/> using the data read from a UXML file.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<Dialog, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<Dialog, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="Dialog"/>.
         /// </summary>
-        public new class UxmlTraits : BaseDialog.UxmlTraits
+        internal new class UxmlTraits : BaseDialog.UxmlTraits
         {
             readonly UxmlBoolAttributeDescription m_Dismissable = new UxmlBoolAttributeDescription
             {

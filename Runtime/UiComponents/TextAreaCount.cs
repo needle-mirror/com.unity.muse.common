@@ -3,11 +3,11 @@ using UnityEngine.UIElements;
 
 namespace Unity.Muse.Common
 {
-    public class TextAreaCount: ExVisualElement 
+    class TextAreaCount: ExVisualElement
     {
-        private readonly TextArea m_TextArea;
-        private readonly Text m_CountText;
-        private const string k_TextFieldClass = "textareacount-textfield";
+        readonly TextArea m_TextArea;
+        readonly Text m_CountText;
+        const string k_TextFieldClass = "textareacount-textfield";
         public TextAreaCount(TextArea textArea)
         {
             var styleSheet = ResourceManager.Load<StyleSheet>(PackageResources.textAreaCountStyle);
@@ -29,17 +29,17 @@ namespace Unity.Muse.Common
             RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
         }
 
-        private void OnAttachToPanel(AttachToPanelEvent evt)
+        void OnAttachToPanel(AttachToPanelEvent evt)
         {
             UpdateLabel(m_TextArea.value);
         }
 
-        private void OnValueChanging(ChangingEvent<string> evt)
+        void OnValueChanging(ChangingEvent<string> evt)
         {
             UpdateLabel(evt.newValue);
         }
 
-        private void OnValueChanged(ChangeEvent<string> evt)
+        void OnValueChanged(ChangeEvent<string> evt)
         {
             UpdateLabel(evt.newValue);
         }
@@ -48,7 +48,7 @@ namespace Unity.Muse.Common
         {
             if (newValue == null)
             {
-                UpdateLabel(string.Empty); 
+                UpdateLabel(string.Empty);
                 return;
             }
             m_CountText.text = $"{newValue.Length}/{m_TextArea.maxLength}";

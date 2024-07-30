@@ -10,6 +10,7 @@ namespace Unity.Muse.Common.Account
         DataOptIn,
         TrialStarted,
         SignIn,
-        RequestSeat
+        RequestSeat,
+        Explore
     }
 }

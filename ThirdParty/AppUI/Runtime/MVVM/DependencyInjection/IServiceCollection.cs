@@ -8,7 +8,7 @@ namespace Unity.AppUI.MVVM
     /// <summary>
     /// Specifies the contract for a collection of service descriptors.
     /// </summary>
-    public interface IServiceCollection : IList<ServiceDescriptor>
+    internal interface IServiceCollection : IList<ServiceDescriptor>
     {
         
     }

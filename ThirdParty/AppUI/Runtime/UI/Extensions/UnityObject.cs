@@ -5,7 +5,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// Helper class to destroy objects in the editor and in play mode.
     /// </summary>
-    public static class UnityObject
+    internal static class UnityObject
     {
         /// <summary>
         /// Destroys an object in the editor and in play mode.

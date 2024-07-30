@@ -3,50 +3,74 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Unity.Muse.Common.Editor
 {
-    class MuseEnvironment : MonoBehaviour
+    class MuseEnvironment : EditorWindow
     {
         const string k_TestDefineSymbol = "UNITY_MUSE_CLOUD_TEST";
         const string k_StagingDefineSymbol = "UNITY_MUSE_CLOUD_STAGING";
+        const string k_LocalDefineSymbol = "UNITY_MUSE_CLOUD_LOCAL";
 
         internal enum TestEnvironment
         {
             Production,
             Staging,
-            Test
+            Test,
+            Local
         }
 
         [MenuItem("internal:Muse/Internals/Set Muse Test Environment", false, 904)]
-        static void SetTestEnvironment()
+        public static void ShowWindow()
         {
-            var currentEnvironment = GetCurrentEnvironment();
+            var window = GetWindow<MuseEnvironment>(true, "Muse Test Environment");
+            window.minSize = new Vector2(300, 245);
+            window.maxSize = new Vector2(300, 245);
+            window.ShowModalUtility();
+        }
 
-            var title = "Choose the Muse Test Environment.";
-            var message = "Closing the window will set the environment to production." +
-                "\nCurrent environment : " + currentEnvironment;
+        void CreateGUI()
+        {
+            var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/com.unity.muse.common/Editor/Internal/MuseEnvironmentDialog.uxml");
+            visualTree.CloneTree(rootVisualElement);
 
-            var choice = EditorUtility.DisplayDialogComplex(title, message, TestEnvironment.Staging.ToString(), TestEnvironment.Production.ToString(), TestEnvironment.Test.ToString());
+            var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/com.unity.muse.common/Editor/Internal/MuseEnvironmentDialog.uss");
+            rootVisualElement.styleSheets.Add(styleSheet);
 
-            if (choice == 0) // Ok - Staging
+            var envLabel = rootVisualElement.Q<Label>("environmentLabel");
+            if (envLabel != null)
             {
-                SetTestEnvironment(TestEnvironment.Staging);
+                envLabel.text = "Current environment: " + GetCurrentEnvironment();
             }
-            else if (choice == 2) // Alt - Test
-            {
-                SetTestEnvironment(TestEnvironment.Test);
-            }
-            else // Cancel - Prod
+
+            rootVisualElement.Q<Button>("production").clicked += () =>
             {
                 SetTestEnvironment(TestEnvironment.Production);
-            }
+                Close();
+            };
+            rootVisualElement.Q<Button>("staging").clicked += () =>
+            {
+                SetTestEnvironment(TestEnvironment.Staging);
+                Close();
+            };
+            rootVisualElement.Q<Button>("test").clicked += () =>
+            {
+                SetTestEnvironment(TestEnvironment.Test);
+                Close();
+            };
+            rootVisualElement.Q<Button>("local").clicked += () =>
+            {
+                SetTestEnvironment(TestEnvironment.Local);
+                Close();
+            };
         }
 
         internal static void SetTestEnvironment(TestEnvironment environment)
         {
             RemoveDefineSymbols(k_TestDefineSymbol);
             RemoveDefineSymbols(k_StagingDefineSymbol);
+            RemoveDefineSymbols(k_LocalDefineSymbol);
 
             if (environment == TestEnvironment.Staging)
             {
@@ -56,6 +80,10 @@ namespace Unity.Muse.Common.Editor
             {
                 AddDefineSymbols(k_TestDefineSymbol);
             }
+            else if (environment == TestEnvironment.Local)
+            {
+                AddDefineSymbols(k_LocalDefineSymbol);
+            }
         }
 
         internal static TestEnvironment GetCurrentEnvironment()
@@ -64,6 +92,8 @@ namespace Unity.Muse.Common.Editor
                 return TestEnvironment.Staging;
             if (ContainsDefineSymbol(k_TestDefineSymbol))
                 return TestEnvironment.Test;
+            if (ContainsDefineSymbol(k_LocalDefineSymbol))
+                return TestEnvironment.Local;
 
             return TestEnvironment.Production;
         }

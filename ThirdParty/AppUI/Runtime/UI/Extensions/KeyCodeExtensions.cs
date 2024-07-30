@@ -5,7 +5,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// Extensions for the <see cref="KeyCode"/> enum.
     /// </summary>
-    public static class KeyCodeExtensions
+    internal static class KeyCodeExtensions
     {
         /// <summary>
         /// Check if the <see cref="KeyCode"/> is a Submit type key (Enter, Return, or SpaceBar).

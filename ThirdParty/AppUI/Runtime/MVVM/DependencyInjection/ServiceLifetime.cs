@@ -6,7 +6,7 @@ namespace Unity.AppUI.MVVM
     /// <summary>
     /// The lifetime of a service.
     /// </summary>
-    public enum ServiceLifetime
+    internal enum ServiceLifetime
     {
         /// <summary>
         /// A single instance of the service will be created.

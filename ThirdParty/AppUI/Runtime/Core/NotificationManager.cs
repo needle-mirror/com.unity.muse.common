@@ -5,7 +5,7 @@ namespace Unity.AppUI.Core
     /// <summary>
     /// Every possible reason why a Notification element can be dismissed.
     /// </summary>
-    public enum DismissType
+    internal enum DismissType
     {
         /// <summary>
         /// The Notification element has been dismissed via an action click.
@@ -46,7 +46,7 @@ namespace Unity.AppUI.Core
     /// <summary>
     /// The duration for a Notification to be displayed on  the screen.
     /// </summary>
-    public enum NotificationDuration
+    internal enum NotificationDuration
     {
         /// <summary>
         /// The Notification will be visible indefinitely. It will need to be dismissed manually.

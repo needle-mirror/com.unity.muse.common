@@ -8,7 +8,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// The type of indicator to display when a field is required.
     /// </summary>
-    public enum IndicatorType
+    internal enum IndicatorType
     {
         /// <summary>
         /// No indicator.
@@ -32,7 +32,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class FieldLabel : BaseVisualElement
+    internal partial class FieldLabel : BaseVisualElement
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -51,27 +51,34 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The FieldLabel main styling class.
         /// </summary>
-        public static readonly string ussClassName = "appui-field-label";
+        public const string ussClassName = "appui-field-label";
+        
+        /// <summary>
+        /// The FieldLabel variant styling class.
+        /// </summary>
+        [EnumName("GetIndicatorTypeUssClassName", typeof(IndicatorType))]
+        public const string variantUssClassName = ussClassName + "--";
         
         /// <summary>
         /// The FieldLabel required variant styling class.
         /// </summary>
-        public static readonly string requiredUssClassName = ussClassName + "--required";
+        public const string requiredUssClassName = ussClassName + "--required";
         
         /// <summary>
         /// The FieldLabel label styling class.
         /// </summary>
-        public static readonly string labelUssClassName = ussClassName + "__label";
+        public const string labelUssClassName = ussClassName + "__label";
         
         /// <summary>
         /// The FieldLabel required label styling class.
         /// </summary>
-        public static readonly string requiredLabelUssClassName = ussClassName + "__required-label";
+        public const string requiredLabelUssClassName = ussClassName + "__required-label";
         
         /// <summary>
         /// The FieldLabel label overflow variant styling class.
         /// </summary>
-        public static readonly string labelOverflowUssClassName = ussClassName + "--label-overflow-";
+        [EnumName("GetLabelOverflowUssClassName", typeof(TextOverflow))]
+        public const string labelOverflowUssClassName = ussClassName + "--label-overflow-";
         
         readonly LocalizedTextElement m_LabelElement;
         
@@ -128,9 +135,9 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_IndicatorType != value;
-                RemoveFromClassList(ussClassName + "--" + m_IndicatorType.ToString().ToLower());
+                RemoveFromClassList(GetIndicatorTypeUssClassName(m_IndicatorType));
                 m_IndicatorType = value;
-                AddToClassList(ussClassName + "--" + m_IndicatorType.ToString().ToLower());
+                AddToClassList(GetIndicatorTypeUssClassName(m_IndicatorType));
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
@@ -204,9 +211,9 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_LabelOverflow != value;
-                RemoveFromClassList(labelOverflowUssClassName + m_LabelOverflow.ToString().ToLower());
+                RemoveFromClassList(GetLabelOverflowUssClassName(m_LabelOverflow));
                 m_LabelOverflow = value;
-                AddToClassList(labelOverflowUssClassName + m_LabelOverflow.ToString().ToLower());
+                AddToClassList(GetLabelOverflowUssClassName(m_LabelOverflow));
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
@@ -258,12 +265,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Factory class to instantiate a <see cref="FieldLabel"/> using the data read from a UXML file.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<FieldLabel, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<FieldLabel, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="FieldLabel"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             readonly UxmlBoolAttributeDescription m_Required = new UxmlBoolAttributeDescription
             {

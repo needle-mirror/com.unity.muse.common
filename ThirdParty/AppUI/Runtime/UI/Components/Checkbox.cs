@@ -9,7 +9,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// The possible states for a <see cref="Checkbox"/>.
     /// </summary>
-    public enum CheckboxState
+    internal enum CheckboxState
     {
         /// <summary>
         /// The <see cref="Checkbox"/> is completely unchecked.
@@ -33,7 +33,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class Checkbox : BaseVisualElement, IInputElement<CheckboxState>, IPressable
+    internal partial class Checkbox : BaseVisualElement, IInputElement<CheckboxState>, IPressable
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
 
@@ -51,37 +51,37 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The Checkbox main styling class.
         /// </summary>
-        public static readonly string ussClassName = "appui-checkbox";
+        public const string ussClassName = "appui-checkbox";
         
         /// <summary>
         /// The Checkbox size styling class.
         /// </summary>
-        public static readonly string sizeUssClassName = ussClassName + "--size-";
+        public const string sizeUssClassName = ussClassName + "--size-";
 
         /// <summary>
         /// The Checkbox emphasized mode styling class.
         /// </summary>
-        public static readonly string emphasizedUssClassName = ussClassName + "--emphasized";
+        public const string emphasizedUssClassName = ussClassName + "--emphasized";
 
         /// <summary>
         /// The Checkbox box styling class.
         /// </summary>
-        public static readonly string boxUssClassName = ussClassName + "__box";
+        public const string boxUssClassName = ussClassName + "__box";
 
         /// <summary>
         /// The Checkbox checkmark styling class.
         /// </summary>
-        public static readonly string checkmarkUssClassName = ussClassName + "__checkmark";
+        public const string checkmarkUssClassName = ussClassName + "__checkmark";
 
         /// <summary>
         /// The Checkbox partial checkmark styling class.
         /// </summary>
-        public static readonly string partialCheckmarkUssClassName = ussClassName + "__partialcheckmark";
+        public const string partialCheckmarkUssClassName = ussClassName + "__partialcheckmark";
 
         /// <summary>
         /// The Checkbox label styling class.
         /// </summary>
-        public static readonly string labelUssClassName = ussClassName + "__label";
+        public const string labelUssClassName = ussClassName + "__label";
 
         readonly LocalizedTextElement m_Label;
 
@@ -299,12 +299,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// UXML factory for the Checkbox.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<Checkbox, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<Checkbox, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="Checkbox"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             readonly UxmlBoolAttributeDescription m_Emphasized = new UxmlBoolAttributeDescription
             {

@@ -2,7 +2,9 @@
     "name": "Unity.Muse.AppUI.InternalAPIBridge",
     "rootNamespace": "Unity.AppUI.Bridge",
     "references": [],
-    "includePlatforms": ["Editor"],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

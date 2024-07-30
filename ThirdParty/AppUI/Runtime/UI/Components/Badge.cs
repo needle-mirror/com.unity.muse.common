@@ -11,7 +11,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// The variant of the Badge.
     /// </summary>
-    public enum BadgeVariant
+    internal enum BadgeVariant
     {
         /// <summary>
         /// The default variant. The Badge will contain some text.
@@ -27,7 +27,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// The overlap type of the Badge.
     /// </summary>
-    public enum BadgeOverlapType
+    internal enum BadgeOverlapType
     {
         /// <summary>
         /// The Badge overlap type is rectangular.
@@ -43,7 +43,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// A horizontal anchor.
     /// </summary>
-    public enum HorizontalAnchor
+    internal enum HorizontalAnchor
     {
         /// <summary>
         /// The element is anchored at the left.
@@ -59,7 +59,8 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// A vertical anchor.
     /// </summary>
-    public enum VerticalAnchor
+    [GenerateLowerCaseStrings]
+    internal enum VerticalAnchor
     {
         /// <summary>
         /// The element is anchored at the top.
@@ -78,7 +79,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class Badge : BaseVisualElement
+    internal partial class Badge : BaseVisualElement
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
 
@@ -104,42 +105,46 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The Badge main styling class.
         /// </summary>
-        public static readonly string ussClassName = "appui-badge";
+        public const string ussClassName = "appui-badge";
         
         /// <summary>
         /// The Badge label styling class.
         /// </summary>
-        public static readonly string labelUssClassName = ussClassName + "__label";
+        public const string labelUssClassName = ussClassName + "__label";
         
         /// <summary>
         /// The Badge badge styling class.
         /// </summary>
-        public static readonly string badgeUssClassName = ussClassName + "__badge";
+        public const string badgeUssClassName = ussClassName + "__badge";
         
         /// <summary>
         /// The Badge Zero content styling class.
         /// </summary>
-        public static readonly string zeroUssClassName = ussClassName + "--zero";
+        public const string zeroUssClassName = ussClassName + "--zero";
         
         /// <summary>
         /// The Badge variant styling class prefix.
         /// </summary>
-        public static readonly string variantClassName = ussClassName + "--";
+        [EnumName("GetVariantUssClassName", typeof(BadgeVariant))]
+        public const string variantClassName = ussClassName + "--";
         
         /// <summary>
         /// The Badge overlap type styling class prefix.
         /// </summary>
-        public static readonly string overlapUssClassName = ussClassName + "--overlap-";
+        [EnumName("GetOverlapUssClassName", typeof(BadgeOverlapType))]
+        public const string overlapUssClassName = ussClassName + "--overlap-";
         
         /// <summary>
         /// The Badge horizontal anchor styling class prefix.
         /// </summary>
-        public static readonly string horizontalAnchorUssClassName = ussClassName + "--anchor-horizontal-";
+        [EnumName("GetHorizontalAnchorUssClassName", typeof(HorizontalAnchor))]
+        public const string horizontalAnchorUssClassName = ussClassName + "--anchor-horizontal-";
         
         /// <summary>
         /// The Badge vertical anchor styling class prefix.
         /// </summary>
-        public static readonly string verticalAnchorUssClassName = ussClassName + "--anchor-vertical-";
+        [EnumName("GetVerticalAnchorUssClassName", typeof(VerticalAnchor))]
+        public const string verticalAnchorUssClassName = ussClassName + "--anchor-vertical-";
         
         Optional<Color> m_BackgroundColor;
 
@@ -233,9 +238,9 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_Variant != value;
-                RemoveFromClassList(variantClassName + m_Variant.ToString().ToLower());
+                RemoveFromClassList(GetVariantUssClassName(m_Variant));
                 m_Variant = value;
-                AddToClassList(variantClassName + m_Variant.ToString().ToLower());
+                AddToClassList(GetVariantUssClassName(m_Variant));
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
                     NotifyPropertyChanged(in variantProperty);
@@ -258,9 +263,9 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_BadgeOverlapType != value;
-                RemoveFromClassList(overlapUssClassName + m_BadgeOverlapType.ToString().ToLower());
+                RemoveFromClassList(GetOverlapUssClassName(m_BadgeOverlapType));
                 m_BadgeOverlapType = value;
-                AddToClassList(overlapUssClassName + m_BadgeOverlapType.ToString().ToLower());
+                AddToClassList(GetOverlapUssClassName(m_BadgeOverlapType));
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
                     NotifyPropertyChanged(in overlapTypeProperty);
@@ -283,9 +288,9 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_HorizontalAnchor != value;
-                RemoveFromClassList(horizontalAnchorUssClassName + m_HorizontalAnchor.ToString().ToLower());
+                RemoveFromClassList(GetHorizontalAnchorUssClassName(m_HorizontalAnchor));
                 m_HorizontalAnchor = value;
-                AddToClassList(horizontalAnchorUssClassName + m_HorizontalAnchor.ToString().ToLower());
+                AddToClassList(GetHorizontalAnchorUssClassName(m_HorizontalAnchor));
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
                     NotifyPropertyChanged(in horizontalAnchorProperty);
@@ -308,9 +313,9 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_VerticalAnchor != value;
-                RemoveFromClassList(verticalAnchorUssClassName + m_VerticalAnchor.ToString().ToLower());
+                RemoveFromClassList(GetVerticalAnchorUssClassName(m_VerticalAnchor));
                 m_VerticalAnchor = value;
-                AddToClassList(verticalAnchorUssClassName + m_VerticalAnchor.ToString().ToLower());
+                AddToClassList(GetVerticalAnchorUssClassName(m_VerticalAnchor));
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
                     NotifyPropertyChanged(in verticalAnchorProperty);
@@ -428,12 +433,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Defines the UxmlFactory for the Badge.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<Badge, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<Badge, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="Badge"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             readonly UxmlColorAttributeDescription m_BackgroundColor = new UxmlColorAttributeDescription
             {

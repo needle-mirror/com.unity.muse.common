@@ -16,7 +16,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class PageView : BaseVisualElement
+    internal partial class PageView : BaseVisualElement
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
 
@@ -36,22 +36,23 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The main styling class of the PageView. This is the class that is used in the USS file.
         /// </summary>
-        public static readonly string ussClassName = "appui-pageview";
+        public const string ussClassName = "appui-pageview";
 
         /// <summary>
         /// The styling class applied to the SwipeView.
         /// </summary>
-        public static readonly string swipeViewUssClassName = ussClassName + "__swipeview";
+        public const string swipeViewUssClassName = ussClassName + "__swipeview";
 
         /// <summary>
         /// The styling class applied to the PageIndicator.
         /// </summary>
-        public static readonly string pageIndicatorUssClassName = ussClassName + "__page-indicator";
+        public const string pageIndicatorUssClassName = ussClassName + "__page-indicator";
 
         /// <summary>
         /// The styling class applied to the PageView depending on its direction.
         /// </summary>
-        public static readonly string variantUssClassName = ussClassName + "--";
+        [EnumName("GetDirectionUssClassName", typeof(Direction))]
+        public const string variantUssClassName = ussClassName + "--";
 
         readonly SwipeView m_SwipeView;
 
@@ -175,10 +176,10 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_SwipeView.direction != value;
-                RemoveFromClassList(variantUssClassName + m_SwipeView.direction.ToString().ToLower());
+                RemoveFromClassList(GetDirectionUssClassName(m_SwipeView.direction));
                 m_SwipeView.direction = value;
                 m_PageIndicator.direction = value;
-                AddToClassList(variantUssClassName + m_SwipeView.direction.ToString().ToLower());
+                AddToClassList(GetDirectionUssClassName(m_SwipeView.direction));
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
@@ -272,12 +273,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Class used to create a PageView from UXML.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<PageView, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<PageView, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="PageView"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             readonly UxmlEnumAttributeDescription<Direction> m_Direction = new UxmlEnumAttributeDescription<Direction>
             {

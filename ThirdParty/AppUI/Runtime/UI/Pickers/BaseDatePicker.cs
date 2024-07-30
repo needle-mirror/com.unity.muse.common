@@ -16,7 +16,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class BaseDatePicker : VisualElement
+    internal partial class BaseDatePicker : VisualElement
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -33,7 +33,7 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Represents the display mode of the date picker.
         /// </summary>
-        public enum DisplayMode
+        internal enum DisplayMode
         {
             /// <summary>
             /// A list of years is displayed.
@@ -90,6 +90,9 @@ namespace Unity.Muse.AppUI.UI
         
         internal CultureInfo cultureInfo;
 
+        /// <summary>
+        /// Child elements are added to it, usually this is the same as the element itself.
+        /// </summary>
         public override VisualElement contentContainer => null;
 
         /// <summary>
@@ -309,6 +312,9 @@ namespace Unity.Muse.AppUI.UI
             displayMode = DisplayMode.Months;
         }
 
+        /// <summary>
+        /// Refresh the overall UI of the date picker.
+        /// </summary>
         protected void RefreshUI()
         {
             m_YearPicker.RefreshUI();
@@ -321,7 +327,7 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="BaseDatePicker"/>.
         /// </summary>
-        public new class UxmlTraits : VisualElement.UxmlTraits
+        internal new class UxmlTraits : VisualElement.UxmlTraits
         {
             readonly UxmlEnumAttributeDescription<DisplayMode> m_DisplayMode = new UxmlEnumAttributeDescription<DisplayMode>
             {

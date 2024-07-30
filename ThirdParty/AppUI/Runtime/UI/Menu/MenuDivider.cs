@@ -12,12 +12,12 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class MenuDivider : Divider
+    internal partial class MenuDivider : Divider
     {
         /// <summary>
         /// The MenuDivider main styling class.
         /// </summary>
-        public static readonly string dividerClassName = "appui-menu__divider";
+        public const string dividerClassName = "appui-menu__divider";
 
         /// <summary>
         /// Default constructor.
@@ -32,12 +32,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// UXML factory for the <see cref="MenuDivider"/>.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<MenuDivider, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<MenuDivider, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="MenuDivider"/>.
         /// </summary>
-        public new class UxmlTraits : Divider.UxmlTraits { }
+        internal new class UxmlTraits : Divider.UxmlTraits { }
         
 #endif
     }

@@ -19,9 +19,15 @@ namespace Unity.Muse.Common
         readonly VisualElement m_ResolutionChipContainer;
 
         internal GenericLoader.State LoadingState => GenericLoader.LoadingState;
-        
+
         public LoadableImage()
             : this(true) { }
+
+        internal enum ImageDisplay
+        {
+            Image,
+            BackgroundImage
+        }
 
         protected LoadableImage(bool autoLoading = true)
         {
@@ -62,9 +68,17 @@ namespace Unity.Muse.Common
             m_ResolutionChipContainer.Add(m_ResolutionChip);
         }
 
-        protected void OnLoaded(Texture texture)
+        protected void OnLoaded(Texture texture, ImageDisplay imageDisplay = ImageDisplay.Image)
         {
-            image = texture;
+            if (imageDisplay == ImageDisplay.BackgroundImage)
+            {
+                style.backgroundImage = texture as Texture2D;
+            }
+            else
+            {
+                image = texture;
+            }
+
             GenericLoader.SetState(GenericLoader.State.None);
             GenericLoader.SetDisplay(this, false);
 
@@ -80,6 +94,7 @@ namespace Unity.Muse.Common
         protected void OnLoading()
         {
             image = null;
+            style.backgroundImage = null;
             GenericLoader.SetState(GenericLoader.State.Loading);
             GenericLoader.SetDisplay(this, true);
         }

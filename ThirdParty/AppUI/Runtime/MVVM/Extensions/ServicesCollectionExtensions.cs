@@ -8,7 +8,7 @@ namespace Unity.AppUI.MVVM
     /// <summary>
     /// Extension methods for <see cref="IServiceCollection"/>.
     /// </summary>
-    public static class ServicesCollectionExtensions
+    internal static class ServicesCollectionExtensions
     {
         /// <summary>
         /// Adds a singleton service of the type specified in <typeparamref name="T"/> to the specified

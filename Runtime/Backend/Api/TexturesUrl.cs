@@ -4,7 +4,7 @@ namespace Unity.Muse.Common.Api
 {
     record TexturesUrl : MuseUrl
     {
-        string textures => $"{images}/textures/{org}";
+        public string textures => $"{images}/textures/{org}";
         public string textureAssetRoot => $"{assets}/images/textures/{org}/assets";
 
         public string generate => $"{textures}/generate";

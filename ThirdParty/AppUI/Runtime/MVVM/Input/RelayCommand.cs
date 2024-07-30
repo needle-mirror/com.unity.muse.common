@@ -12,7 +12,7 @@ namespace Unity.AppUI.MVVM
     /// method is <see langword="true"/>. This type does not allow you to accept command parameters
     /// in the <see cref="Execute(object?)"/> and <see cref="CanExecute(object?)"/> callback methods.
     /// </summary>
-    public class RelayCommand : IRelayCommand
+    internal class RelayCommand : IRelayCommand
     {
         /// <summary>
         /// The <see cref="Action"/> to invoke when <see cref="Execute(object?)"/> is used.

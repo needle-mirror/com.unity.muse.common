@@ -10,7 +10,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// A toolbar that contains a color swatch for the previous color, a color swatch for the current color, and an eye dropper button.
     /// </summary>
-    public class ColorToolbar : BaseVisualElement
+    internal class ColorToolbar : BaseVisualElement
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         

@@ -8,7 +8,7 @@ namespace Unity.AppUI.MVVM
     /// <summary>
     /// Describes a service with its service type, implementation, and lifetime.
     /// </summary>
-    public class ServiceDescriptor
+    internal class ServiceDescriptor
     {
         /// <summary>
         /// Gets the implementation type of the service.

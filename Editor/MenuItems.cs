@@ -12,13 +12,13 @@ namespace System.Runtime.CompilerServices
 
 namespace Unity.Muse.Common.Editor
 {
-    internal static class MenuItems
+    static class MenuItems
     {
-        private record GuidModelPair(string Guid, Model Model);
-        private static GuidModelPair s_LatestSelectedGuidModelPair;
+        record GuidModelPair(string Guid, Model Model);
+        static GuidModelPair s_LatestSelectedGuidModelPair;
 
         [MenuItem("Assets/Open in Muse", false, 20)]
-        public static void OpenTextureWindowMenuItem()
+        public static void OpenMuseAssetWindowMenuItem()
         {
             EditorModelAssetEditor.OpenEditorTo(s_LatestSelectedGuidModelPair?.Model);
 
@@ -32,9 +32,15 @@ namespace Unity.Muse.Common.Editor
         }
 
         [MenuItem("Assets/Open in Muse", true)]
-        public static bool OpenTextureWindowMenuItemValidation()
+        public static bool OpenMuseAssetWindowMenuItemValidation()
         {
             s_LatestSelectedGuidModelPair = null;
+
+            if (Selection.activeObject is Model)
+            {
+                s_LatestSelectedGuidModelPair = new GuidModelPair(string.Empty, (Model)Selection.activeObject);
+                return true;
+            }
 
             var guids = AssetDatabase.FindAssets("t:Unity.Muse.Common.Model");
             var assetGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(Selection.activeObject));

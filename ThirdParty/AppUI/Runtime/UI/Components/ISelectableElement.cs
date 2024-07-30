@@ -5,7 +5,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// Interface used on UI elements which handle a *selected* state.
     /// </summary>
-    public interface ISelectableElement
+    internal interface ISelectableElement
     {
         /// <summary>
         /// **True** of the UI element is in selected state, **False** otherwise.

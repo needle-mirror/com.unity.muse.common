@@ -11,27 +11,27 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// Dropdown item UI element.
     /// </summary>
-    public class DropdownItem : BaseVisualElement
+    internal class DropdownItem : BaseVisualElement
     {
         /// <summary>
         /// The Dropdown item main styling class.
         /// </summary>
-        public static readonly string ussClassName = "appui-dropdown-item";
+        public const string ussClassName = "appui-dropdown-item";
         
         /// <summary>
         /// The Dropdown item label styling class.
         /// </summary>
-        public static readonly string labelUssClassName = ussClassName + "__label";
+        public const string labelUssClassName = ussClassName + "__label";
         
         /// <summary>
         /// The Dropdown item icon styling class.
         /// </summary>
-        public static readonly string iconUssClassName = ussClassName + "__icon";
+        public const string iconUssClassName = ussClassName + "__icon";
         
         /// <summary>
         /// The Dropdown item checkmark styling class.
         /// </summary>
-        public static readonly string checkmarkUssClassName = ussClassName + "__checkmark";
+        public const string checkmarkUssClassName = ussClassName + "__checkmark";
         
         /// <summary>
         /// The Dropdown item label.
@@ -106,7 +106,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class Dropdown : Picker<DropdownItem, DropdownItem>
+    internal partial class Dropdown : Picker<DropdownItem, DropdownItem>
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -117,7 +117,7 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The Dropdown main styling class.
         /// </summary>
-        public new static readonly string ussClassName = "appui-dropdown";
+        public new const string ussClassName = "appui-dropdown";
         
         Action<DropdownItem, IEnumerable<int>> m_CustomBindTitle;
 
@@ -226,12 +226,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Factory class to instantiate a <see cref="Dropdown"/> using the data read from a UXML file.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<Dropdown, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<Dropdown, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="Dropdown"/>.
         /// </summary>
-        public new class UxmlTraits : Picker<DropdownItem,DropdownItem>.UxmlTraits { }
+        internal new class UxmlTraits : Picker<DropdownItem,DropdownItem>.UxmlTraits { }
         
 #endif
     }

@@ -6,7 +6,7 @@ namespace Unity.Muse.AppUI.UI
     /// A Manipulator that adds a class to the target element when it is keyboard focused.
     /// This is useful for accessibility purposes.
     /// </summary>
-    public class KeyboardFocusController : Manipulator
+    internal class KeyboardFocusController : Manipulator
     {
         /// <summary>
         /// Check if the target element is keyboard focused.

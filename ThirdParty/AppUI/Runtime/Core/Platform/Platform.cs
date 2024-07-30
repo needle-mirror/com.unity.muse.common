@@ -1,5 +1,6 @@
 #define APPUI_PLATFORM_EDITOR_ONLY
 using System;
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 namespace Unity.AppUI.Core
@@ -10,7 +11,7 @@ namespace Unity.AppUI.Core
 #if UNITY_EDITOR
     [UnityEditor.InitializeOnLoad]
 #endif
-    public static class Platform
+    internal static class Platform
     {
         static IPlatformImpl s_Impl;
         
@@ -39,7 +40,7 @@ namespace Unity.AppUI.Core
 
 #if UNITY_IOS && !UNITY_EDITOR
             s_Impl = new IOSPlatformImpl();
-#elif UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
+#elif UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX                                                                                                                                                                                                                                                                                                                                                                            
             s_Impl = new OSXPlatformImpl();
 #elif UNITY_ANDROID && !UNITY_EDITOR
             s_Impl = new AndroidPlatformImpl();
@@ -52,11 +53,82 @@ namespace Unity.AppUI.Core
 #endif // APPUI_PLATFORM_EDITOR_ONLY
         }
         
+#if UNITY_EDITOR
+        [UnityEditor.InitializeOnEnterPlayMode]
+#endif
+        static void OnEnteredPlayMode()
+        {
+            if (s_Impl == null)
+                Initialize();
+        }
+        
         /// <summary>
         /// The base DPI value used in <see cref="UnityEngine.UIElements.PanelSettings"/>.
         /// </summary>
         public const float baseDpi = 96f;
 
+        /// <summary>
+        /// Event triggered when the system dark mode changes.
+        /// </summary>
+        public static event Action<bool> darkModeChanged
+        {
+            add => s_Impl.darkModeChanged += value;
+            remove => s_Impl.darkModeChanged -= value;
+        }
+
+        /// <summary>
+        /// Event triggered when the high contrast mode changes.
+        /// </summary>
+        public static event Action<bool> highContrastChanged
+        {
+            add => s_Impl.highContrastChanged += value;
+            remove => s_Impl.highContrastChanged -= value;
+        }
+        
+        /// <summary>
+        /// Event triggered when the reduce motion accessibility setting changes.
+        /// </summary>
+        public static event Action<bool> reduceMotionChanged
+        {
+            add => s_Impl.reduceMotionChanged += value;
+            remove => s_Impl.reduceMotionChanged -= value;
+        }
+        
+        /// <summary>
+        /// Event triggered when the layout direction of the platform changes.
+        /// </summary>
+        public static event Action<Dir> layoutDirectionChanged
+        {
+            add => s_Impl.layoutDirectionChanged += value;
+            remove => s_Impl.layoutDirectionChanged -= value;
+        }
+        
+        /// <summary>
+        /// Event that is triggered when the scale factor of the Game view's window changes.
+        /// </summary>
+        /// <remarks>
+        /// The Game View's window refers to the window that the game is running in (either standalone or in the editor).
+        /// Multiple game views are not supported.
+        /// </remarks>
+        public static event Action<float> scaleFactorChanged
+        {
+            add => s_Impl.scaleFactorChanged += value;
+            remove => s_Impl.scaleFactorChanged -= value;
+        }
+        
+        /// <summary>
+        /// Event that is triggered when the text scale factor of system changes.
+        /// </summary>
+        /// <remarks>
+        /// This is not window specific. The system text scale factor is the scale factor of the text globally applied by the system.
+        /// For the window specific scale factor, use <see cref="scaleFactorChanged"/>.
+        /// </remarks>
+        public static event Action<float> textScaleFactorChanged
+        {
+            add => s_Impl.textScaleFactorChanged += value;
+            remove => s_Impl.textScaleFactorChanged -= value;
+        }
+        
         /// <summary>
         /// The DPI value that should be used in UI-Toolkit PanelSettings
         /// <see cref="UnityEngine.UIElements.PanelSettings.referenceDpi"/>.
@@ -67,72 +139,22 @@ namespace Unity.AppUI.Core
         public static float referenceDpi => s_Impl.referenceDpi;
 
         /// <summary>
-        /// The main screen scale factor.
+        /// The current scale factor applied to the Game view's window.
+        /// </summary>
         /// <remarks>
-        /// The "main" screen is the current screen used at highest priority to display the application window.
+        /// The Game View's window refers to the window that the game is running in (either standalone or in the editor).
+        /// Multiple game views are not supported.
         /// </remarks>
-        /// </summary>
-        public static float mainScreenScale => s_Impl.mainScreenScale;
-
-        /// <summary>
-        /// Event triggered when the system theme changes.
-        /// </summary>
-        public static event Action<string> systemThemeChanged
-        {
-            add => s_Impl.systemThemeChanged += value;
-            remove => s_Impl.systemThemeChanged -= value;
-        }
-
-        /// <summary>
-        /// Polls the system theme and triggers the <see cref="systemThemeChanged"/> event if the theme has changed.
-        /// </summary>
-        internal static void PollSystemTheme()
-        {
-            s_Impl.PollSystemTheme();
-        }
-
-        internal static void PollGestures()
-        {
-            s_Impl.PollGestures();
-        }
-
-        /// <summary>
-        /// Event triggered when a pan gesture is received.
-        /// </summary>
-        public static event Action<PanGesture> panGestureChanged
-        {
-            add => s_Impl.panGestureChanged += value;
-            remove => s_Impl.panGestureChanged -= value;
-        }
+        public static float scaleFactor => s_Impl.scaleFactor;
         
         /// <summary>
-        /// Event triggered when a magnification gesture is received.
+        /// The current system-wide text scale factor.
         /// </summary>
-        public static event Action<MagnificationGesture> magnificationGestureChanged
-        {
-            add => s_Impl.magnificationGestureChanged += value;
-            remove => s_Impl.magnificationGestureChanged -= value;
-        }
-        
-        /// <summary>
-        /// Whether the pan gesture has changed this frame.
-        /// </summary>
-        public static bool panGestureChangedThisFrame => s_Impl.panGestureChangedThisFrame;
-        
-        /// <summary>
-        /// Whether the magnification gesture has changed this frame.
-        /// </summary>
-        public static bool magnificationGestureChangedThisFrame => s_Impl.magnificationGestureChangedThisFrame;
-
-        /// <summary>
-        /// The pan gesture data.
-        /// </summary>
-        public static PanGesture panGesture => s_Impl.panGesture;
-
-        /// <summary>
-        /// The magnification gesture data.
-        /// </summary>
-        public static MagnificationGesture magnificationGesture => s_Impl.magnificationGesture;
+        /// <remarks>
+        /// This is not window specific. The system text scale factor is the scale factor of the text globally applied by the system.
+        /// For the window specific display scale factor (not text-only), use <see cref="scaleFactor"/>.
+        /// </remarks>
+        public static float textScaleFactor => s_Impl.textScaleFactor;
 
         /// <summary>
         /// Whether the current platform supports touch gestures.
@@ -140,9 +162,33 @@ namespace Unity.AppUI.Core
         public static bool isTouchGestureSupported => s_Impl.isTouchGestureSupported;
 
         /// <summary>
-        /// The current system theme.
+        /// Whether the current system is in dark mode.
         /// </summary>
-        public static string systemTheme => s_Impl.systemTheme;
+        public static bool darkMode => s_Impl.darkMode;
+        
+        /// <summary>
+        /// Whether the current system is in high contrast mode.
+        /// </summary>
+        public static bool highContrast => s_Impl.highContrast;
+        
+        /// <summary>
+        /// Whether the current system uses the "Reduce Motion" accessibility setting.
+        /// </summary>
+        public static bool reduceMotion => s_Impl.reduceMotion;
+        
+        /// <summary>
+        /// Whether the current platform supports haptic feedback.
+        /// </summary>
+        public static bool isHapticFeedbackSupported => s_Impl.isHapticFeedbackSupported;
+        
+        /// <summary>
+        /// The current touches events for the current platform.
+        /// </summary>
+        /// <remarks>
+        /// This can be either coming from the Old or New Input System, but also from custom the App UI Input System for
+        /// trackpad/touchpad support.
+        /// </remarks>
+        public static AppUITouch[] touches => s_Impl.touches;
 
         /// <summary>
         /// Run a haptic feedback on the current platform.
@@ -150,8 +196,20 @@ namespace Unity.AppUI.Core
         /// <param name="feedbackType">The type of haptic feedback to trigger.</param>
         public static void RunHapticFeedback(HapticFeedbackType feedbackType)
         {
-            s_Impl.RunHapticFeedback(feedbackType);
+            s_Impl.RunNativeHapticFeedback(feedbackType);
         }
+        
+        /// <summary>
+        /// The current layout direction of the platform.
+        /// </summary>
+        public static int layoutDirection => s_Impl.layoutDirection;
+
+        /// <summary>
+        /// Get the system color for the given color type.
+        /// </summary>
+        /// <param name="colorType"> The type of system color to get.</param>
+        /// <returns> The system color for the given color type if any, otherwise Color.clear.</returns>
+        public static Color GetSystemColor(SystemColorType colorType) => s_Impl.GetSystemColor(colorType);
         
         /// <summary>
         /// Handle an native message coming from a native App UI plugin.
@@ -160,6 +218,14 @@ namespace Unity.AppUI.Core
         internal static void HandleNativeMessage(string message)
         {
             s_Impl.HandleNativeMessage(message);
+        }
+        
+        /// <summary>
+        /// Update the platform utility.
+        /// </summary>
+        internal static void Update()
+        {
+            s_Impl.UpdateLoop();
         }
     }
 }

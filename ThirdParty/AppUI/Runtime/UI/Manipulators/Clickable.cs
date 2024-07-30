@@ -8,7 +8,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// Clickable Manipulator, used on <see cref="Button"/> elements.
     /// </summary>
-    public class Clickable : UnityEngine.UIElements.Clickable
+    internal class Clickable : UnityEngine.UIElements.Clickable
     {
         /// <summary>
         /// Constructor.

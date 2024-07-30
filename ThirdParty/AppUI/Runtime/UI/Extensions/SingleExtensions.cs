@@ -7,7 +7,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// Extension methods for Single and Double.
     /// </summary>
-    public static class SingleExtensions
+    internal static class SingleExtensions
     {
         /// <summary>
         /// Returns a string representation of the value with a variable number of decimal places.

@@ -67,19 +67,18 @@ namespace Unity.Muse.Common
 
         bool m_Initialized;
         Canvas m_Canvas;
+        RefineAssetView m_RefineAssetView;
         ControlToolbar m_ControlToolbar;
         NodesList m_NodesList;
         AssetsList m_AssetsList;
         ScopeToolbar m_ScopeToolbar;
-        AccountDropdown m_AccountDropdown;
-
-        int m_Mode;
+        VisualElement m_CanvasContainer;
 
         IUIMode m_UIMode;
 
-        const float k_AssetListLeftMargin = 10f;
-        const float k_NodeListMinWidth = 300;
-        const float k_AssetListMinWidth = 200;
+        const float k_AssetListLeftMargin = 0f;//10f;
+        internal const float k_NodeListMinWidth = 300;
+        internal const float k_AssetListMinWidth = 200;
         UISize m_UISize;
 
         Artifact m_ArtifactToBeRefined;
@@ -89,11 +88,9 @@ namespace Unity.Muse.Common
         public MainUI()
         {
             this.AddManipulator(new MuseShortcutHandler());
-            this.RegisterContextChangedCallback<Model>(context =>
-            {
-                if (context.context != null)
-                    SetModel(context.context);
-            });
+            this.RegisterContextChangedCallback<Model>(context => SetModel(context.context));
+            RegisterCallback<DetachFromPanelEvent>(OnDetachedFromPanel);
+            RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
 
 #if UNITY_EDITOR
             if(UnityEditor.EditorGUIUtility.isProSkin)
@@ -101,36 +98,32 @@ namespace Unity.Muse.Common
 #endif
         }
 
-        void CreateAccountDropdown()
+        public void SetModel(Model newModel)
         {
-            if (model is null || m_AccountDropdown is not null)
+            if (newModel == model)
                 return;
 
-            m_AccountDropdown = new AccountDropdown();
-            model.AddToToolbar(m_AccountDropdown, 1, ToolbarPosition.Right);
-        }
-
-        public void SetModel(Model model)
-        {
-            if (model == this.model)
-                return;
-
+            UnsubscribeFromEvents();
+            model = newModel;
             Init();
-            this.model = model;
-            this.model.OnModeChanged += OnModeChanged;
-            model.ModeChanged(ModesFactory.GetModeIndexFromKey(model.CurrentMode));
-            schedule.Execute(CreateAccountDropdown); // Wait until the controltoolbar is hooked up to the model events
+            SubscribeToEvents();
+
             UpdateView();
         }
 
-        void OnModeChanged(int newMode)
+        void OnModeChanged(int _)
         {
-            if (newMode == m_Mode)
-                return;
-
-            m_Mode = newMode;
-
             UpdateView();
+        }
+
+        void OnDetachedFromPanel(DetachFromPanelEvent evt)
+        {
+            SetModel(null);
+        }
+
+        void OnAttachToPanel(AttachToPanelEvent evt)
+        {
+            SetModel(this.GetContext<Model>());
         }
 
         public Canvas canvas => m_Canvas;
@@ -142,60 +135,94 @@ namespace Unity.Muse.Common
 
         public void UpdateView()
         {
-            PreUpdateView();
-
             m_UIMode?.Deactivate();
-            m_UIMode = UIModeFactory.GetUIMode(ModesFactory.GetModeKeyFromIndex(m_Mode));
-            m_UIMode?.Activate(this);
 
-            PostUpdateView();
+            if (!model)
+                return;
+
+            var modeKey = model.CurrentMode;
+            m_UIMode = UIModeFactory.GetUIMode(modeKey);
+            m_UIMode?.Activate(this, modeKey);
+
+            m_UISize = model.GetData<UISize>();
+            assetsList.content.style.minWidth = k_AssetListMinWidth;
+            model.SetLeftOverlay(nodesList.content);
+            model.SetRightOverlay(assetsList.content);
+            MaximiseAssetList();
+            assetsList.MarkDirtyRepaint();
+
+            OnRefineArtifact(model.RefinedArtifact);
         }
 
-
-        void PreUpdateView()
+        void UnsubscribeFromEvents()
         {
             UnregisterCallback<GeometryChangedEvent>(OnMainUIGeometryChanged);
 
-            assetsList.OnResized -= AssetListResized;
-            nodesList.OnResized -= NodeListResized;
-            nodesList.UnregisterCallback<GeometryChangedEvent>(OnNodesListGeometryChanged);
+            if (assetsList != null)
+            {
+                assetsList.OnResized -= AssetListResized;
+            }
+
+            if (nodesList != null)
+            {
+                nodesList.OnResized -= NodeListResized;
+                nodesList.UnregisterCallback<GeometryChangedEvent>(OnNodesListGeometryChanged);
+            }
 
             RemoveModelListeners();
         }
 
-        void PostUpdateView()
+        void SubscribeToEvents()
         {
-            m_UISize = model.GetData<UISize>();
             AddModelListeners();
 
-            assetsList.content.style.minWidth = k_AssetListMinWidth;
-            model.SetLeftOverlay(nodesList.content);
-            model.SetRightOverlay(assetsList.content);
-
-            MaximiseAssetList();
-            assetsList.MarkDirtyRepaint();
-
             RegisterCallback<GeometryChangedEvent>(OnMainUIGeometryChanged);
-            assetsList.OnResized += AssetListResized;
-            nodesList.OnResized += NodeListResized;
-            nodesList.RegisterCallback<GeometryChangedEvent>(OnNodesListGeometryChanged);
 
-            UpdateCanvasVisibility();
+            if (assetsList != null)
+                assetsList.OnResized += AssetListResized;
+
+            if (nodesList != null)
+            {
+                nodesList.OnResized += NodeListResized;
+                nodesList.RegisterCallback<GeometryChangedEvent>(OnNodesListGeometryChanged);
+            }
         }
 
         void Init()
         {
-            if (m_Initialized) return;
+            if (panel == null)
+                return;
+
+            if (m_Initialized)
+                return;
+
             m_Canvas = this.Q<Canvas>();
             m_ControlToolbar = this.Q<ControlToolbar>();
+
+            var museOverlay = this.Q<VisualElement>("muse-overlay");
+            var assetsListType = ModesFactory.GetModeData(model?.CurrentMode)?.assetslist_type;
+            if (string.IsNullOrEmpty(assetsListType))
+                assetsListType = "AssetsList";
+
             m_NodesList = this.Q<NodesList>();
-            m_AssetsList = this.Q<AssetsList>();
+            m_AssetsList = (AssetsList)ControlsFactory.GetControlInstance(assetsListType);
+            m_AssetsList.pickingMode = PickingMode.Ignore;
+            museOverlay.Add(m_AssetsList);
+
+            m_RefineAssetView = m_AssetsList.CreateRefineAssetView();
+            if (m_RefineAssetView != null)
+                Add(m_RefineAssetView);
+
             m_ScopeToolbar = this.Q<ScopeToolbar>();
+            m_CanvasContainer = this.Q<VisualElement>("muse-canvas-container");
             m_Initialized = true;
         }
 
         void AddModelListeners()
         {
+            if (!model)
+                return;
+
             model.OnRefineArtifact += OnRefineArtifact;
             model.OnFinishRefineArtifact += OnFinishRefineArtifact;
             model.OnDispose += OnDispose;
@@ -207,6 +234,9 @@ namespace Unity.Muse.Common
 
         void RemoveModelListeners()
         {
+            if (!model)
+                return;
+
             model.OnRefineArtifact -= OnRefineArtifact;
             model.OnFinishRefineArtifact -= OnFinishRefineArtifact;
             model.OnDispose -= OnDispose;
@@ -236,6 +266,8 @@ namespace Unity.Muse.Common
                     canvas.FrameAll();
                 });
             }
+
+            m_CanvasContainer.style.display = m_RefineAssetView != null && enabled ? DisplayStyle.None : DisplayStyle.Flex;
         }
 
         void RefineModeAssetList()
@@ -247,8 +279,10 @@ namespace Unity.Muse.Common
 
         void MaximiseAssetList()
         {
+            var leftMargin = model.isRefineMode ? k_AssetListLeftMargin : 0;
+
             assetsList.content.style.maxWidth = resolvedStyle.width - 300 - k_AssetListLeftMargin;
-            assetsList.content.style.width = resolvedStyle.width - m_UISize.nodeListWidth - k_AssetListLeftMargin;
+            assetsList.content.style.width = resolvedStyle.width - m_UISize.nodeListWidth - leftMargin;
             nodesList.style.width = m_UISize.nodeListWidth;
             nodesList.draggerElement.AddToClassList(Styles.hiddenUssClassName);
         }
@@ -273,6 +307,9 @@ namespace Unity.Muse.Common
 
         void AssetListResized()
         {
+            if (!model)
+                return;
+
             var assetListWidth = assetsList.content.style.width.value.value;
             if (model.isRefineMode)
             {
@@ -288,9 +325,22 @@ namespace Unity.Muse.Common
 
         void OnRefineArtifact(Artifact artifact)
         {
-            model.CanvasRefineArtifact(artifact);
-            RefineModeAssetList();
+            if (!model)
+                return;
+
+            if (model.isRefineMode)
+            {
+                if (m_RefineAssetView == null)
+                {
+                    model.CanvasRefineArtifact(artifact);
+                    RefineModeAssetList();
+                }
+            }
             UpdateCanvasVisibility();
+
+            if (m_RefineAssetView != null)
+                m_RefineAssetView.SetModel(model);
+
         }
 
         void OnFinishRefineArtifact(Artifact artifact)
@@ -301,7 +351,7 @@ namespace Unity.Muse.Common
 
         void OnArtifactSelected(Artifact artifact)
         {
-            if (artifact is null)
+            if (artifact is null || (m_RefineAssetView != null))
                 return;
 
             if (model.isRefineMode && canvas.refinedArtifact?.Guid != artifact.Guid)
@@ -310,7 +360,7 @@ namespace Unity.Muse.Common
 
         void OnDispose()
         {
-            PreUpdateView();
+            UnsubscribeFromEvents();
         }
 
         bool OnServerError(long code, string error)

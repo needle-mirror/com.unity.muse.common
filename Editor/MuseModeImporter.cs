@@ -18,16 +18,23 @@ namespace Unity.Muse.Common.Editor
             ctx.SetMainObject(asset);
         }
 
-        [MenuItem("internal:Muse/Internals/Update Modes", false, 111)]
+        [MenuItem("internal:Muse/Internals/Update Modes _F6", false, 111)]
         static void LoadMuseMode()
         {
+            ModesFactory.ModesChanged += ModesFactoryOnModesChanged;
             ModesFactory.LoadMuseModes();
         }
-
-        [InitializeOnLoadMethod]
-        static void RegisterAvailableTools()
-        {
-           OperatorsFactory.RegisterDefaultOperators();
+        
+        private static void ModesFactoryOnModesChanged() {
+            ModesFactory.ModesChanged -= ModesFactoryOnModesChanged;
+            foreach (var museEditor in EditorModelAssetEditor.GetAllInstances<MuseEditor>())
+            {
+                var m = museEditor.CurrentModel;
+                Debug.Log("reload " + museEditor);
+                museEditor.Close();
+                EditorApplication.delayCall += () => EditorModelAssetEditor.OpenEditorTo(m);
+                // museEditor.Show();
+            }
         }
     }
 }

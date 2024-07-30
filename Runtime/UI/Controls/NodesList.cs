@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Unity.Muse.AppUI.UI;
 using Unity.Muse.Common.Account;
+using Unity.Muse.Common.Services;
 using Unity.Muse.Common.Utils;
 using Dragger = Unity.Muse.Common.Baryon.UI.Manipulators.Dragger;
 
@@ -18,7 +18,13 @@ namespace Unity.Muse.Common
         const string k_USSClassName = "muse-nodeslist";
         const string k_DragBarUssClassName = k_USSClassName + "__dragbar";
         const string k_ContentUssClassName = k_USSClassName + "__content";
+        const string k_RefineUssClassName = k_USSClassName + "__refine";
+        const string k_RefineUssScrollClassName = k_USSClassName + "__scroll" + "--refine";
+        const string k_SpacerUssClassName = k_USSClassName + "__spacer";
+        const string k_SpacerRefineUssClassName = k_SpacerUssClassName + "-refine";
+        const string k_NotificationArea = "notifications-area";
 
+        VisualElement m_BottomSpacer;
         VisualElement m_Container;
         public VisualElement content => m_Container;
         ScrollView m_ScrollView;
@@ -33,7 +39,7 @@ namespace Unity.Muse.Common
         Dragger m_HorizontalDraggable;
 
         VisualElement m_VerticalScrollerDragContainer;
-        int m_CurrentMode;
+        int m_CurrentMode = -1;
 
         public event Action OnResized;
 
@@ -60,23 +66,42 @@ namespace Unity.Muse.Common
             RegisterCallback<PointerEnterEvent>(OnPointerEnter);
             RegisterCallback<PointerLeaveEvent>(OnPointerLeave);
             m_ScrollView = this.Q<ScrollView>();
-            m_ScrollView.verticalScrollerVisibility = ScrollerVisibility.AlwaysVisible;
+            m_ScrollView.verticalScrollerVisibility = ScrollerVisibility.Auto;
             m_ScrollView.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
-            m_ScrollView.verticalScroller.style.opacity = 0;
             m_VerticalScrollerDragContainer = m_ScrollView.verticalScroller.slider.Q(classes: BaseSlider<float>.dragContainerUssClassName);
             m_Container = this.Q<VisualElement>(classes: k_ContentUssClassName);
             draggerElement = this.Q<VisualElement>(k_DragBarUssClassName);
             m_HorizontalDraggable = new Dragger(OnResizeBarClicked, OnResizeBarDrag, OnResizeBarUp, OnResizeBarDown);
             draggerElement.AddManipulator(m_HorizontalDraggable);
+            m_BottomSpacer = this.Q<VisualElement>(classes: k_SpacerUssClassName);
+            var notifications = this.Q<VisualElement>(k_NotificationArea);
+            notifications.Add(new SessionStatusNotifications());
+            notifications.Add(new ExperimentalProgramNotifications());
 
-            this.RegisterContextChangedCallback<Model>(context => SetModel(context.context));
-            RegisterCallback<AttachToPanelEvent>(_ => SubscribeToEvents());
-            RegisterCallback<DetachFromPanelEvent>(_ => UnsubscribeFromEvents());
+            RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
+            RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
+        }
+
+        void OnAttachToPanel(AttachToPanelEvent evt)
+        {
+            SetModel(this.GetContext<Model>());
+            this.RegisterContextChangedCallback<Model>(OnModelContextChanged);
+        }
+
+        void OnDetachFromPanel(DetachFromPanelEvent evt)
+        {
+            this.UnregisterContextChangedCallback<Model>(OnModelContextChanged);
+            SetModel(null);
+        }
+
+        void OnModelContextChanged(ContextChangedEvent<Model> evt)
+        {
+            SetModel(evt.context);
         }
 
         void SubscribeToEvents()
         {
-            if (m_CurrentModel == null)
+            if (!m_CurrentModel)
                 return;
             UnsubscribeFromEvents();
 
@@ -86,15 +111,14 @@ namespace Unity.Muse.Common
             m_CurrentModel.OnGenerateButtonClicked += OnGenerateButtonClicked;
             m_CurrentModel.OnModeChanged += OnModeChanged;
             m_CurrentModel.OnSetReferenceOperator += OnSetReferenceOperator;
-            AccountInfo.Instance.OnOrganizationChanged += OnOrganizationChanged;
-            ClientStatus.Instance.OnClientStatusChanged += OnClientStatusChanged;
-            NetworkState.OnChanged += RefreshOperatorEnableState;
-            RefreshOperatorEnableState();
+            m_CurrentModel.OnRefineArtifact += OnRefineArtifact;
+            m_CurrentModel.OnFinishRefineArtifact += OnRefineArtifact;
+            UpdateView();
         }
 
         void UnsubscribeFromEvents()
         {
-            if (m_CurrentModel == null)
+            if (!m_CurrentModel)
                 return;
 
             m_CurrentModel.OnDispose -= OnModelDispose;
@@ -103,30 +127,13 @@ namespace Unity.Muse.Common
             m_CurrentModel.OnGenerateButtonClicked -= OnGenerateButtonClicked;
             m_CurrentModel.OnModeChanged -= OnModeChanged;
             m_CurrentModel.OnSetReferenceOperator -= OnSetReferenceOperator;
-            AccountInfo.Instance.OnOrganizationChanged -= OnOrganizationChanged;
-            ClientStatus.Instance.OnClientStatusChanged -= OnClientStatusChanged;
-            NetworkState.OnChanged -= RefreshOperatorEnableState;
+            m_CurrentModel.OnRefineArtifact -= OnRefineArtifact;
+            m_CurrentModel.OnFinishRefineArtifact -= OnRefineArtifact;
         }
 
         void OnModelDispose()
         {
             SetModel(null);
-        }
-
-        void OnClientStatusChanged(ClientStatusResponse _)
-        {
-            RefreshOperatorEnableState();
-        }
-
-        void OnOrganizationChanged()
-        {
-            RefreshOperatorEnableState();
-        }
-
-        void RefreshOperatorEnableState()
-        {
-            foreach (var item in m_OperatorMap)
-                SetOperatorEnableState(item.Value);
         }
 
         void OnPointerLeave(PointerLeaveEvent evt)
@@ -153,10 +160,16 @@ namespace Unity.Muse.Common
 
         void OnResizeBarDrag(Dragger manipulator)
         {
-            var width = resolvedStyle.width;
+            var width = layout.width;
             width += manipulator.deltaPos.x;
-            style.width = width;
-            OnResized?.Invoke();
+            var totalWidth = parent.layout.width;
+            width = Mathf.Clamp(width, MainUI.k_NodeListMinWidth, totalWidth - MainUI.k_AssetListMinWidth);
+
+            if (!Mathf.Approximately(width, layout.width))
+            {
+                style.width = width;
+                OnResized?.Invoke();
+            }
         }
 
         void OnResizeBarClicked() { }
@@ -215,23 +228,15 @@ namespace Unity.Muse.Common
             var operatorView = op.GetOperatorView(m_CurrentModel);
             if (operatorView != null)
             {
+                operatorView.AddManipulator(new SessionStatusTracker(m_CurrentModel));
                 m_OperatorMap[op] = operatorView;
                 m_Container.Insert(insertAtIndex, operatorView);
-                SetOperatorEnableState(operatorView);
             }
-        }
-
-        void SetOperatorEnableState(VisualElement operatorView)
-        {
-            if (operatorView is GenerateOperatorUI generateUI)
-                generateUI.UpdateEnableState();
-            else
-                operatorView.SetEnabled(ClientStatus.Instance.IsClientUsable);
         }
 
         void RemoveOperator(IOperator op, out int foundIndex, out int removedAtIndex)
         {
-            foundIndex = m_Operators.FindIndex(o => o.GetType() == op.GetType());
+            foundIndex = m_Operators.FindIndex(o => o.GetOperatorKey() == op.GetOperatorKey());
             removedAtIndex = -1;
             if (foundIndex >= 0)
             {
@@ -251,25 +256,42 @@ namespace Unity.Muse.Common
         void SetView()
         {
             SetDefaultOperators();
+            UpdateView();
         }
 
         void OnModeChanged(int modeIndex)
         {
+            if (modeIndex == m_CurrentMode)
+                return;
+
             m_CurrentMode = modeIndex;
             SetView();
         }
 
-        public static bool IsVariation(IEnumerable<IOperator> operators)
+        private void GenerateArtifacts(string modeType, List<IOperator> operators, bool isVariation, bool isShape, Model model, List<Artifact> targetList, GenerateOperator generateOperator)
         {
-            var referenceOperator = operators.GetOperator<ReferenceOperator>();
-            var isReferenceOperatorEnabled = referenceOperator != null && referenceOperator.Enabled();
-            var isColorMode = isReferenceOperatorEnabled &&
-                referenceOperator.GetSettingEnum<ReferenceOperator.Mode>(ReferenceOperator.Setting.Mode) == ReferenceOperator.Mode.Color;
-            var isVariationFromArtifact =
-                isColorMode && !string.IsNullOrEmpty(referenceOperator.GetSettingString(ReferenceOperator.Setting.Guid));
-            var isVariationFromTexture = isColorMode && referenceOperator.GetSettingTex(ReferenceOperator.Setting.Image);
+            var batchRequestIdentifier = Guid.NewGuid().ToString();
+            for (var i = 0; i < generateOperator?.GetCount(); i++)
+            {
+                var artifact = ArtifactFactory.CreateArtifact(modeType);
+                artifact.SetOperators(operators);
+                artifact.BatchRequestIdentifier = batchRequestIdentifier;
 
-            return isVariationFromArtifact || isVariationFromTexture;
+                if (isVariation)
+                {
+                    artifact.Variate(operators);
+                }
+                else if (isShape)
+                {
+                    artifact.Shape(operators);
+                }
+                else
+                {
+                    artifact.Generate(model);
+                }
+
+                targetList.Add(artifact);
+            }
         }
 
         void OnGenerateButtonClicked()
@@ -282,59 +304,12 @@ namespace Unity.Muse.Common
 
             m_LastGenerateTime = currentTime;
 
-            var generateOperator = m_Operators.GetOperator<GenerateOperator>();
-            var promptOperator = m_Operators.GetOperator<PromptOperator>();
-            var referenceOperator = m_Operators.GetOperator<ReferenceOperator>();
-            var isReferenceOperatorEnabled = referenceOperator != null && referenceOperator.Enabled();
-            var isShape = isReferenceOperatorEnabled &&
-                referenceOperator.GetSettingTex(ReferenceOperator.Setting.Image) &&
-                referenceOperator.GetSettingEnum<ReferenceOperator.Mode>(ReferenceOperator.Setting.Mode) ==
-                ReferenceOperator.Mode.Shape;
-            var isVariation = IsVariation(m_Operators);
-
-            if (!promptOperator.IsPromptValid())
-                return;
-
-            var operators = m_Operators.Select(x => x.Clone()).ToList();
-
-            var modeType = ModesFactory.GetModeKeyFromIndex(m_CurrentMode);
-            var groupArtifact = ArtifactFactory.CreateArtifact(modeType);
-            groupArtifact.SetOperators(operators);
-            groupArtifact.StartGenerate(m_CurrentModel);
-
-            var generatedArtifacts = new List<Artifact>();
-            for (var i = 0; i < generateOperator?.GetCount(); i++)
-            {
-                var artifact = ArtifactFactory.CreateArtifact(modeType);
-                artifact.SetOperators(operators);
-
-                if (isVariation)
-                {
-                    artifact.Variate(operators);
-                }
-                else if (isShape)
-                {
-                    artifact.Shape(operators);
-                }
-                else
-                {
-                    artifact.Generate(m_CurrentModel);
-                }
-
-                generatedArtifacts.Add(artifact);
-            }
-
-            // Add new artifacts after sending generate calls as adding artifact can change selection
-            foreach(var artifact in generatedArtifacts)
-                m_CurrentModel.AddAsset(artifact);
-
-            // Cancel inpainting mode after generation settings have been sent, otherwise the inpainting mask would not be part of the generation
-            m_CurrentModel.SetActiveTool(null);
+            GenerationService.GenerateImage(m_CurrentModel, m_Operators, m_CurrentMode);
         }
 
         void Cooldown()
         {
-            if (m_CurrentModel == null)
+            if (!m_CurrentModel)
                 return;
 
             var buttonData = m_CurrentModel.GetData<GenerateButtonData>();
@@ -342,6 +317,11 @@ namespace Unity.Muse.Common
                 return;
 
             buttonData.SetCooldown(this, GenerateCooldownTime);
+        }
+
+        public void SetViewContext(Model model)
+        {
+            this.ProvideContext(model);
         }
 
         public void SetModel(Model model)
@@ -353,7 +333,7 @@ namespace Unity.Muse.Common
 
             m_CurrentModel = model;
 
-            if (m_CurrentModel == null)
+            if (!m_CurrentModel)
                 return;
 
             var currentMode = ModesFactory.GetModeIndexFromKey(model.CurrentMode);
@@ -368,8 +348,14 @@ namespace Unity.Muse.Common
 
         public void UpdateView()
         {
-            //Here we would switch.
-            throw new NotImplementedException();
+            if (m_CurrentModel == null)
+            {
+                return;
+            }
+
+            m_Container.EnableInClassList(k_RefineUssClassName, m_CurrentModel.isRefineMode);
+            m_ScrollView.EnableInClassList(k_RefineUssScrollClassName, m_CurrentModel.isRefineMode);
+            m_BottomSpacer.EnableInClassList(k_SpacerRefineUssClassName, m_CurrentModel.isRefineMode);
         }
 
         void OnOperatorUpdated(IEnumerable<IOperator> operators, bool set)
@@ -403,6 +389,16 @@ namespace Unity.Muse.Common
             referenceOp.SetColorImage(artifact as Artifact<Texture2D>);
             m_CurrentModel.UpdateOperators(referenceOp);
             m_CurrentModel.SetActiveTool(null);
+        }
+
+        void OnRefineArtifact(Artifact obj)
+        {
+            UpdateView();
+        }
+
+        public void LoadDefaultTheme()
+        {
+            styleSheets.Add(ResourceManager.Load<StyleSheet>(PackageResources.museTheme));
         }
     }
 }

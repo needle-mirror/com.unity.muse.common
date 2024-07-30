@@ -4,6 +4,9 @@ using System.Linq;
 using Unity.AppUI.Core;
 using Unity.Muse.Common.Account;
 using Unity.Muse.Common.Analytics;
+#if ENABLE_UNITYENGINE_ANALITICS
+using UnityEngine.Analytics;
+#endif
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -42,7 +45,14 @@ namespace Unity.Muse.Common
         static readonly int k_LatestVersion = (int)Versions.MergedPrompts;
 
         int m_Version;
+        int? m_CostInMusePoints;
 
+        bool m_SupportCostSimulation;
+
+        internal event Action OnCloseWindowRequested;
+        internal event Action OnCostRemoved;
+        internal event Action<int?> OnCostChanged;
+        internal event Action<bool> OnSupportCostSimulationChanged;
         /// <summary>
         /// Event raised when the model was modified.
         /// </summary>
@@ -84,6 +94,13 @@ namespace Unity.Muse.Common
 
         internal string guid = Guid.Empty.ToString();
 
+        internal static bool shouldShowCost =>
+#if UNITY_EDITOR
+            UnityEditor.Unsupported.IsDeveloperMode();
+#else
+            false;
+#endif
+
         internal void Initialize()
         {
             guid = Guid.NewGuid().ToString();
@@ -107,12 +124,14 @@ namespace Unity.Muse.Common
                     modelData.OnSaveRequested += () => OnModified?.Invoke();
             }
         }
- 
+
         internal List<Artifact> AssetsData
         {
             get => isRefineMode ? refinedArtifact.history : assetsData;
             private set => assetsData = value;
         }
+
+        internal List<Artifact> UnrefinedAssetsData => assetsData;
 
         internal List<Artifact> DraggedArtifacts { get; private set; } = new List<Artifact>();
 
@@ -122,9 +141,36 @@ namespace Unity.Muse.Common
             private set => currentMode = value;
         }
 
-        internal ICanvasTool ActiveTool { get; private set; }
+        internal int? CostInMusePoints
+        {
+            get => m_CostInMusePoints;
+            set
+            {
+                m_CostInMusePoints = value;
+                OnCostChanged?.Invoke(m_CostInMusePoints);
+                if (value == null)
+                {
+                    OnCostRemoved?.Invoke();
+                }
+            }
 
-        internal ICanvasTool DefaultRefineTool { get; private set; }
+        }
+
+        internal bool SupportCostSimulation
+        {
+            get => m_SupportCostSimulation;
+            set
+            {
+                var changed = m_SupportCostSimulation != value;
+                m_SupportCostSimulation = value;
+                if (changed)
+                    OnSupportCostSimulationChanged?.Invoke(m_SupportCostSimulation);
+            }
+        }
+
+        internal ICanvasTool ActiveTool { get; private set; } = null;
+
+        internal ICanvasTool DefaultRefineTool { get; private set; } = null;
 
         internal void DeselectAll()
         {
@@ -213,6 +259,8 @@ namespace Unity.Muse.Common
             }
         }
 
+        internal IEnumerable<IOperator> preRefineOperators => m_PreRefineOperators;
+
         /// <summary>
         /// Set or replace operators in the nodes list.
         /// </summary>
@@ -228,7 +276,7 @@ namespace Unity.Muse.Common
             {
                 foreach (var op in operators)
                 {
-                    var index = m_Operators.FindIndex(o => o.GetType() == op.GetType());
+                    var index = m_Operators.FindIndex(o => o.GetOperatorKey() == op.GetOperatorKey());
                     if (index >= 0)
                         m_Operators[index] = op;
                     else
@@ -276,9 +324,8 @@ namespace Unity.Muse.Common
             }
         }
 
-        internal void SetOperatorVisibility<T>(bool visible) where T : class, IOperator
+        internal void SetOperatorVisibility(IOperator op, bool visible)
         {
-            var op = m_Operators.GetOperator<T>();
             if (op != null)
             {
                 op.Hidden = !visible;
@@ -363,6 +410,10 @@ namespace Unity.Muse.Common
             {
                 // Check by artifact reference rather then guid otherwise we might delete multiple top level items that have
                 // previously been branched off.
+                foreach (var assetData in AssetsData)
+                {
+                    assetData.children.RemoveAll(a => ReferenceEquals(a, artifact));
+                }
                 AssetsData.RemoveAll(a => ReferenceEquals(a, artifact));
                 m_ExportedArtifacts?.RemoveAll(e => e.MuseGuid == artifact.Guid);
             }
@@ -473,8 +524,14 @@ namespace Unity.Muse.Common
         {
             if (mode < 0)
                 return;
-            currentMode = ModesFactory.GetModeKeyFromIndex(mode);
-            OnModeChanged?.Invoke(mode);
+            var newMode = ModesFactory.GetModeKeyFromIndex(mode);
+            if (newMode != currentMode)
+            {
+                m_Operators = null;
+                currentMode = newMode;
+                OnModeChanged?.Invoke(mode);
+                SupportCostSimulation = ModesFactory.IsCostSimulationSupportedForMode(currentMode);
+            }
         }
 
         internal void RequestFrameArtifact(Artifact artifact)
@@ -488,9 +545,9 @@ namespace Unity.Muse.Common
             OnDispose?.Invoke();
         }
 
-        internal void RefineArtifact(Artifact artifact)
+        internal void RefineArtifact(Artifact artifact, bool force = false)
         {
-            if (artifact?.Guid == refinedArtifact?.Guid)
+            if (artifact?.Guid == refinedArtifact?.Guid && !force)
                 return;
 
             preRefinedArtifact = selectedArtifact;
@@ -498,9 +555,9 @@ namespace Unity.Muse.Common
             refinedArtifact = artifact;
             m_Operators = modeDefaultOperators.ToList();
 
-            ArtifactSelected(refinedArtifact);
-
             OnRefineArtifact?.Invoke(artifact);
+
+            ArtifactSelected(refinedArtifact, true);
         }
 
         internal void FinishRefineArtifact()
@@ -512,7 +569,7 @@ namespace Unity.Muse.Common
             refinedArtifact = null;
             m_Operators = m_PreRefineOperators.ToList();
 
-            ArtifactSelected(preRefinedArtifact);
+            ArtifactSelected(preRefinedArtifact, true);
 
             preRefinedArtifact = null;
             m_PreRefineOperators = null;
@@ -606,23 +663,16 @@ namespace Unity.Muse.Common
         /// <param name="artifact">The artifact to branch off.</param>
         internal void Branch(Artifact artifact)
         {
-            var clone = artifact.Clone(currentMode);
+            var clone = artifact.Clone(artifact.mode);
             assetsData.Add(clone);
             clone.history.Clear();
             clone.history = new() { clone };
-            RefineArtifact(clone);
+            RefineArtifact(clone, true);
         }
 
-        internal static Action<string, object, int> OnAnalytics;
-
-        internal static void SendAnalytics(IAnalyticsData data)
+        internal static void SendAnalytics(IAnalytic analytic)
         {
-            SendAnalytics(data.EventName, data, data.Version);
-        }
-
-        internal static void SendAnalytics(string eventName, object parameters, int version)
-        {
-            OnAnalytics?.Invoke(eventName, parameters, version);
+            AnalyticsManager.SendAnalytics(analytic);
         }
 
         internal void ServerError(long objResponseCode, string objRequestError)
@@ -747,11 +797,20 @@ namespace Unity.Muse.Common
         // Debouncing the usage update to avoid spamming the server since we send multiple requests at once
         // when generating batches of artifacts.
         Action m_UpdateUsage;
+        Action m_UpdateExperimentalProgramUsage;
 
-        internal void ArtifactGenerationDone(Artifact artifact)
+        internal void UpdateAnyUsages()
         {
             m_UpdateUsage ??= EventServices.IntervalDebounce(AccountInfo.Instance.UpdateUsage, 4f);
             m_UpdateUsage();
+
+            if (ExperimentalProgram.IsConfigured)
+                ExperimentalProgram.Refresh();
+        }
+
+        internal void ArtifactGenerationDone(Artifact _)
+        {
+            UpdateAnyUsages();
         }
 
         internal void AddExportedArtifact(string unityGuid, string artifactGuid)
@@ -771,6 +830,16 @@ namespace Unity.Muse.Common
         internal Artifact GetArtifactByGuid(string guid)
         {
             return assetsData.FirstOrDefault(a => a.Guid == guid);
+        }
+
+        internal void ResetCost()
+        {
+            CostInMusePoints = null;
+        }
+
+        internal void CloseWindowRequested()
+        {
+            OnCloseWindowRequested?.Invoke();
         }
     }
 }

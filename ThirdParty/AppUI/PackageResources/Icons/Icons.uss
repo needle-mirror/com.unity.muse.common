@@ -1,10 +1,10 @@
 .appui {
-    --appui-icon-caret-down-fill: url("project:/Packages/com.unity.muse.common/ThirdParty/AppUI/PackageResources/Icons/Fill/CaretDown.png");
-    --appui-icon-warning-fill: url("project:/Packages/com.unity.muse.common/ThirdParty/AppUI/PackageResources/Icons/Fill/Warning.png");
     --appui-icon-check-bold: url("project:/Packages/com.unity.muse.common/ThirdParty/AppUI/PackageResources/Icons/Bold/Check.png");
     --appui-icon-dots-three-bold: url("project:/Packages/com.unity.muse.common/ThirdParty/AppUI/PackageResources/Icons/Bold/DotsThree.png");
     --appui-icon-dots-three-vertical-bold: url("project:/Packages/com.unity.muse.common/ThirdParty/AppUI/PackageResources/Icons/Bold/DotsThreeVertical.png");
     --appui-icon-minus-bold: url("project:/Packages/com.unity.muse.common/ThirdParty/AppUI/PackageResources/Icons/Bold/Minus.png");
+    --appui-icon-caret-down-fill: url("project:/Packages/com.unity.muse.common/ThirdParty/AppUI/PackageResources/Icons/Fill/CaretDown.png");
+    --appui-icon-warning-fill: url("project:/Packages/com.unity.muse.common/ThirdParty/AppUI/PackageResources/Icons/Fill/Warning.png");
     --appui-icon-360-regular: url("project:/Packages/com.unity.muse.common/ThirdParty/AppUI/PackageResources/Icons/Regular/360.png");
     --appui-icon-ar-mode-regular: url("project:/Packages/com.unity.muse.common/ThirdParty/AppUI/PackageResources/Icons/Regular/ArMode.png");
     --appui-icon-ar-mode-off-regular: url("project:/Packages/com.unity.muse.common/ThirdParty/AppUI/PackageResources/Icons/Regular/ArModeOff.png");
@@ -17,6 +17,7 @@
     --appui-icon-arrow-down-regular: url("project:/Packages/com.unity.muse.common/ThirdParty/AppUI/PackageResources/Icons/Regular/ArrowDown.png");
     --appui-icon-arrow-left-regular: url("project:/Packages/com.unity.muse.common/ThirdParty/AppUI/PackageResources/Icons/Regular/ArrowLeft.png");
     --appui-icon-arrow-right-regular: url("project:/Packages/com.unity.muse.common/ThirdParty/AppUI/PackageResources/Icons/Regular/ArrowRight.png");
+    --appui-icon-arrow-square-in-regular: url("project:/Packages/com.unity.muse.common/ThirdParty/AppUI/PackageResources/Icons/Regular/ArrowSquareIn.png");
     --appui-icon-arrow-square-out-regular: url("project:/Packages/com.unity.muse.common/ThirdParty/AppUI/PackageResources/Icons/Regular/ArrowSquareOut.png");
     --appui-icon-arrow-u-down-left-regular: url("project:/Packages/com.unity.muse.common/ThirdParty/AppUI/PackageResources/Icons/Regular/ArrowUDownLeft.png");
     --appui-icon-arrow-u-down-right-regular: url("project:/Packages/com.unity.muse.common/ThirdParty/AppUI/PackageResources/Icons/Regular/ArrowUDownRight.png");
@@ -328,6 +329,10 @@
 
 .appui-icon--arrow-right--regular {
     --unity-image: var(--appui-icon-arrow-right-regular);
+}
+
+.appui-icon--arrow-square-in--regular {
+    --unity-image: var(--appui-icon-arrow-square-in-regular);
 }
 
 .appui-icon--arrow-square-out--regular {

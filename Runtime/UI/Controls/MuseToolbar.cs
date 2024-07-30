@@ -8,8 +8,14 @@ namespace Unity.Muse.Common
     /// <summary>
     /// Common UI for Canvas Tools
     /// </summary>
-    internal class MuseToolbar : VisualElement
+#if ENABLE_UXML_SERIALIZED_DATA
+    [UxmlElement]
+#endif
+    partial class MuseToolbar : VisualElement
     {
+        private const string k_ClassName = "muse-toolbar";
+        private ActionGroup m_ButtonGroup;
+
         /// <summary>
         /// Pan Button
         /// </summary>
@@ -38,13 +44,15 @@ namespace Unity.Muse.Common
 
         void InitializeVisualTree()
         {
+            AddToClassList(k_ClassName);
             var styleSheet = ResourceManager.Load<StyleSheet>(PackageResources.toolbarStyleSheet);
             styleSheets.Add(styleSheet);
-
-            var actionGroup = new ActionGroup()
+            m_ButtonGroup = new ActionGroup()
             {
                 compact = true,
                 justified = false,
+                selectionType = SelectionType.Single,
+                allowNoSelection = false,
                 style =
                 {
                     flexGrow = 0f
@@ -57,7 +65,7 @@ namespace Unity.Muse.Common
                 tooltip = "Pan (1 or P)",
                 icon = "pan"
             };
-            actionGroup.Add(PanBtn);
+            m_ButtonGroup.Add(PanBtn);
 
             PaintBtn = new ActionButton()
             {
@@ -65,7 +73,7 @@ namespace Unity.Muse.Common
                 tooltip = "Paint (2 or B)",
                 icon = "paint-brush"
             };
-            actionGroup.Add(PaintBtn);
+            m_ButtonGroup.Add(PaintBtn);
 
             EraseBtn = new ActionButton()
             {
@@ -73,9 +81,9 @@ namespace Unity.Muse.Common
                 tooltip = "Erase (3 or E)",
                 icon = "eraser"
             };
-            actionGroup.Add(EraseBtn);
+            m_ButtonGroup.Add(EraseBtn);
 
-            Add(actionGroup);
+            Add(m_ButtonGroup);
 
             SizeSlider = new TouchSliderFloat()
             {
@@ -120,10 +128,9 @@ namespace Unity.Muse.Common
         /// <param name="button">The specific button</param>
         public void SelectButton(ActionButton button)
         {
-            PaintBtn.EnableInClassList(Styles.selectedUssClassName, button == PaintBtn);
-            EraseBtn.EnableInClassList(Styles.selectedUssClassName, button == EraseBtn);
-            PanBtn.EnableInClassList(Styles.selectedUssClassName, button == PanBtn);
-
+            var index = button.parent?.IndexOf(button) ?? -1;
+            if (index >= 0)
+                m_ButtonGroup.SetSelection(new []{ index });
             DeleteBtn.SetEnabled(button == PaintBtn || button == EraseBtn);
             SizeSlider.SetEnabled(button == PaintBtn || button == EraseBtn);
         }
@@ -152,5 +159,10 @@ namespace Unity.Muse.Common
         {
             SelectButton(PanBtn);
         }
+        
+#if ENABLE_UXML_TRAITS
+        public new class UxmlFactory : UxmlFactory<MuseToolbar, UxmlTraits> { }
+#endif
+
+        }
     }
-}

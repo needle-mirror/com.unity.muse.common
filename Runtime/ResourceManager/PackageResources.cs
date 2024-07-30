@@ -36,7 +36,7 @@ namespace Unity.Muse.Common
         [ResourcePath]
         internal const string toolbarStyleSheet =
             "Packages/com.unity.muse.common/Runtime/UI/PackageResources/uss/Toolbar.uss";
-        
+
         [ResourcePath]
         internal const string projectSettingsStyleSheet =
             "Packages/com.unity.muse.common/Editor/Preferences/MuseProjectSettings.uss";
@@ -236,12 +236,12 @@ namespace Unity.Muse.Common
             "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Images/Muse Logo.png";
 
         [ResourcePath]
-        internal const string accountDropdownIcon =
-            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Images/Account Dropdown Icon.png";
-
-        [ResourcePath]
         internal const string accountUsageExceededBar =
             "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Images/Usage Exceeded Bar.png";
+
+        [ResourcePath]
+        internal const string onboardingHeroImage =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Images/OnboardingHeroImage.png";
 
         [ResourcePath]
         internal const string paintingElementStyleSheet =
@@ -290,5 +290,12 @@ namespace Unity.Muse.Common
         [ResourcePath]
         internal const string doodleTransformShader =
             "Packages/com.unity.muse.common/Runtime/UI/PackageResources/Shaders/DoodleTransform.shader";
+
+        [ResourcePath]
+        internal const string modesListSelectorStyleSheet = "Packages/com.unity.muse.common/Runtime/UI/PackageResources/uss/ModesListSelector.uss";
+
+        [ResourcePath]
+        internal const string refineAssetViewStyleSheet =
+            "Packages/com.unity.muse.common/Runtime/UI/PackageResources/uss/RefineAssetView.uss";
     }
 }

@@ -1,5 +1,11 @@
 Shader "Hidden/DoodlePaint"
 {
+    Properties
+    {
+        // Declare "_Color" as Property to support implicit color space conversions
+        _Color("Color", Color) = (1,1,1,1)
+    }
+    
     SubShader
     {
         Lighting Off

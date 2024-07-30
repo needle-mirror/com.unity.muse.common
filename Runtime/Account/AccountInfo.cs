@@ -18,7 +18,7 @@ namespace Unity.Muse.Common.Account
 
         public bool IsEntitled => Organization is {IsEntitled: true};
         public bool IsExpired => Organization is {IsExpired: true};
-        public bool IsRegistered => Organization is {HasMuseAccount: true};
+        public bool HasMuseAccount => Organization is {HasMuseAccount: true};
         public bool RequestSeat;
 
         // Stuck state possible: No valid token, so can't do the ready calls.
@@ -94,7 +94,6 @@ namespace Unity.Muse.Common.Account
                 GlobalPreferences.organization = organization;
                 if (changed)
                 {
-                    GlobalPreferences.trialDialogShown = false;
                     OnOrganizationChanged?.Invoke();
                     UpdateUsage();
                 }
@@ -113,12 +112,6 @@ namespace Unity.Muse.Common.Account
                 if (changed)
                     OnUsageChanged?.Invoke();
             }
-        }
-
-        public bool SubscriptionStartDisplayed
-        {
-            get => GlobalPreferences.subscriptionStartDisplayed;
-            set => GlobalPreferences.subscriptionStartDisplayed = value;
         }
 
         Task<(SubscriptionResponse response, string error)> m_UpdatingEntitlements;

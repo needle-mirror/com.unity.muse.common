@@ -9,15 +9,44 @@ using Unity.Properties;
 namespace Unity.Muse.AppUI.UI
 {
     /// <summary>
+    /// The position of an element inside a Flex container.
+    /// </summary>
+    [GenerateLowerCaseStrings]
+    internal enum FlexPosition
+    {
+        /// <summary>
+        /// The element is at the start of the container.
+        /// </summary>
+        /// <remarks>
+        /// In a row with Left-to-Right layout, this is the left side.
+        /// In a row with Right-to-Left layout, this is the right side.
+        /// For a column, this is the top side.
+        /// </remarks>
+        Start,
+        
+        /// <summary>
+        /// The element is at the end of the container.
+        /// </summary>
+        /// <remarks>
+        /// In a row with Left-to-Right layout, this is the right side.
+        /// In a row with Right-to-Left layout, this is the left side.
+        /// For a column, this is the bottom side.
+        /// </remarks>
+        End
+    }
+    
+    /// <summary>
     /// Item used inside an <see cref="Accordion"/> element.
     /// </summary>
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class AccordionItem : BaseVisualElement, INotifyValueChanged<bool>
+    internal partial class AccordionItem : BaseVisualElement, INotifyValueChanged<bool>
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         internal static readonly BindingId titleProperty = nameof(title);
+
+        internal static readonly BindingId indicatorPositionProperty = nameof(indicatorPosition);
         
         internal static readonly BindingId valueProperty = nameof(value);
         
@@ -29,48 +58,56 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The AccordionItem main styling class.
         /// </summary>
-        public static readonly string ussClassName = "appui-accordionitem";
+        public const string ussClassName = "appui-accordionitem";
         
         /// <summary>
         /// The AccordionItem content parent styling class.
         /// </summary>
-        public static readonly string contentParentUssClassName = ussClassName + "__content-parent";
+        public const string contentParentUssClassName = ussClassName + "__content-parent";
 
         /// <summary>
         /// The AccordionItem content styling class.
         /// </summary>
-        public static readonly string contentUssClassName = ussClassName + "__content";
+        public const string contentUssClassName = ussClassName + "__content";
 
         /// <summary>
         /// The AccordionItem header styling class.
         /// </summary>
-        public static readonly string headerUssClassName = ussClassName + "__header";
+        public const string headerUssClassName = ussClassName + "__header";
 
         /// <summary>
         /// The AccordionItem headertext styling class.
         /// </summary>
-        public static readonly string headerTextUssClassName = ussClassName + "__headertext";
+        public const string headerTextUssClassName = ussClassName + "__headertext";
         
         /// <summary>
         /// The AccordionItem trailing container styling class.
         /// </summary>
-        public static readonly string trailingContainerUssClassName = ussClassName + "__trailing-container";
+        public const string trailingContainerUssClassName = ussClassName + "__trailing-container";
 
         /// <summary>
         /// The AccordionItem indicator styling class.
         /// </summary>
-        public static readonly string indicatorUssClassName = ussClassName + "__indicator";
+        public const string indicatorUssClassName = ussClassName + "__indicator";
 
         /// <summary>
         /// The AccordionItem heading styling class.
         /// </summary>
-        public static readonly string headingUssClassName = ussClassName + "__heading";
+        public const string headingUssClassName = ussClassName + "__heading";
+        
+        /// <summary>
+        /// The AccordionItem indicator position styling class.
+        /// </summary>
+        [EnumName("GetIndicatorPosUssClassName", typeof(FlexPosition))]
+        public const string indicatorPosUssClassName = ussClassName + "--indicator-";
 
         readonly VisualElement m_ContentElement;
         
         readonly VisualElement m_ContentParentElement;
 
         readonly LocalizedTextElement m_HeaderTextElement;
+
+        readonly VisualElement m_HeaderIndicatorElement;
 
         readonly Pressable m_Clickable;
 
@@ -94,8 +131,8 @@ namespace Unity.Muse.AppUI.UI
             trailingContainer = new VisualElement { name = trailingContainerUssClassName, pickingMode = PickingMode.Ignore };
             trailingContainer.AddToClassList(trailingContainerUssClassName);
 
-            var headerIndicatorElement = new Icon { name = indicatorUssClassName, iconName = k_IndicatorIconName, pickingMode = PickingMode.Ignore };
-            headerIndicatorElement.AddToClassList(indicatorUssClassName);
+            m_HeaderIndicatorElement = new Icon { name = indicatorUssClassName, iconName = k_IndicatorIconName, pickingMode = PickingMode.Ignore };
+            m_HeaderIndicatorElement.AddToClassList(indicatorUssClassName);
 
             m_HeaderElement = new ExVisualElement
             {
@@ -110,7 +147,7 @@ namespace Unity.Muse.AppUI.UI
             m_HeaderElement.AddManipulator(new KeyboardFocusController(OnKeyboardFocus, OnFocus));
             m_HeaderElement.hierarchy.Add(m_HeaderTextElement);
             m_HeaderElement.hierarchy.Add(trailingContainer);
-            m_HeaderElement.hierarchy.Add(headerIndicatorElement);
+            m_HeaderElement.hierarchy.Add(m_HeaderIndicatorElement);
 
             var headingElement = new VisualElement { pickingMode = PickingMode.Ignore };
             headingElement.AddToClassList(headingUssClassName);
@@ -135,6 +172,7 @@ namespace Unity.Muse.AppUI.UI
             hierarchy.Add(headingElement);
             hierarchy.Add(m_ContentParentElement);
             
+            AddToClassList(GetIndicatorPosUssClassName(FlexPosition.End));
             SetValueWithoutNotify(false);
         }
         
@@ -191,6 +229,39 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
                     NotifyPropertyChanged(in trailingContentTemplateProperty);
+#endif
+            }
+        }
+        
+        /// <summary>
+        /// The position of the indicator.
+        /// </summary>
+        [Tooltip("The position of the indicator.")]
+#if ENABLE_RUNTIME_DATA_BINDINGS
+        [CreateProperty]
+#endif
+#if ENABLE_UXML_SERIALIZED_DATA
+        [UxmlAttribute]
+#endif
+        public FlexPosition indicatorPosition
+        {
+            get => m_HeaderElement.hierarchy.IndexOf(m_HeaderIndicatorElement) == 0 ? FlexPosition.Start : FlexPosition.End;
+            set
+            {
+                var previousValue = indicatorPosition;
+                if (previousValue == value)
+                    return;
+                
+                m_HeaderIndicatorElement.RemoveFromHierarchy();
+                if (value == FlexPosition.Start)
+                    m_HeaderElement.hierarchy.Insert(0, m_HeaderIndicatorElement);
+                else
+                    m_HeaderElement.hierarchy.Add(m_HeaderIndicatorElement);
+                RemoveFromClassList(GetIndicatorPosUssClassName(previousValue));
+                AddToClassList(GetIndicatorPosUssClassName(value));
+                
+#if ENABLE_RUNTIME_DATA_BINDINGS
+                NotifyPropertyChanged(indicatorPositionProperty);
 #endif
             }
         }
@@ -279,17 +350,23 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Class to be able to use the <see cref="AccordionItem"/> in UXML.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<AccordionItem, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<AccordionItem, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="AccordionItem"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             readonly UxmlStringAttributeDescription m_Title = new UxmlStringAttributeDescription
             {
                 name = "title",
                 defaultValue = "Header",
+            };
+            
+            readonly UxmlEnumAttributeDescription<FlexPosition> m_IndicatorPosition = new UxmlEnumAttributeDescription<FlexPosition>
+            {
+                name = "indicator-position",
+                defaultValue = FlexPosition.End,
             };
             
             readonly UxmlBoolAttributeDescription m_Value = new UxmlBoolAttributeDescription
@@ -311,6 +388,7 @@ namespace Unity.Muse.AppUI.UI
 
                 var element = (AccordionItem)ve;
                 element.title = m_Title.GetValueFromBag(bag, cc);
+                element.indicatorPosition = m_IndicatorPosition.GetValueFromBag(bag, cc);
                 element.value = m_Value.GetValueFromBag(bag, cc);
             }
         }
@@ -323,7 +401,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class Accordion : BaseVisualElement
+    internal partial class Accordion : BaseVisualElement
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         internal static readonly BindingId isExclusiveProperty = nameof(isExclusive);
@@ -332,7 +410,7 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The Accordion main styling class.
         /// </summary>
-        public static readonly string ussClassName = "appui-accordion";
+        public const string ussClassName = "appui-accordion";
         
         bool m_IsExclusive;
 
@@ -401,12 +479,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The UXML factory for the Accordion.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<Accordion, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<Accordion, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="Accordion"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             /// <summary>
             /// The behavior of the Accordion when multiple items are open.

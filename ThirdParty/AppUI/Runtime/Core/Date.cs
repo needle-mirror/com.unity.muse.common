@@ -8,7 +8,7 @@ namespace Unity.AppUI.Core
     /// Data structure that represents a date (year, month, day).
     /// </summary>
     [Serializable]
-    public struct Date : IEquatable<Date>
+    internal struct Date : IEquatable<Date>
     {
         /// <summary>
         /// The current date.
@@ -193,7 +193,7 @@ namespace Unity.AppUI.Core
     /// Data structure that represents a range of dates.
     /// </summary>
     [Serializable]
-    public struct DateRange : IEquatable<DateRange>
+    internal struct DateRange : IEquatable<DateRange>
     {
         [SerializeField]
         [Tooltip("The start date of the range.")]

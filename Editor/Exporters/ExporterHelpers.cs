@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using UnityEditor;
@@ -222,6 +223,16 @@ namespace Unity.Muse.Common.Editor
             foreach (var c in "/:?<>*|\\~")
                 stringValue = stringValue.Replace(c, replaceCharacter);
             return stringValue.Trim();
+        }
+
+        public static string[] OpenFilesPanel(string title, string directory, IEnumerable<ExtensionFilter> extensions)
+        {
+            return NativePlugin.OpenFilePanel(title, directory, extensions, true);
+        }
+        
+        public static void OpenFilesPanelAsync(string title, string directory, IEnumerable<ExtensionFilter> extensions, Action<string[]> cb)
+        {
+            NativePlugin.OpenFilePanelAsync(title, directory, extensions, true, cb);
         }
     }
 }

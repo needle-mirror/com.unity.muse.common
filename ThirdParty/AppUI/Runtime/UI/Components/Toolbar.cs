@@ -9,7 +9,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// The dock mode of the Toolbar.
     /// </summary>
-    public enum ToolbarDockMode
+    internal enum ToolbarDockMode
     {
         /// <summary>
         /// The Toolbar is floating.
@@ -43,7 +43,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class Toolbar : BaseVisualElement
+    internal partial class Toolbar : BaseVisualElement
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -59,32 +59,34 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The Toolbar's USS class name.
         /// </summary>
-        public static readonly string ussClassName = "appui-toolbar";
+        public const string ussClassName = "appui-toolbar";
         
         /// <summary>
         /// The Toolbar's drag bar USS class name.
         /// </summary>
-        public static readonly string dragBarUssClassName = ussClassName + "__drag-bar";
+        public const string dragBarUssClassName = ussClassName + "__drag-bar";
         
         /// <summary>
         /// The Toolbar's drag bar indicator USS class name.
         /// </summary>
-        public static readonly string dragBarIndicatorUssClassName = dragBarUssClassName + "-indicator";
+        public const string dragBarIndicatorUssClassName = dragBarUssClassName + "-indicator";
         
         /// <summary>
         /// The Toolbar's container USS class name.
         /// </summary>
-        public static readonly string containerUssClassName = ussClassName + "__container";
+        public const string containerUssClassName = ussClassName + "__container";
         
         /// <summary>
         /// The Toolbar's variant USS class name.
         /// </summary>
-        public static readonly string variantUssClassName = ussClassName + "--";
+        [EnumName("GetDockModeUssClassName", typeof(ToolbarDockMode))]
+        [EnumName("GetDirectionUssClassName", typeof(Direction))]
+        public const string variantUssClassName = ussClassName + "--";
         
         /// <summary>
         /// The Toolbar's draggable USS class name.
         /// </summary>
-        public static readonly string draggableUssClassName = ussClassName + "--draggable";
+        public const string draggableUssClassName = ussClassName + "--draggable";
 
         readonly VisualElement m_Container;
 
@@ -118,9 +120,9 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_DockMode != value;
-                RemoveFromClassList(variantUssClassName + m_DockMode.ToString().ToLower());
+                RemoveFromClassList(GetDockModeUssClassName(m_DockMode));
                 m_DockMode = value;
-                AddToClassList(variantUssClassName + m_DockMode.ToString().ToLower());
+                AddToClassList(GetDockModeUssClassName(m_DockMode));
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
@@ -168,9 +170,9 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_Direction != value;
-                RemoveFromClassList(variantUssClassName + m_Direction.ToString().ToLower());
+                RemoveFromClassList(GetDirectionUssClassName(m_Direction));
                 m_Direction = value;
-                AddToClassList(variantUssClassName + m_Direction.ToString().ToLower());
+                AddToClassList(GetDirectionUssClassName(m_Direction));
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
@@ -223,12 +225,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// UXML Factory for Toolbar.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<Toolbar, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<Toolbar, UxmlTraits> { }
         
         /// <summary>
         /// UXML Traits for Toolbar.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             readonly UxmlEnumAttributeDescription<ToolbarDockMode> m_DockMode = new UxmlEnumAttributeDescription<ToolbarDockMode> { name = "dock-mode", defaultValue = ToolbarDockMode.Floating };
 

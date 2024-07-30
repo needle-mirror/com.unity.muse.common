@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Unity.Muse.AppUI.UI;
 using Unity.Muse.Common.Utils;
 using UnityEngine;
@@ -39,7 +38,7 @@ namespace Unity.Muse.Common
             this.ApplyTemplate(PackageResources.generationSettingsTemplate);
 
             passMask = Passes.Clear | Passes.BackgroundColor;
-         
+
             m_OperatorContainer = this.Q<VisualElement>(classes: "operators");
             this.Q<ActionButton>(k_UseAll).clicked += UseAll;
             m_Artifact = artifact;
@@ -53,10 +52,12 @@ namespace Unity.Muse.Common
             operatorContainer.Clear();
             foreach (var op in m_Artifact.GetOperators())
             {
-                bool isCustomSection = false;
-                var view = op.GetSettingsView(m_CurrentModel, ref isCustomSection, m_Dismiss);
+                if (!op.Enabled() || op.Hidden)
+                    continue;
 
-                if (view is null || !op.Enabled())
+                var isCustomSection = false;
+                var view = op.GetSettingsView(m_CurrentModel, ref isCustomSection, m_Dismiss);
+                if (view == null)
                     continue;
 
                 m_OperatorContainer.Add(isCustomSection ? view : CreateView(op.Label, view, () => Use(op)));
@@ -118,7 +119,6 @@ namespace Unity.Muse.Common
 
         void UseAll()
         {
-            // We don't want to override the amount of Images to generate
             var operators = m_Artifact.CloneOperators();
             var proxyOperators = operators.FindAll(x => x is IProxyOperator);
 
@@ -126,13 +126,13 @@ namespace Unity.Muse.Common
             {
                 if (operators[i] is not IOperatorAddHandler handler ||
                     handler.EvaluateAddOperator(m_CurrentModel)) continue;
-                
+
                 if(operators[i] is IOperatorRemoveHandler removeHandler)
                     removeHandler.OnOperatorRemoved(operators);
-                    
+
                 operators.RemoveAt(i);
             }
-            
+
             foreach (var proxy in proxyOperators)
             {
                 var clonedOperators = (proxy as IProxyOperator)?.CloneProxyOperators();
@@ -147,17 +147,24 @@ namespace Unity.Muse.Common
                     if(!sameOpFound)
                         operators.Add(op);
                 }
-                
+
                 operators.Remove(proxy);
             }
-            
-            var currentGenerateOperator = m_CurrentModel.CurrentOperators.GetOperator<GenerateOperator>();
-            var index = operators.FindIndex(o => o is GenerateOperator);
 
-            if (index > 0)
+            var currentGenerateOperator = m_CurrentModel.CurrentOperators.GetOperator<GenerateOperator>();
+            var generateOperatorIndex = operators.FindIndex(o => o is GenerateOperator);
+
+            if (generateOperatorIndex == 0)
             {
+                // We don't want to override the amount of Images to generate
+                operators[generateOperatorIndex] = currentGenerateOperator;
+            }
+
+            if (generateOperatorIndex > 0)
+            {
+                //Put the Generate Operator as the first one by swapping it with the first operator
                 var otherOp = operators[0];
-                operators[index] = otherOp;
+                operators[generateOperatorIndex] = otherOp;
                 operators[0] = currentGenerateOperator;
             }
 

@@ -1,350 +1,314 @@
 using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using UnityEngine;
 
 namespace Unity.AppUI.Core
 {
-    enum GestureType
-    {
-        Unknown,
-        Pan,
-        Mag
-    }
-    
-    [StructLayout(LayoutKind.Sequential)]
-    struct PlatformTouchEvent 
-    {
-        public byte touchId;
-        public byte phase;
-        public float normalizedX;
-        public float normalizedY;
-        public float deviceWidth;
-        public float deviceHeight;
-    }
-    
+    /// <summary>
+    /// Base Implementation for the Platform communication.
+    /// </summary>
     class PlatformImpl : IPlatformImpl
     {
-        const float k_RecognitionThreshold = 0.05f;
-
-        const float k_PanRecognitionDotThreshold = 0.9f;
-        
         public PlatformImpl() {}
+        
+        public float lowFrequencyUpdateInterval { get; set; } = 2.0f;
 
-        event Action<string> systemThemeChangedInternal;
+        event Action<bool> darkModeChangedInternal;
 
-        public event Action<string> systemThemeChanged
+        public event Action<bool> darkModeChanged
         {
             add
             {
-                systemThemeChangedInternal += value;
-                if (systemThemeChangedInternal != null)
-                    m_ThemePollingEnabled = true;
+                darkModeChangedInternal += value;
+                if (darkModeChangedInternal != null)
+                    m_DarkModePollingEnabled = true;
             }
             remove
             {
-                systemThemeChangedInternal -= value;
-                if (systemThemeChangedInternal == null)
-                    m_ThemePollingEnabled = false;
+                darkModeChangedInternal -= value;
+                if (darkModeChangedInternal == null)
+                    m_DarkModePollingEnabled = false;
             }
         }
 
-        public event Action<PanGesture> panGestureChanged;
+        protected event Action<bool> highContrastChangedInternal;
 
-        public event Action<MagnificationGesture> magnificationGestureChanged;
+        public event Action<bool> highContrastChanged
+        {
+            add
+            {
+                highContrastChangedInternal += value;
+                if (highContrastChangedInternal != null)
+                    m_HighContrastPollingEnabled = true;
+            }
+            remove
+            {
+                highContrastChangedInternal -= value;
+                if (highContrastChangedInternal == null)
+                    m_HighContrastPollingEnabled = false;
+            }
+        }
+        
+        protected event Action<bool> reduceMotionChangedInternal;
+
+        bool m_ReduceMotionPollingEnabled;
+
+        public event Action<bool> reduceMotionChanged
+        {
+            add
+            {
+                reduceMotionChangedInternal += value;
+                if (reduceMotionChangedInternal != null)
+                    m_ReduceMotionPollingEnabled = true;
+            }
+            remove
+            {
+                reduceMotionChangedInternal -= value;
+                if (reduceMotionChangedInternal == null)
+                    m_ReduceMotionPollingEnabled = false;
+            }
+        }
+        
+        event Action<Dir> layoutDirectionChangedInternal;
+
+        public event Action<Dir> layoutDirectionChanged
+        {
+            add
+            {
+                layoutDirectionChangedInternal += value;
+                if (layoutDirectionChangedInternal != null)
+                    m_LayoutDirectionPollingEnabled = true;
+            }
+            remove
+            {
+                layoutDirectionChangedInternal -= value;
+                if (layoutDirectionChangedInternal == null)
+                    m_LayoutDirectionPollingEnabled = false;
+            }
+        }
+        
+        event Action<float> scaleFactorChangedInternal;
+
+        bool m_ScaleFactorPollingEnabled;
+        
+        public event Action<float> scaleFactorChanged
+        {
+            add
+            {
+                scaleFactorChangedInternal += value;
+                if (scaleFactorChangedInternal != null)
+                    m_ScaleFactorPollingEnabled = true;
+            }
+            remove
+            {
+                scaleFactorChangedInternal -= value;
+                if (scaleFactorChangedInternal == null)
+                    m_ScaleFactorPollingEnabled = false;
+            }
+        }
+        
+        event Action<float> textScaleFactorChangedInternal;
+
+        bool m_TextScaleFactorPollingEnabled;
+        
+        public event Action<float> textScaleFactorChanged
+        {
+            add
+            {
+                textScaleFactorChangedInternal += value;
+                if (textScaleFactorChangedInternal != null)
+                    m_TextScaleFactorPollingEnabled = true;
+            }
+            remove
+            {
+                textScaleFactorChangedInternal -= value;
+                if (textScaleFactorChangedInternal == null)
+                    m_TextScaleFactorPollingEnabled = false;
+            }
+        }
+
+        event Action systemColorChangedInternal;
+
+        bool m_SystemColorPollingEnabled;
+
+        public event Action systemColorChanged
+        {
+            add
+            {
+                systemColorChangedInternal += value;
+                if (systemColorChangedInternal != null)
+                    m_SystemColorPollingEnabled = true;
+            }
+            remove
+            {
+                systemColorChangedInternal -= value;
+                if (systemColorChangedInternal == null)
+                    m_SystemColorPollingEnabled = false;
+            }
+        }
 
         public virtual float referenceDpi => Platform.baseDpi;
 
-        public virtual float mainScreenScale => 1f;
+        public virtual float scaleFactor => m_LastScaleFactor;
 
-        public bool panGestureChangedThisFrame { get; protected set; }
-
-        public bool magnificationGestureChangedThisFrame { get; protected set; }
-
-        public PanGesture panGesture
-        {
-            get => m_PanGesture;
-            protected set
-            {
-                if (m_PanGesture != value)
-                {
-                    m_PanGesture = value;
-                    panGestureChangedThisFrame = true;
-                    panGestureChanged?.Invoke(m_PanGesture);
-                }
-            }
-        }
-
-        public MagnificationGesture magnificationGesture 
-        {
-            get => m_MagnificationGesture;
-            protected set
-            {
-                if (m_MagnificationGesture != value)
-                {
-                    m_MagnificationGesture = value;
-                    magnificationGestureChangedThisFrame = true;
-                    magnificationGestureChanged?.Invoke(m_MagnificationGesture);
-                }
-            }
-        }
+        public virtual float textScaleFactor => m_LastTextScaleFactor;
 
         public virtual bool isTouchGestureSupported { get; protected set; }
 
-        public virtual string systemTheme => m_LastSystemTheme;
+        public virtual bool darkMode => m_LastDarkMode;
 
-        PanGesture m_PanGesture;
+        public virtual bool highContrast => m_LastHighContrast;
         
-        MagnificationGesture m_MagnificationGesture;
+        public virtual bool reduceMotion => m_LastReduceMotion;
+        
+        public virtual bool isHapticFeedbackSupported => false;
+        
+        bool m_DarkModePollingEnabled;
+        
+        bool m_HighContrastPollingEnabled;
+        
+        bool m_LayoutDirectionPollingEnabled;
+        
+        double m_LastLowFrequencyUpdateTime = 0;
+        
+        bool m_LastDarkMode = false;
 
-        bool m_ThemePollingEnabled;
+        bool m_LastHighContrast = false;
         
-        double m_LastThemePollTime = 0;
+        bool m_LastReduceMotion = false;
         
-        string m_LastSystemTheme = "dark";
+        int m_LastLayoutDirection = 0;
 
-        readonly List<TrackPadTouch> k_FrameTouches = new List<TrackPadTouch>();
+        float m_LastScaleFactor = 1f;
 
-        readonly Dictionary<int, TrackPadTouch> k_PrevTouches = new Dictionary<int, TrackPadTouch>();
-
-        int m_LastGesturePollFrame;
-        
-        float m_LastGesturePollTime;
-        
-        TrackPadTouch m_Touch0;
-        
-        TrackPadTouch m_Touch1;
-        
-        bool m_TwoFingersUsed;
-        
-        Vector2 m_StartPos0;
-        
-        Vector2 m_StartPos1;
-        
-        Vector2 m_DeltaPos0;
-        
-        Vector2 m_DeltaPos1;
-        
-        GestureType m_Gesture;
-        
-        float m_LastMag;
-        
-        float m_StartDistance;
-        
-        Vector2 m_LastPanPos;
+        float m_LastTextScaleFactor = 1f;
 
 #if UNITY_EDITOR
         UnityEditor.EditorWindow m_LastEditorWindow;
 #endif
-        
-        public void PollSystemTheme()
+
+        public void UpdateLoop()
         {
-            if (!m_ThemePollingEnabled)
+            HighFrequencyUpdate();
+            var currentTime = Time.unscaledTime;
+            
+            if (currentTime <= lowFrequencyUpdateInterval)
                 return;
             
-#if UNITY_EDITOR
-            var currentTime = UnityEditor.EditorApplication.timeSinceStartup;
-#else 
-            var currentTime = Time.realtimeSinceStartupAsDouble;
-#endif
+            if (currentTime - m_LastLowFrequencyUpdateTime > lowFrequencyUpdateInterval)
+            {
+                m_LastLowFrequencyUpdateTime = currentTime;
+                LowFrequencyUpdate();
+            }
+        }
+
+        protected virtual void HighFrequencyUpdate()
+        {
             
-            if (currentTime <= 2.0)
+        }
+
+        protected virtual void LowFrequencyUpdate()
+        {
+            PollDarkMode();
+            PollHighContrast();
+            PollLayoutDirection();
+            PollScaleFactor();
+            PollTextScaleFactor();
+            PollReduceMotion();
+            PollSystemColor();
+        }
+
+        protected virtual void PollDarkMode()
+        {
+            if (!m_DarkModePollingEnabled)
                 return;
             
-            if (currentTime - m_LastThemePollTime > 2.0)
+            var newDarkMode = darkMode;
+            if (m_LastDarkMode != newDarkMode)
             {
-                m_LastThemePollTime = currentTime;
-                
-                var newTheme = systemTheme;
-                if (m_LastSystemTheme != newTheme)
-                {
-                    systemThemeChangedInternal?.Invoke(newTheme);
-                    m_LastSystemTheme = newTheme;
-                }
+                m_LastDarkMode = newDarkMode;
+                darkModeChangedInternal?.Invoke(newDarkMode);
+            }
+        }
+
+        protected virtual void PollHighContrast()
+        {
+            if (!m_HighContrastPollingEnabled)
+                return;
+            
+            var newHighContrast = highContrast;
+            if (m_LastHighContrast != newHighContrast)
+            {
+                m_LastHighContrast = newHighContrast;
+                highContrastChangedInternal?.Invoke(newHighContrast);
             }
         }
         
-        public void PollGestures()
+        protected virtual void PollReduceMotion()
         {
-            panGestureChangedThisFrame = false;
-            magnificationGestureChangedThisFrame = false;
+            if (!m_ReduceMotionPollingEnabled)
+                return;
             
-            var touches = GetTrackpadTouches();
-            
-            isTouchGestureSupported = isTouchGestureSupported || touches.Count > 0;
-            
-            foreach (var touch in touches)
+            var newReduceMotion = reduceMotion;
+            if (m_LastReduceMotion != newReduceMotion)
             {
-                if (touch.phase == TouchPhase.Began)
-                {
-                    // check if we already have another touch
-                    if (m_Touch0.fingerId == -1 || m_Touch0.fingerId == touch.fingerId)
-                    {
-                        m_Touch0 = touch;
-                    }
-                    else if (m_Touch1.fingerId == -1 || m_Touch1.fingerId == touch.fingerId)
-                    {
-                        if (touch.fingerId == m_Touch0.fingerId)
-                            Debug.LogError("The second finger ID can't be the same as the first one");
-                        m_Touch1 = touch;
-                        m_TwoFingersUsed = true;
-                        m_StartPos0 = m_Touch0.position;
-                        m_StartPos1 = m_Touch1.position;
-                        m_DeltaPos0 = Vector2.zero;
-                        m_DeltaPos1 = Vector2.zero;
-                    }
-                    
-                    if (m_Touch0.fingerId != touch.fingerId && m_Touch1.fingerId != touch.fingerId && m_TwoFingersUsed)
-                    {
-                        // we can deactivate here since more than 2 fingers are used
-                        AbortGesture();
-                    }
-                }
-                else if (touch.phase is TouchPhase.Canceled or TouchPhase.Ended)
-                {
-                    // check if the touch is one of the tracked ones
-                    if (touch.fingerId == m_Touch0.fingerId || touch.fingerId == m_Touch1.fingerId)
-                        AbortGesture(touch.phase);
-                }
-
-                if (m_TwoFingersUsed && touch.phase is TouchPhase.Moved or TouchPhase.Stationary)
-                {
-                    // store touch data if its one of the tracked ones
-                    if (touch.fingerId == m_Touch0.fingerId)
-                    {
-                        m_Touch0 = touch;
-                    }
-                    else if (touch.fingerId == m_Touch1.fingerId)
-                    {
-                        m_Touch1 = touch;
-                    }
-                }
+                m_LastReduceMotion = newReduceMotion;
+                reduceMotionChangedInternal?.Invoke(newReduceMotion);
             }
-
-            if (m_TwoFingersUsed)
-            {
-                // compute deltas
-                m_DeltaPos0 = m_Touch0.position - m_StartPos0;
-                m_DeltaPos1 = m_Touch1.position - m_StartPos1;
-
-                if (m_Gesture == GestureType.Unknown)
-                {
-                    // need to recognize the movement
-                    if (m_DeltaPos0.magnitude > k_RecognitionThreshold && m_DeltaPos1.magnitude > k_RecognitionThreshold)
-                    {
-                        m_LastMag = 1f;
-                        m_StartDistance = Vector2.Distance(m_Touch0.position, m_Touch1.position);
-                        m_LastPanPos = m_Touch0.position;
-
-                        // can recognize
-                        if (Vector2.Dot(m_DeltaPos0.normalized, m_DeltaPos1.normalized) > k_PanRecognitionDotThreshold)
-                        {
-                            // pan
-                            m_Gesture = GestureType.Pan;
-                            panGesture = new PanGesture(m_Touch0.position, Vector2.zero, TouchPhase.Began);
-                        }
-                        else 
-                        {
-                            // mag
-                            m_Gesture = GestureType.Mag;
-                            magnificationGesture = new MagnificationGesture(0f, TouchPhase.Began);
-                        }
-                    }
-                }
-                else if (m_Gesture == GestureType.Mag)
-                {
-                    var d = Vector2.Distance(m_Touch0.position, m_Touch1.position);
-                    var mag = d / m_StartDistance;
-                    var magDelta = mag - m_LastMag;
-                    m_LastMag = mag;
-                    magnificationGesture = new MagnificationGesture(magDelta, TouchPhase.Moved);
-                }
-                else if (m_Gesture == GestureType.Pan)
-                {
-                    var pos = m_Touch0.position;
-                    var panDelta = pos - m_LastPanPos;
-                    m_LastPanPos = pos;
-                    panGesture = new PanGesture(pos, panDelta, TouchPhase.Moved);
-                }
-            }
-        }
-
-        List<TrackPadTouch> GetTrackpadTouches() 
-        {
-            m_LastGesturePollTime = Time.unscaledTime;
-            if ((Application.isPlaying && m_LastGesturePollFrame != Time.frameCount) || !Application.isPlaying)
-            {
-                m_LastGesturePollFrame = Time.frameCount;
-                
-                k_PrevTouches.Clear();
-                foreach (var touch in k_FrameTouches)
-                {
-                    k_PrevTouches[touch.fingerId] = touch;
-                }
-
-                k_FrameTouches.Clear();
-                
-                PlatformTouchEvent e;
-                e.touchId = 0;
-                e.phase = 0;
-                e.normalizedX = 0;
-                e.normalizedY = 0;
-                e.deviceWidth = 0;
-                e.deviceHeight = 0;
-
-#if UNITY_EDITOR
-                var currentWindow = UnityEditor.EditorWindow.focusedWindow;
-                if (currentWindow != m_LastEditorWindow && currentWindow)
-                    SetupFocusedTrackingObject();
-                m_LastEditorWindow = currentWindow;
-                
-                if (currentWindow)
-#endif
-                {
-                    while (ReadTouch(ref e))
-                    {
-                        var screenPos = new Vector2(e.normalizedX, e.normalizedY);
-                        var deltaPos = new Vector2(0, 0);
-
-                        if (k_PrevTouches.TryGetValue(e.touchId, out var prevTouch))
-                            deltaPos = screenPos - prevTouch.position;
-
-                        var timeDelta = Time.unscaledTime - m_LastGesturePollTime;
-                        var phase = e.phase switch 
-                        {
-                            0 => TouchPhase.Began,
-                            1 => TouchPhase.Moved,
-                            2 => TouchPhase.Ended,
-                            3 => TouchPhase.Canceled,
-                            4 => TouchPhase.Stationary,
-                            _ => TouchPhase.Ended
-                        };
-                        var newTouch = new TrackPadTouch(e.touchId, screenPos, 1, deltaPos, timeDelta, phase);
-                        k_FrameTouches.Add(newTouch);
-                    }
-                }
-
-                m_LastGesturePollTime = Time.unscaledTime;
-            }
-            
-            return k_FrameTouches;
-        }
-
-        void AbortGesture(TouchPhase phase = TouchPhase.Canceled)
-        {
-            m_TwoFingersUsed = false;
-            m_Gesture = GestureType.Unknown;
-            m_Touch0 = new TrackPadTouch(-1, Vector2.zero, 0, Vector2.zero, 0, TouchPhase.Canceled);
-            m_Touch1 = new TrackPadTouch(-1, Vector2.zero, 0, Vector2.zero, 0, TouchPhase.Canceled);
-            panGesture = new PanGesture(Vector2.zero, Vector2.zero, phase);
-            magnificationGesture = new MagnificationGesture(0f, phase);
         }
         
-        protected virtual void SetupFocusedTrackingObject() {}
-        
-        protected virtual bool ReadTouch(ref PlatformTouchEvent e) => false;
+        protected virtual void PollLayoutDirection()
+        {
+            if (!m_LayoutDirectionPollingEnabled)
+                return;
+            
+            var newLayoutDirection = layoutDirection;
+            if (m_LastLayoutDirection != newLayoutDirection)
+            {
+                m_LastLayoutDirection = newLayoutDirection;
+                layoutDirectionChangedInternal?.Invoke(newLayoutDirection == 1 ? Dir.Rtl : Dir.Ltr);
+            }
+        }
 
-        public virtual void RunHapticFeedback(HapticFeedbackType feedbackType)
+        protected virtual void PollScaleFactor()
+        {
+            if (!m_ScaleFactorPollingEnabled)
+                return;
+           
+            var newScaleFactor = scaleFactor;
+            if (!Mathf.Approximately(newScaleFactor, m_LastScaleFactor))
+            {
+                m_LastScaleFactor = newScaleFactor;
+                scaleFactorChangedInternal?.Invoke(newScaleFactor);
+            }
+        }
+
+        protected virtual void PollTextScaleFactor()
+        {
+            if (!m_TextScaleFactorPollingEnabled)
+                return;
+            
+            var newTextScaleFactor = textScaleFactor;
+            if (!Mathf.Approximately(newTextScaleFactor, m_LastTextScaleFactor))
+            {
+                m_LastTextScaleFactor = newTextScaleFactor;
+                textScaleFactorChangedInternal?.Invoke(newTextScaleFactor);
+            }
+        }
+
+        protected virtual void PollSystemColor()
+        {
+            if (!m_SystemColorPollingEnabled)
+                return;
+            
+            // do nothing by default
+        }
+        
+        /// <summary>
+        /// The current touches on the trackpad.
+        /// </summary>
+        public virtual AppUITouch[] touches => null;
+
+        public virtual void RunNativeHapticFeedback(HapticFeedbackType feedbackType)
         {
             Debug.LogWarning(Application.isEditor
                 ? "Haptic Feedbacks are not supported in the Editor."
@@ -352,5 +316,46 @@ namespace Unity.AppUI.Core
         }
         
         public virtual void HandleNativeMessage(string message) {}
+
+        public virtual void OnEnteredPlayMode() { }
+        
+        public virtual Color GetSystemColor(SystemColorType colorType) => Color.clear;
+
+        public virtual int layoutDirection => m_LastLayoutDirection;
+        
+        protected void InvokeLayoutDirectionChanged(int layoutDirection)
+        {
+            layoutDirectionChangedInternal?.Invoke(layoutDirection == 1 ? Dir.Rtl : Dir.Ltr);
+        }
+        
+        protected void InvokeHighContrastChanged(bool highContrastEnabled)
+        {
+            highContrastChangedInternal?.Invoke(highContrastEnabled);
+        }
+        
+        protected void InvokeReduceMotionChanged(bool reduceMotion)
+        {
+            reduceMotionChangedInternal?.Invoke(reduceMotion);
+        }
+        
+        protected void InvokeThemeChanged(bool darkModeEnabled)
+        {
+            darkModeChangedInternal?.Invoke(darkModeEnabled);
+        }
+        
+        protected void InvokeTextScaleFactorChanged(float textScaleFactor)
+        {
+            textScaleFactorChangedInternal?.Invoke(textScaleFactor);
+        }
+        
+        protected void InvokeScaleFactorChanged(float scaleFactor)
+        {
+            scaleFactorChangedInternal?.Invoke(scaleFactor);
+        }
+
+        protected void InvokeSystemColorChanged() 
+        {
+            systemColorChangedInternal?.Invoke();
+        }
     }
 }

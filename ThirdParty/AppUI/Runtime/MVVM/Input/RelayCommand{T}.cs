@@ -10,7 +10,7 @@ namespace Unity.AppUI.MVVM
     /// Implementation of <see cref="IRelayCommand"/> that allows for CommandParameter to be passed in.
     /// </summary>
     /// <typeparam name="T"> The type of the CommandParameter. </typeparam>
-    public class RelayCommand<T> : IRelayCommand<T>
+    internal class RelayCommand<T> : IRelayCommand<T>
     {
         readonly Action<T?> m_Execute;
 

@@ -45,6 +45,7 @@ namespace Unity.Muse.Common.Editor
         readonly Toggle m_DeleteWithoutWarningToggle;
         readonly TextField m_SpriteAssetGeneratedPathField;
         readonly TextField m_TextureAssetGeneratedPathField;
+        readonly TextField m_AnimateAssetGeneratedPathField;
         readonly EnumField m_CanvasControlSchemeField;
         readonly VisualElement m_SettingsContainer;
 
@@ -215,7 +216,7 @@ namespace Unity.Muse.Common.Editor
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static string SanitizePath(string path)
         {
-            var root = Path.GetDirectoryName(Application.dataPath);
+            var root = Path.GetDirectoryName(Application.dataPath)?.Replace('\\', '/');
             if (!string.IsNullOrEmpty(root) && path.StartsWith(root) && path.Length > root.Length + 1)
                 return path[(root.Length + 1)..];
             return null;

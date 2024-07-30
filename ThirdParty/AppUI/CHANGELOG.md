@@ -4,6 +4,138 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [2.0.0-pre.6] - 2024-07-07
+
+### Added
+
+- Added support of Attributes on fields and properties in the Dependency Injection system.
+- Added support of UnityEditor ColorPicker in ColorField component.
+- Added support of Color without alpha information in ColorField and ColorPicker.
+- Added `rounded-progress-corners` boolean property in `CircularProgress` and `LinearProgress` to be able to disable rounded corners.
+- Added `trailing-icon` property in `ActionButton` component.
+- Added customization support for the size of the Color swatch inside the ColorField.
+- Added arrow-square-in icon.
+
+### Changed
+
+- Changed the Text element inside the ColorField to become a selectable text.
+
+### Fixed
+
+- Fixed styling issues in `ActionButton` component.
+- Fixed Menu's backdrop to block pointer events
+- Fixed ColorField styling issues.
+- Use correct color variables for Radio and Checkbox components
+
+## [2.0.0-pre.5] - 2024-06-18
+
+### Changed
+
+- Complete rewrite of the SplitView component. The SplitView is no more a derived from TwoPaneSplitView from UI-Toolkit, but a full custom component that supports any number of panes.
+
+### Fixed
+
+- Fixed reset of Dropdown value when changing its source items.
+- Fixed a visual bug where the checkmark symbol didn't appear on DropdownItem or MenuItem that have a `selected` state.
+
+### Added
+
+- Added `indicatorPosition` property in `AccordionItem` component, in order to swap the indicator position either at start or end of the heading row.
+- Added `check` regular icon as a required icon in App UI themes.
+
+## [2.0.0-pre.4] - 2024-06-05
+
+### Fixed
+
+- Fixed MacOS native plugin memory leak when opening the Help menu in the Editor.
+
+## [2.0.0-pre.3] - 2024-05-30
+
+### Added
+
+- Added AsyncThunk support for Redux implementation.
+- Added Anchor Position support for Toast UI elements.
+- Added the `key` string property on `Radio` component to be used as unique identifier in their group.
+- Added unit tests for MemoryUtils utility class.
+
+### Removed
+
+- Removed programatic construction of RadioGroup with IList object. Since App UI offers the possibility to have Radio component as deep as you want in the visual tree compared to its RadioGroup ancestor, we wanted to limit conflicts between construction kinds.
+
+### Changed
+
+- Moved Toast animation logic from code to USS.
+- The `RadioGroup` component uses a `string` type for its `value` property. This string value is equal to the currently checked `Radio` component's `key` property.
+- The `Toast.AddAction` method will now ask for a callback that takes a `Toast` object as argument (instead of no argument at all). This will give you an easier way to dismiss the toast from the action callback.
+- You can now pass an `autoDismiss` argument to the `Toast.AddAction` method. This will automatically dismiss the toast when the action is triggered. This argument is optional and defaults to `true` for backward compatibility.
+- Changed MemoryUtils.Concatenate implementation to not use variadic parameters and avoid implicit allocations.
+
+### Fixed
+
+- Fixed Action Dispatch to every Slice Reducers
+- Every shared libraries of native plugins are now correctly signed with the correct Unity Technologies certificate (MacOS and Windows only)
+- Fixed support of Radio component that are deeper than the direct child of a RadioGroup.
+
+## [2.0.0-pre.2] - 2024-05-07
+
+### Added
+
+- Added `PinchGestureRecognizer` implementation for the new Gesture Recognizer System.
+- Added an experimental method `Platform.GetSystemColor` to fetch color values defined by the Operating System for specific UI element types. This can be useful if you want to precisely follow the color palette of a high-contrast theme directed by the OS.
+- Added "Icon Browser", a new Editor tool that enables users to generate UI-Toolkit stylesheets with a specific list of icons.
+- Added a new experimental Gesture Recognizer System.
+- Added the ability to subscribe and check if the current operating system is in Reduce-Motion Accessibility Mode (Windows/Mac/Android/iOS).
+- Added the ability to subscribe and check if the current Text Scale Factor of the currently used window (Unity Player window or the Game view window in the Editor) (Windows/Mac/Android/iOS).
+- Added the ability to subscribe and check if the current operating system is in High-Contrast Mode (Windows/Mac/Android/iOS).
+- Added the ability to subscribe and check if the current operating system is in LeftToRight or RightToLeft layout direction (Windows/Mac/Android/iOS).
+- Added the ability to subscribe and check if the current Scale Factor of the currently used window (Unity Player window or the Game view window in the Editor) (Windows/Mac/Android/iOS).
+- Added the ability to subscribe and check if the current operating system is in Dark Mode (Windows/Mac/Android/iOS).
+
+### Changed
+
+- Refactored every native plugin provided by the package.
+- Changed the Trackpad sample project to work properly with the new events coming from the new Gesture Recognizer System.
+
+### Fixed
+
+- Fixed meta files for native plugins on Windows platform.
+- Fixed an early return in the PreProcessBuild callback of App UI when no persistent AppUISettings have been found.
+
+## [2.0.0-pre.1] - 2024-03-25
+
+### Added
+
+- Added `DatePicker`, `DateRangePicker`, `DateField` and `DateRangeField` components. Theses components use the new `Date` and `DateRange` data structure also provided by App UI.
+- Added `VisualElementExtensions.SetTooltipContent` method to populate a tooltip template with new content.
+- Added `MasonryGridView` component.
+- Added tests for Pan and Magnify gesture data structures.
+
+### Removed
+
+- TextFieldExtensions.BlinkingCursor extension method has become obsolete. Please use the new BlinkingCursor manipulator instead.
+
+### Changed
+
+- Replaced the MacOS native plugin by a `.dylib` library instead of a `.bundle` one.
+
+### Fixed
+
+- Fixed some namespace usage to avoid relative ones.
+
+## [1.0.6] - 2024-03-15
+
+### Fixed
+
+- Fixed the tooltip tip size to not be displayed over tooltip content.
+- Fixed the handling of Tab key to focus the next component from a TextArea
+- Fixed size of the Radio button for pixel alignment on 96dpi screens.
+
+## [1.0.5] - 2024-03-10
+
+### Fixed
+
+- Fixed Hero banner in the documentation homepage
+
 ## [1.0.4] - 2024-03-08
 
 ### Fixed

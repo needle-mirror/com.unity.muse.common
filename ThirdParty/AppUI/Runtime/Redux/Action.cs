@@ -3,7 +3,7 @@ namespace Unity.AppUI.Redux
     /// <summary>
     /// An action creator.
     /// </summary>
-    public class ActionCreator
+    internal class ActionCreator
     { 
         /// <summary>
         /// The type of the action.
@@ -44,7 +44,7 @@ namespace Unity.AppUI.Redux
     /// An action creator with a payload.
     /// </summary>
     /// <typeparam name="TPayload"> The type of the payload. </typeparam>
-    public class ActionCreator<TPayload> : ActionCreator
+    internal class ActionCreator<TPayload> : ActionCreator
     {
         /// <summary>
         /// Creates a new action creator.
@@ -69,7 +69,7 @@ namespace Unity.AppUI.Redux
     /// An action without a payload.
     /// </summary>
     /// <param name="type"> The type of the action. </param>
-    public record Action(string type)
+    internal record Action(string type)
     {
         /// <summary>
         /// The type of the action.
@@ -83,7 +83,7 @@ namespace Unity.AppUI.Redux
     /// <param name="type"> The type of the action. </param>
     /// <param name="payload"> The payload of the action. </param>
     /// <typeparam name="TPayload"> The type of the payload. </typeparam>
-    public record Action<TPayload>(string type, TPayload payload) : Action(type)
+    internal record Action<TPayload>(string type, TPayload payload) : Action(type)
     {
         /// <summary>
         /// The payload of the action.

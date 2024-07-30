@@ -13,7 +13,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class Vector3IntField : BaseVisualElement, IInputElement<Vector3Int>, ISizeableElement, INotifyValueChanging<Vector3Int>
+    internal partial class Vector3IntField : BaseVisualElement, IInputElement<Vector3Int>, ISizeableElement, INotifyValueChanging<Vector3Int>
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -30,32 +30,33 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The Vector3Field main styling class.
         /// </summary>
-        public static readonly string ussClassName = "appui-vector3field";
+        public const string ussClassName = "appui-vector3field";
 
         /// <summary>
         /// The Vector3Field size styling class.
         /// </summary>
-        public static readonly string sizeUssClassName = ussClassName + "--size-";
+        [EnumName("GetSizeUssClassName", typeof(Size))]
+        public const string sizeUssClassName = ussClassName + "--size-";
 
         /// <summary>
         /// The Vector3Field container styling class.
         /// </summary>
-        public static readonly string containerUssClassName = ussClassName + "__container";
+        public const string containerUssClassName = ussClassName + "__container";
 
         /// <summary>
         /// The Vector3Field X NumericalField styling class.
         /// </summary>
-        public static readonly string xFieldUssClassName = ussClassName + "__x-field";
+        public const string xFieldUssClassName = ussClassName + "__x-field";
 
         /// <summary>
         /// The Vector3Field Y NumericalField styling class.
         /// </summary>
-        public static readonly string yFieldUssClassName = ussClassName + "__y-field";
+        public const string yFieldUssClassName = ussClassName + "__y-field";
 
         /// <summary>
         /// The Vector3Field Z NumericalField styling class.
         /// </summary>
-        public static readonly string zFieldUssClassName = ussClassName + "__z-field";
+        public const string zFieldUssClassName = ussClassName + "__z-field";
 
         Size m_Size;
 
@@ -133,9 +134,9 @@ namespace Unity.Muse.AppUI.UI
             get => m_Size;
             set
             {
-                RemoveFromClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                RemoveFromClassList(GetSizeUssClassName(m_Size));
                 m_Size = value;
-                AddToClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                AddToClassList(GetSizeUssClassName(m_Size));
                 m_XField.size = m_Size;
                 m_YField.size = m_Size;
                 m_ZField.size = m_Size;
@@ -281,12 +282,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Factory class to instantiate a <see cref="Vector3IntField"/> using the data read from a UXML file.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<Vector3IntField, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<Vector3IntField, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="Vector3IntField"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             readonly UxmlEnumAttributeDescription<Size> m_Size = new UxmlEnumAttributeDescription<Size>
             {

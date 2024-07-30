@@ -13,7 +13,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class MenuTrigger : BaseVisualElement
+    internal partial class MenuTrigger : BaseVisualElement
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -193,12 +193,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// UXML factory for the <see cref="MenuTrigger"/>.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<MenuTrigger, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<MenuTrigger, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="MenuTrigger"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             readonly UxmlStringAttributeDescription m_Anchor = new UxmlStringAttributeDescription
             {

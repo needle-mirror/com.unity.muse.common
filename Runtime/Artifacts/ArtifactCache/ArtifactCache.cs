@@ -54,7 +54,7 @@ namespace Unity.Muse.Common
 
         public static void Write(Artifact artifact, byte[] value) => s_ArtifactCache.Write(artifact, value);
 
-        public static Object Read(Artifact artifact) => s_ArtifactCache.Read(artifact);
+        public static object Read(Artifact artifact) => s_ArtifactCache.Read(artifact);
 
         public static byte[] ReadRawData(Artifact artifact) => s_ArtifactCache.ReadRawData(artifact);
 

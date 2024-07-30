@@ -8,22 +8,22 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// A drawer header visual element.
     /// </summary>
-    public class DrawerHeader : BaseVisualElement
+    internal class DrawerHeader : BaseVisualElement
     {
         /// <summary>
         /// The DrawerHeader's USS class name.
         /// </summary>
-        public static readonly string ussClassName = "appui-drawer-header";
+        public const string ussClassName = "appui-drawer-header";
         
         /// <summary>
         /// The DrawerHeader's title USS class name.
         /// </summary>
-        public static readonly string titleUssClassName = ussClassName + "__title";
+        public const string titleUssClassName = ussClassName + "__title";
         
         /// <summary>
         /// The DrawerHeader's container USS class name.
         /// </summary>
-        public static readonly string containerUssClassName = ussClassName + "__container";
+        public const string containerUssClassName = ussClassName + "__container";
         
         LocalizedTextElement m_Title;
 

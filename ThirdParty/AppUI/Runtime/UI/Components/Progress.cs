@@ -13,11 +13,13 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public abstract partial class Progress : BaseVisualElement, ISizeableElement
+    internal abstract partial class Progress : BaseVisualElement, ISizeableElement
     {       
 #if ENABLE_RUNTIME_DATA_BINDINGS
 
         internal static readonly BindingId valueProperty = new BindingId(nameof(value));
+   
+        internal static readonly BindingId roundedProgressCornersProperty = new BindingId(nameof(roundedProgressCorners));
         
         internal static readonly BindingId bufferValueProperty = new BindingId(nameof(bufferValue));
         
@@ -45,7 +47,7 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The progress variant.
         /// </summary>
-        public enum Variant
+        internal enum Variant
         {
             /// <summary>
             /// The progress is indeterminate. A loop animation is displayed.
@@ -62,27 +64,34 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The Progress main styling class.
         /// </summary>
-        public static readonly string ussClassName = "appui-progress";
+        public const string ussClassName = "appui-progress";
 
         /// <summary>
         /// The Progress image styling class.
         /// </summary>
-        public static readonly string imageUssClassName = ussClassName + "__image";
+        public const string imageUssClassName = ussClassName + "__image";
         
         /// <summary>
         /// The Progress container styling class.
         /// </summary>
-        public static readonly string containerUssClassName = ussClassName + "__container";
+        public const string containerUssClassName = ussClassName + "__container";
+        
+        /// <summary>
+        /// The Progress rounded corners styling class.
+        /// </summary>
+        public const string roundedProgressCornersUssClassName = ussClassName + "--rounded-corners";
 
         /// <summary>
         /// The Progress size styling class.
         /// </summary>
-        public static readonly string sizeUssClassName = ussClassName + "--size-";
+        [EnumName("GetSizeUssClassName", typeof(Size))]
+        public const string sizeUssClassName = ussClassName + "--size-";
 
         /// <summary>
         /// The Progress variant styling class.
         /// </summary>
-        public static readonly string variantUssClassName = ussClassName + "--";
+        [EnumName("GetVariantUssClassName", typeof(Variant))]
+        public const string variantUssClassName = ussClassName + "--";
 
         static readonly CustomStyleProperty<Color> k_UssColor = new CustomStyleProperty<Color>("--progress-color");
 
@@ -149,6 +158,7 @@ namespace Unity.Muse.AppUI.UI
             size = Size.M;
             value = 0;
             bufferValue = 0;
+            roundedProgressCorners = true;
 
             m_Image.generateVisualContent += OnGenerateVisualContent;
             RegisterCallback<AttachToPanelEvent>(OnAttachedToPanel);
@@ -229,6 +239,31 @@ namespace Unity.Muse.AppUI.UI
             mwd.SetAllVertices(k_Vertices);
             mwd.SetAllIndices(k_Indices);
         }
+        
+        /// <summary>
+        /// Whether to use rounded corners for the progress.
+        /// </summary>
+#if ENABLE_RUNTIME_DATA_BINDINGS
+        [CreateProperty]
+#endif
+#if ENABLE_UXML_SERIALIZED_DATA
+        [UxmlAttribute]
+#endif
+        public bool roundedProgressCorners
+        {
+            get => ClassListContains(roundedProgressCornersUssClassName);
+            set
+            {
+                var changed = roundedProgressCorners != value;
+                EnableInClassList(roundedProgressCornersUssClassName, value);
+                MarkContentDirtyRepaint();
+                
+#if ENABLE_RUNTIME_DATA_BINDINGS
+                if (changed)
+                    NotifyPropertyChanged(in roundedProgressCornersProperty);
+#endif
+            }
+        }
 
         /// <summary>
         /// The LinearProgress size.
@@ -245,9 +280,9 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_Size != value;
-                RemoveFromClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                RemoveFromClassList(GetSizeUssClassName(m_Size));
                 m_Size = value;
-                AddToClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                AddToClassList(GetSizeUssClassName(m_Size));
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
@@ -271,9 +306,9 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_Variant != value;
-                RemoveFromClassList(variantUssClassName + m_Variant.ToString().ToLower());
+                RemoveFromClassList(GetVariantUssClassName(m_Variant));
                 m_Variant = value;
-                AddToClassList(variantUssClassName + m_Variant.ToString().ToLower());
+                AddToClassList(GetVariantUssClassName(m_Variant));
                 
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
@@ -296,7 +331,7 @@ namespace Unity.Muse.AppUI.UI
             get => m_BufferOpacity;
             set
             {
-                var changed = m_BufferOpacity != value;
+                var changed = !Mathf.Approximately(m_BufferOpacity, value);
                 m_BufferOpacity = value;
                 MarkContentDirtyRepaint();
                 
@@ -416,7 +451,7 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="Progress"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             readonly UxmlEnumAttributeDescription<Size> m_Size = new UxmlEnumAttributeDescription<Size>
             {
@@ -453,6 +488,12 @@ namespace Unity.Muse.AppUI.UI
                 name = "variant",
                 defaultValue = Variant.Indeterminate,
             };
+            
+            readonly UxmlBoolAttributeDescription m_RoundedCorners = new UxmlBoolAttributeDescription()
+            {
+                name = "rounded-progress-corners",
+                defaultValue = true,
+            };
 
             /// <summary>
             /// Initializes the VisualElement from the UXML attributes.
@@ -471,6 +512,7 @@ namespace Unity.Muse.AppUI.UI
                 element.value = m_Value.GetValueFromBag(bag, cc);
                 element.bufferValue = m_ValueBuffer.GetValueFromBag(bag, cc);
                 element.bufferOpacity = m_BufferOpacity.GetValueFromBag(bag, cc);
+                element.roundedProgressCorners = m_RoundedCorners.GetValueFromBag(bag, cc);
                 var color = Color.white;
                 if (m_Color.TryGetValueFromBag(bag, cc, ref color))
                     element.colorOverride = color;

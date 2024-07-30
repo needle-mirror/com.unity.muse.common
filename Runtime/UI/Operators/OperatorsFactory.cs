@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Scripting;
-
 #if !UNITY_EDITOR
 using UnityEngine;
 #endif
@@ -21,12 +20,31 @@ namespace Unity.Muse.Common
             return s_AvailableOperatorTypes.TryAdd(operatorInstance.OperatorName, operatorType);
         }
 
-        public static IOperator GetOperatorInstance(string operatorName)
+        public static IOperator GetOperatorInstance(string operatorName, string key = null)
         {
             if (s_AvailableOperatorTypes == null || !s_AvailableOperatorTypes.TryGetValue(operatorName, out var operatorType))
                 return null;
 
-            return (IOperator)Activator.CreateInstance(operatorType);
+            var instance = (IOperator)Activator.CreateInstance(operatorType);
+            if (!string.IsNullOrEmpty(key))
+                instance.SetOperatorKey(key);
+            return instance;
+        }
+
+        public static string GetOperatorKey(this IOperator op)
+        {
+            if (op == null)
+                return null;
+            
+            var data = op.GetOperatorData();
+            return string.IsNullOrEmpty(data.key) ? op.OperatorName : data.key;
+        }
+        
+        public static void SetOperatorKey(this IOperator op, string key)
+        {
+            var operatorData = op.GetOperatorData();
+            operatorData.key = key;
+            op.SetOperatorData(operatorData);
         }
 
 #if !UNITY_EDITOR

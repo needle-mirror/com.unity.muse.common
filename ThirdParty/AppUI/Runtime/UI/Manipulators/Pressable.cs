@@ -8,7 +8,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// Pressable Manipulator, used on <see cref="Button"/> elements.
     /// </summary>
-    public class Pressable : PointerManipulator
+    internal class Pressable : PointerManipulator
     {
         /// <summary>
         /// The event invoked when the element is pressed.

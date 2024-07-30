@@ -8,13 +8,13 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// Manipulator which monitors Press, Hold and Release events in order to drag visuals.
     /// </summary>
-    public class Draggable : Pressable
+    internal class Draggable : Pressable
     {
         /// <summary>
         /// The direction of the drag.
         /// </summary>
         [Flags]
-        public enum DragDirection
+        internal enum DragDirection
         {
             /// <summary>
             /// Horizontal drag.
@@ -108,6 +108,11 @@ namespace Unity.Muse.AppUI.UI
             if (active)
                 target?.Blur();
         }
+        
+        /// <summary>
+        /// Accept the drag operation.
+        /// </summary>
+        public Func<Draggable, bool> acceptDrag { get; set; }
 
         /// <summary>
         /// This method processes the down event sent to the target Element.
@@ -117,6 +122,10 @@ namespace Unity.Muse.AppUI.UI
         /// <param name="pointerId"> The pointer id of the pointer.</param>
         protected override void ProcessDownEvent(EventBase evt, Vector2 localPosition, int pointerId)
         {
+            var canDrag = acceptDrag?.Invoke(this) ?? true;
+            if (!canDrag)
+                return;
+            
             deltaPos = Vector2.zero;
             deltaStartPos = Vector2.zero;
             this.localPosition = localPosition;

@@ -46,7 +46,7 @@ namespace Unity.Muse.Common.Editor
                 break;
             }
 
-            if (window == null)
+            if (!window)
             {
                 window = CreateInstance<MuseEditor>();
                 window.SetContext(asset);

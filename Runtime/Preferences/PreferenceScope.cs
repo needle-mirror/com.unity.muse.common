@@ -4,7 +4,7 @@ namespace Unity.Muse.Common
 {
     enum PreferenceScope
     {
-        User,
+        User,           // Actually `Editor-wide` preference, not per cloud user.
         Project,
         Session
     }

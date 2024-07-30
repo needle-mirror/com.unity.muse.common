@@ -8,7 +8,7 @@ namespace Unity.Muse.Common
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    internal partial class Canvas : VisualElement
+    partial class Canvas : VisualElement
     {
 #if ENABLE_UXML_TRAITS
         internal new class UxmlFactory : UxmlFactory<Canvas, UxmlTraits> { }
@@ -22,14 +22,19 @@ namespace Unity.Muse.Common
 
         Artifact m_RefinedArtifact;
 
-        VisualElement m_ControlContent;
-        VisualElement m_ControlTopContent;
-        VisualElement m_ControlMiddleContent;
-        VisualElement m_ControlBottomContent;
+        readonly VisualElement m_ControlContent;
+        readonly VisualElement m_ControlTopContent;
+        readonly VisualElement m_ControlMiddleContent;
+        readonly VisualElement m_ControlBottomContent;
 
         IVisualElementScheduledItem m_ScheduledFrame;
-        
+
+        VisualElement m_LastLeftOverlay;
+        VisualElement m_LastRightOverlay;
+
         const int k_FrameTopOffset = 42;
+        
+        ArtifactNode m_CurrentNode;
 
         public Artifact refinedArtifact
         {
@@ -49,6 +54,10 @@ namespace Unity.Muse.Common
         void SetFrameContainer(Rect frameContainer)
         {
             m_Canvas.frameContainer = frameContainer;
+            m_ControlContent.style.left = frameContainer.x;
+            m_ControlContent.style.top = 0;
+            m_ControlContent.style.width = frameContainer.width;
+            m_ControlContent.style.height = frameContainer.height;
         }
 
         public AppUI.UI.CanvasManipulator primaryManipulator
@@ -62,9 +71,9 @@ namespace Unity.Muse.Common
             m_Canvas = new AppUI.UI.Canvas
             {
                 frameMargin = 24f,
+                controlScheme = GlobalPreferences.canvasControlScheme
             };
             
-            m_Canvas.controlScheme = GlobalPreferences.canvasControlScheme;
             GlobalPreferences.preferencesChanged += OnPreferencesChanged;
             
             hierarchy.Add(m_Canvas);
@@ -139,11 +148,19 @@ namespace Unity.Muse.Common
             UnSubscribeToModelEvents();
             m_CurrentModel = model;
             SubscribeToModelEvents();
+            
+            if (!m_CurrentModel)
+                return;
+            
+            OnLeftOverlayChanged(m_CurrentModel.LeftOverlay);
+            OnRightOverlayChanged(m_CurrentModel.RightOverlay);
+            
+            OnArtifactSelected(m_CurrentModel.SelectedArtifact);
         }
         
         public void UpdateCanvasFrameContainer()
         {
-            if (m_CurrentModel == null)
+            if (!m_CurrentModel)
                 return;
             
             var leftOverlay = m_CurrentModel.LeftOverlay.resolvedStyle;
@@ -155,10 +172,10 @@ namespace Unity.Muse.Common
                         leftOverlay.marginRight -
                         rightOverlay.width -
                         rightOverlay.marginLeft -
-                        rightOverlay.marginRight;
+                        rightOverlay.marginRight - 20;
             var x = leftOverlay.width + 
                     leftOverlay.marginLeft + 
-                    leftOverlay.marginRight;
+                    leftOverlay.marginRight + 5;
             const int y = k_FrameTopOffset;
             var height = resolvedStyle.height - y;
             
@@ -167,7 +184,7 @@ namespace Unity.Muse.Common
 
         void SubscribeToModelEvents()
         {
-            if (m_CurrentModel == null)
+            if (!m_CurrentModel)
                 return;
 
             m_CurrentModel.OnDispose += OnModelDispose;
@@ -184,15 +201,26 @@ namespace Unity.Muse.Common
 
         void OnLeftOverlayChanged(VisualElement overlay)
         {
+            m_LastLeftOverlay?.UnregisterCallback<GeometryChangedEvent>(OnOverlayGeometryChanged);
+            m_LastLeftOverlay = overlay;
+            m_LastLeftOverlay?.RegisterCallback<GeometryChangedEvent>(OnOverlayGeometryChanged);
             UpdateCanvasFrameContainer();
         }
         
         void OnRightOverlayChanged(VisualElement overlay)
         {
+            m_LastRightOverlay?.UnregisterCallback<GeometryChangedEvent>(OnOverlayGeometryChanged);
+            m_LastRightOverlay = overlay;
+            m_LastRightOverlay?.RegisterCallback<GeometryChangedEvent>(OnOverlayGeometryChanged);
+            UpdateCanvasFrameContainer();
+        }
+        
+        void OnOverlayGeometryChanged(GeometryChangedEvent _)
+        {
             UpdateCanvasFrameContainer();
         }
 
-        private void OnFinishRefineArtifact(Artifact obj)
+        void OnFinishRefineArtifact(Artifact obj)
         {
             refinedArtifact = null;
             UpdateView();
@@ -200,7 +228,7 @@ namespace Unity.Muse.Common
 
         void OnArtifactSelected(Artifact artifact)
         {
-            if (m_CurrentModel == null || !m_CurrentModel.isRefineMode)
+            if (!m_CurrentModel || !m_CurrentModel.isRefineMode)
                 return;
 
             OnActiveToolChanged(m_CurrentModel.ActiveTool);
@@ -209,7 +237,7 @@ namespace Unity.Muse.Common
         
         void OnRefineArtifact(Artifact artifact)
         {
-            if (m_CurrentModel == null)
+            if (!m_CurrentModel)
                 return;
 
             refinedArtifact = artifact;
@@ -217,7 +245,7 @@ namespace Unity.Muse.Common
 
         void UnSubscribeToModelEvents()
         {
-            if (m_CurrentModel == null)
+            if (!m_CurrentModel)
                 return;
 
             m_CurrentModel.OnDispose -= OnModelDispose;
@@ -248,32 +276,41 @@ namespace Unity.Muse.Common
             primaryManipulator = panEnabled ? AppUI.UI.CanvasManipulator.Pan : AppUI.UI.CanvasManipulator.None;
         }
 
-        void OnActiveToolChanged(ICanvasTool tool)
+        void OnActiveToolChanged(ICanvasTool _)
         {
-            if (m_CurrentToolManipulator != null)
+            UpdateManipulators();
+        }
+
+        void UpdateManipulators()
+        {
+            if (m_CurrentToolManipulator != null) 
                 m_Canvas.RemoveManipulator(m_CurrentToolManipulator);
             
-            OnPanChanged(tool is PanTool);
+            OnPanChanged(m_CurrentModel?.ActiveTool is PanTool);
             
-            if (tool == null)
+            if (m_CurrentModel?.ActiveTool == null)
                 return;
 
-            m_CurrentToolManipulator = tool.GetToolManipulator();
+            m_CurrentToolManipulator = m_CurrentModel.ActiveTool.GetToolManipulator();
             if (m_CurrentToolManipulator != null)
                 m_Canvas.AddManipulator(m_CurrentToolManipulator);
         }
 
         public void UpdateView()
         {
+            m_CurrentNode?.Dispose();
+            m_CurrentNode = null;
+            
             Clear();
-            if (m_CurrentModel == null || refinedArtifact is null)
+            if (!m_CurrentModel || refinedArtifact is null)
                 return;
 
-            var node = new ArtifactNode
+            m_CurrentNode = new ArtifactNode
             {
                 artifact = refinedArtifact
             };
-            Add(node);
+            Add(m_CurrentNode);
+            UpdateManipulators();
         }
     }
 }

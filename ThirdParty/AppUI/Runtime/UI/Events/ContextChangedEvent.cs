@@ -9,7 +9,7 @@ namespace Unity.Muse.AppUI.UI
     /// Event raised when the context has changed.
     /// </summary>
     /// <typeparam name="T"> The type of the context. </typeparam>
-    public class ContextChangedEvent<T> : EventBase<ContextChangedEvent<T>> 
+    internal class ContextChangedEvent<T> : EventBase<ContextChangedEvent<T>> 
         where T : IContext
     {
         /// <summary>

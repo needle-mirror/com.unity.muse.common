@@ -5,11 +5,16 @@
 
 .li-element{
     overflow: hidden;
-    background-color: rgba(0,0,0,0);
+    background-color: var(--appui-backgrounds-100);
     flex-grow: 1;
 
-    -unity-background-scale-mode: scale-to-fit;
+    -unity-background-scale-mode: scale-and-crop;
 }
+
+.muse-canvas .li-element {
+    background-color: var(--appui-color-transparent-black-0);
+}
+
 #Buttons{
     flex-grow: 1;
 }

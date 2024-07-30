@@ -1,87 +1,158 @@
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
 using System;
 using System.Runtime.InteropServices;
-using System.Text;
+using AOT;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace Unity.AppUI.Core
 {
     class WindowsPlatformImpl : PlatformImpl
     {
-        const int MONITOR_DEFAULTTONULL       = 0x00000000;
-        const int MONITOR_DEFAULTTOPRIMARY    = 0x00000001;
-        const int MONITOR_DEFAULTTONEAREST    = 0x00000002;
-
-        enum DPI_AWARENESS
+        delegate void DebugLogDelegate(IntPtr messagePtr, uint length);
+        delegate void HighContrastChangedDelegate(bool highContrastEnabled);
+        delegate void ReduceMotionChangedDelegate(bool reduceMotionEnabled);
+        delegate void ThemeChangedDelegate(bool darkModeEnabled);
+        delegate void TextScaleFactorChangedDelegate(float textScaleFactor);
+        delegate void ScaleFactorChangedDelegate(float scaleFactor);
+        delegate void LayoutDirectionChangedDelegate(byte layoutDirection);
+        delegate void SystemColorChangedDelegate();
+        
+        [StructLayout(LayoutKind.Sequential)]
+        struct PluginConfigData
         {
-            DPI_AWARENESS_INVALID           = -1,
-            DPI_AWARENESS_UNAWARE           = 0,
-            DPI_AWARENESS_SYSTEM_AWARE      = 1,
-            DPI_AWARENESS_PER_MONITOR_AWARE = 2
+            [MarshalAs(UnmanagedType.FunctionPtr)]
+            public DebugLogDelegate DebugLogCSharpHandler;
+            [MarshalAs(UnmanagedType.FunctionPtr)]
+            public HighContrastChangedDelegate HighContrastChangedCSharpHandler;
+            [MarshalAs(UnmanagedType.FunctionPtr)]
+            public ReduceMotionChangedDelegate ReduceMotionChangedCSharpHandler;
+            [MarshalAs(UnmanagedType.FunctionPtr)]
+            public ThemeChangedDelegate ThemeChangedCSharpHandler;
+            [MarshalAs(UnmanagedType.FunctionPtr)]
+            public TextScaleFactorChangedDelegate TextScaleFactorChangedCSharpHandler;
+            [MarshalAs(UnmanagedType.FunctionPtr)]
+            public ScaleFactorChangedDelegate ScaleFactorChangedCSharpHandler;
+            [MarshalAs(UnmanagedType.FunctionPtr)]
+            public LayoutDirectionChangedDelegate LayoutDirectionChangedCSharpHandler;
+            [MarshalAs(UnmanagedType.FunctionPtr)]
+            public SystemColorChangedDelegate SystemColorChangedCSharpHandler;
+        }
+        
+        [DllImport("AppUIMuseNativePlugin", CallingConvention = CallingConvention.Cdecl)]
+        static extern bool NativeAppUI_Initialize(IntPtr configDataPtr);
+        
+        [DllImport("AppUIMuseNativePlugin", CallingConvention = CallingConvention.Cdecl)]
+        static extern bool NativeAppUI_EnsureUnityWindowFound();
+        
+        [DllImport("AppUIMuseNativePlugin", CallingConvention = CallingConvention.Cdecl)]
+        static extern void NativeAppUI_Uninitialize();
+        
+        [DllImport("AppUIMuseNativePlugin", CallingConvention = CallingConvention.Cdecl)]
+        static extern float NativeAppUI_ScaleFactor();
+        
+        [DllImport("AppUIMuseNativePlugin", CallingConvention = CallingConvention.Cdecl)]
+        static extern bool NativeAppUI_DarkMode();
+        
+        [DllImport("AppUIMuseNativePlugin", CallingConvention = CallingConvention.Cdecl)]
+        static extern bool NativeAppUI_HighContrast();
+
+        [DllImport("AppUIMuseNativePlugin", CallingConvention = CallingConvention.Cdecl)]
+        static extern bool NativeAppUI_ReduceMotion();
+        
+        [DllImport("AppUIMuseNativePlugin", CallingConvention = CallingConvention.Cdecl)]
+        static extern float NativeAppUI_TextScaleFactor();
+        
+        [DllImport("AppUIMuseNativePlugin", CallingConvention = CallingConvention.Cdecl)]
+        static extern int NativeAppUI_LayoutDirection();
+        
+        [DllImport("AppUIMuseNativePlugin", CallingConvention = CallingConvention.Cdecl)]
+        static extern Color NativeAppUI_GetSystemColor(SystemColorType elementType);
+
+        [MonoPInvokeCallback(typeof(DebugLogDelegate))]
+        static void DebugLog(IntPtr messagePtr, uint length)
+        {
+            var message = Marshal.PtrToStringAnsi(messagePtr, (int)length);
+            Debug.Log(message);
+        }
+        
+        [MonoPInvokeCallback(typeof(HighContrastChangedDelegate))]
+        void OnHighContrastChanged(bool highContrastEnabled)
+        {
+            InvokeHighContrastChanged(highContrastEnabled);
         }
 
-        enum DEVICE_SCALE_FACTOR {
-            DEVICE_SCALE_FACTOR_INVALID = 0,
-            SCALE_100_PERCENT = 100,
-            SCALE_120_PERCENT = 120,
-            SCALE_125_PERCENT = 125,
-            SCALE_140_PERCENT = 140,
-            SCALE_150_PERCENT = 150,
-            SCALE_160_PERCENT = 160,
-            SCALE_175_PERCENT = 175,
-            SCALE_180_PERCENT = 180,
-            SCALE_200_PERCENT = 200,
-            SCALE_225_PERCENT = 225,
-            SCALE_250_PERCENT = 250,
-            SCALE_300_PERCENT = 300,
-            SCALE_350_PERCENT = 350,
-            SCALE_400_PERCENT = 400,
-            SCALE_450_PERCENT = 450,
-            SCALE_500_PERCENT = 500
-        } ;
+        [MonoPInvokeCallback(typeof(HighContrastChangedDelegate))]
+        void OnReduceMotionChanged(bool reduceMotionEnabled)
+        {
+            InvokeReduceMotionChanged(reduceMotionEnabled);
+        }
+        
+        [MonoPInvokeCallback(typeof(ThemeChangedDelegate))]
+        void OnThemeChanged(bool darkModeEnabled)
+        {
+            InvokeThemeChanged(darkModeEnabled);
+        }
+        
+        [MonoPInvokeCallback(typeof(TextScaleFactorChangedDelegate))]
+        void OnTextScaleFactorChanged(float textScaleFactor)
+        {
+            InvokeTextScaleFactorChanged(textScaleFactor);
+        }
+        
+        [MonoPInvokeCallback(typeof(ScaleFactorChangedDelegate))]
+        void OnScaleFactorChanged(float scaleFactor)
+        {
+            InvokeScaleFactorChanged(scaleFactor);
+        }
 
-        [DllImport("kernel32.dll")]
-        static extern uint GetCurrentThreadId();
+        [MonoPInvokeCallback(typeof(ScaleFactorChangedDelegate))]
+        void OnLayoutDirectionChanged(byte layoutDirection)
+        {
+            InvokeLayoutDirectionChanged(layoutDirection);
+        }
 
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        static extern int GetClassName(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+        [MonoPInvokeCallback(typeof(SystemColorChangedDelegate))]
+        void OnSystemColorChanged()
+        {
+            InvokeSystemColorChanged();
+        }
+        
+        static IntPtr s_ConfigDataPtr = IntPtr.Zero;
+        
+        PluginConfigData m_ConfigData;
 
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
-
-        internal delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
-
-        [DllImport("user32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool EnumThreadWindows(uint dwThreadId, EnumWindowsProc lpEnumFunc, IntPtr lParam);
-
-        [DllImport("user32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool EnumChildWindows(IntPtr hWnd, EnumWindowsProc lpEnumFunc, IntPtr lParam);
-
-        [DllImport("user32.dll")]
-        static extern IntPtr MonitorFromWindow(IntPtr hWnd, int dwFlags);
-
-        [DllImport("user32.dll")]
-        static extern int GetWindowDpiAwarenessContext(IntPtr hWnd);
-
-        [DllImport("user32.dll")]
-        static extern DPI_AWARENESS GetAwarenessFromDpiAwarenessContext(int value);
-
-        [DllImport("user32.dll")]
-        static extern uint GetDpiForWindow(IntPtr hWnd);
-
-        [DllImport("AppUIMuseNativePlugin", CallingConvention = CallingConvention.Cdecl)]
-        static extern float _WinRuntimeAppsGetMainScreenScale();
-
-        [DllImport("AppUIMuseNativePlugin", CallingConvention = CallingConvention.Cdecl)]
-        static extern int GetScaleFactorForMonitorEx(IntPtr hMon);
-
-        [DllImport("AppUIMuseNativePlugin", CallingConvention = CallingConvention.Cdecl)]
-        static extern uint AppsUseLightTheme();
-
-        [DllImport("AppUIMuseNativePlugin", CallingConvention = CallingConvention.Cdecl)]
-        static extern uint SystemUsesLightTheme();
+        public WindowsPlatformImpl()
+        {
+            CleanUp();
+                
+            m_ConfigData = new PluginConfigData
+            {
+                DebugLogCSharpHandler = DebugLog,
+                HighContrastChangedCSharpHandler = OnHighContrastChanged,
+                ReduceMotionChangedCSharpHandler = OnReduceMotionChanged,
+                ThemeChangedCSharpHandler = OnThemeChanged,
+                TextScaleFactorChangedCSharpHandler = OnTextScaleFactorChanged,
+                ScaleFactorChangedCSharpHandler = OnScaleFactorChanged,
+                LayoutDirectionChangedCSharpHandler = OnLayoutDirectionChanged,
+                SystemColorChangedCSharpHandler = OnSystemColorChanged
+            };
+            s_ConfigDataPtr = Marshal.AllocHGlobal(Marshal.SizeOf<PluginConfigData>());
+            Assert.AreNotEqual(IntPtr.Zero, s_ConfigDataPtr, 
+                "Failed to allocate memory for the config data");
+            Marshal.StructureToPtr(m_ConfigData, s_ConfigDataPtr, false);
+            if (!NativeAppUI_Initialize(s_ConfigDataPtr))
+                Debug.LogError("Failed to initialize the native plugin");
+        }
+        
+        ~WindowsPlatformImpl() => CleanUp();
+        
+        void CleanUp()
+        {
+            NativeAppUI_Uninitialize();
+            if (s_ConfigDataPtr != IntPtr.Zero)
+                Marshal.FreeHGlobal(s_ConfigDataPtr);
+        }
         
         public override float referenceDpi
         {
@@ -93,7 +164,7 @@ namespace Unity.AppUI.Core
             }
         }
 
-        public override float mainScreenScale
+        public override float scaleFactor
         {
             get
             {
@@ -105,8 +176,26 @@ namespace Unity.AppUI.Core
                 return Screen.dpi / Platform.baseDpi;
             }
         }
+
+        protected override void LowFrequencyUpdate()
+        {
+            NativeAppUI_EnsureUnityWindowFound();
+            PollLayoutDirection();
+        }
+
+        public override AppUITouch[] touches => AppUIInput.GetCurrentInputSystemTouches();
+
+        public override bool darkMode => NativeAppUI_DarkMode();
+
+        public override bool highContrast => NativeAppUI_HighContrast();
+
+        public override bool reduceMotion => NativeAppUI_ReduceMotion();
         
-        public override string systemTheme => SystemUsesLightTheme() == 1 ? "light" : "dark";
+        public override int layoutDirection => NativeAppUI_LayoutDirection();
+
+        public override float textScaleFactor => NativeAppUI_TextScaleFactor();
+
+        public override Color GetSystemColor(SystemColorType elementType) => NativeAppUI_GetSystemColor(elementType);
     }
 }
 #endif

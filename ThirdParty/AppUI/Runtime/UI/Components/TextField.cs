@@ -13,7 +13,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class TextField : ExVisualElement, IInputElement<string>, INotifyValueChanging<string>
+    internal partial class TextField : ExVisualElement, IInputElement<string>, INotifyValueChanging<string>
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -44,47 +44,48 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The TextField main styling class.
         /// </summary>
-        public static readonly string ussClassName = "appui-textfield";
+        public const string ussClassName = "appui-textfield";
 
         /// <summary>
         /// The TextField size styling class.
         /// </summary>
-        public static readonly string sizeUssClassName = ussClassName + "--size-";
+        [EnumName("GetSizeUssClassName", typeof(Size))]
+        public const string sizeUssClassName = ussClassName + "--size-";
 
         /// <summary>
         /// The TextField leading container styling class.
         /// </summary>
-        public static readonly string leadingContainerUssClassName = ussClassName + "__leadingcontainer";
+        public const string leadingContainerUssClassName = ussClassName + "__leadingcontainer";
 
         /// <summary>
         /// The TextField leading icon styling class.
         /// </summary>
-        public static readonly string leadingIconUssClassName = ussClassName + "__leadingicon";
+        public const string leadingIconUssClassName = ussClassName + "__leadingicon";
 
         /// <summary>
         /// The TextField input container styling class.
         /// </summary>
-        public static readonly string inputContainerUssClassName = ussClassName + "__inputcontainer";
+        public const string inputContainerUssClassName = ussClassName + "__inputcontainer";
 
         /// <summary>
         /// The TextField input styling class.
         /// </summary>
-        public static readonly string inputUssClassName = ussClassName + "__input";
+        public const string inputUssClassName = ussClassName + "__input";
 
         /// <summary>
         /// The TextField placeholder styling class.
         /// </summary>
-        public static readonly string placeholderUssClassName = ussClassName + "__placeholder";
+        public const string placeholderUssClassName = ussClassName + "__placeholder";
 
         /// <summary>
         /// The TextField trailing container styling class.
         /// </summary>
-        public static readonly string trailingContainerUssClassName = ussClassName + "__trailingcontainer";
+        public const string trailingContainerUssClassName = ussClassName + "__trailingcontainer";
 
         /// <summary>
         /// The TextField trailing icon styling class.
         /// </summary>
-        public static readonly string trailingIconUssClassName = ussClassName + "__trailingicon";
+        public const string trailingIconUssClassName = ussClassName + "__trailingicon";
         
         const bool k_IsPasswordDefault = false;
         
@@ -442,9 +443,9 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_Size != value;
-                RemoveFromClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                RemoveFromClassList(GetSizeUssClassName(m_Size));
                 m_Size = value;
-                AddToClassList(sizeUssClassName + m_Size.ToString().ToLower());
+                AddToClassList(GetSizeUssClassName(m_Size));
 
                 switch (leadingElement)
                 {
@@ -610,12 +611,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Factory class to instantiate a <see cref="TextField"/> using the data read from a UXML file.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<TextField, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<TextField, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="TextField"/>.
         /// </summary>
-        public new class UxmlTraits : ExVisualElement.UxmlTraits
+        internal new class UxmlTraits : ExVisualElement.UxmlTraits
         {
             readonly UxmlStringAttributeDescription m_LeadingIconName = new UxmlStringAttributeDescription
             {

@@ -8,7 +8,7 @@ namespace Unity.AppUI.MVVM
     /// <para />
     /// This is a wrapper around a UIDocument that implements <see cref="IUIToolkitHost"/>.
     /// </summary>
-    public sealed class UIToolkitHost : IUIToolkitHost
+    internal sealed class UIToolkitHost : IUIToolkitHost
     {
         UIDocument m_Document;
 

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using UnityEditor.PackageManager;
 using UnityEngine;
@@ -11,13 +12,22 @@ namespace Unity.Muse.Common.Account
     class ClientStatus
     {
         static ClientStatus s_Instance;
-        public static ClientStatus Instance => s_Instance ??= new();
+        public static ClientStatus Instance => s_Instance ??= new(Preferences.packageName);
 
         public event Action<ClientStatusResponse> OnClientStatusChanged;
 
-        public bool IsClientUsable => AccountInfo.Instance.IsEntitled && !Status.IsDeprecated && NetworkState.IsAvailable;
-        public PackageInfo packageInfo = PackageInfo.FindForAssetPath("Packages/com.unity.muse.common/package.json");
-        public string apiVersion = GenerativeAIBackend.TexturesUrl.version;
+        string m_PackageName;
+        public PackageInfo packageInfo => PackageInfo.FindForAssetPath($"Packages/{m_PackageName}/package.json");
+
+        public string apiVersion => GenerativeAIBackend.TexturesUrl.version;
+
+        public ClientStatus(string packageName)
+        {
+            m_PackageName = packageName;
+        }
+
+        public void OpenInPackageManager() =>
+            UnityEditor.PackageManager.UI.Window.Open(packageInfo.name);
 
         public ClientStatusResponse Status
         {
@@ -47,3 +57,4 @@ namespace Unity.Muse.Common.Account
         }
     }
 }
+#endif

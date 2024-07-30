@@ -14,7 +14,7 @@ namespace Unity.Muse.AppUI.UI
     /// The Avatar variant context.
     /// </summary>
     /// <param name="variant"> The Avatar variant.</param>
-    public record AvatarVariantContext(AvatarVariant variant) : IContext
+    internal record AvatarVariantContext(AvatarVariant variant) : IContext
     {
         /// <summary>
         /// The Avatar variant.
@@ -26,7 +26,7 @@ namespace Unity.Muse.AppUI.UI
     /// The component size context.
     /// </summary>
     /// <param name="size"> The component size.</param>
-    public record SizeContext(Size size) : IContext
+    internal record SizeContext(Size size) : IContext
     {
         /// <summary>
         /// The component size.
@@ -37,7 +37,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// The AvatarGroup spacing.
     /// </summary>
-    public enum AvatarGroupSpacing
+    internal enum AvatarGroupSpacing
     {
         /// <summary>
         /// Small spacing.
@@ -66,7 +66,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class AvatarGroup : BaseVisualElement
+    internal partial class AvatarGroup : BaseVisualElement
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         internal static readonly BindingId maxProperty = nameof(max);
@@ -88,22 +88,23 @@ namespace Unity.Muse.AppUI.UI
         /// </summary>
         /// <param name="surplusCount">The number of surplus avatars.</param>
         /// <returns>The VisualElement to render.</returns>
-        public delegate VisualElement RenderSurplusDelegate(int surplusCount);
+        internal delegate VisualElement RenderSurplusDelegate(int surplusCount);
         
         /// <summary>
         /// The AvatarGroup main styling class.
         /// </summary>
-        public static readonly string ussClassName = "appui-avatar-group";
+        public const string ussClassName = "appui-avatar-group";
         
         /// <summary>
         /// The AvatarGroup surplus styling class.
         /// </summary>
-        public static readonly string surplusUssClassName = ussClassName + "__surplus";
+        public const string surplusUssClassName = ussClassName + "__surplus";
         
         /// <summary>
         /// The AvatarGroup spacing styling class.
         /// </summary>
-        public static readonly string spacingUssClassName = ussClassName + "--spacing-";
+        [EnumName("GetSpacingUssClassName", typeof(AvatarGroupSpacing))]
+        public const string spacingUssClassName = ussClassName + "--spacing-";
 
         const int k_DefaultMax = 5;
         
@@ -176,9 +177,9 @@ namespace Unity.Muse.AppUI.UI
             set
             {
                 var changed = m_Spacing != value;
-                RemoveFromClassList(spacingUssClassName + m_Spacing.ToString().ToLower());
+                RemoveFromClassList(GetSpacingUssClassName(m_Spacing));
                 m_Spacing = value;
-                AddToClassList(spacingUssClassName + m_Spacing.ToString().ToLower());
+                AddToClassList(GetSpacingUssClassName(m_Spacing));
                 Refresh();
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
@@ -372,7 +373,7 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Defines the UxmlFactory for the AvatarGroup.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<AvatarGroup, UxmlTraits>
+        internal new class UxmlFactory : UxmlFactory<AvatarGroup, UxmlTraits>
         {
             /// <summary>
             /// Describes the types of element that can appear as children of this element in a UXML file.
@@ -386,7 +387,7 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="AvatarGroup"/>.
         /// </summary>
-        public new class UxmlTraits : BaseVisualElement.UxmlTraits
+        internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
             readonly UxmlIntAttributeDescription m_Max = new UxmlIntAttributeDescription
             {

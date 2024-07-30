@@ -1,4 +1,4 @@
-AssetsList {
+.muse-assetslist__root {
     position: absolute;
     right: 0;
     left: 0;
@@ -7,17 +7,24 @@ AssetsList {
 
 .muse-assetslist {
     position: absolute;
-    right: var(--appui-spacing-125);
     width: 538px;
     min-width: 288px;
     max-width: 49%;
+    padding: 0 var(--appui-spacing-300);
+    --background-color: var(--appui-backgrounds-200);
+    bottom: 0;
+    top: 0;
+    right: 0;
+    margin-top: var(--appui-sizing-10);
+}
+
+.muse-assetslist__refine{
     bottom: var(--appui-spacing-125);
     top: var(--appui-spacing-125);
+    right: var(--appui-spacing-125);
     background-color: var(--appui-backgrounds-200);
-    padding: 0 var(--appui-spacing-300);
     border-radius: var(--appui-alias-control-border-radius);
-
-    --background-color: var(--appui-backgrounds-200);
+    margin-top: initial;
 }
 
 .muse-assetslist__titlebar {
@@ -40,7 +47,12 @@ AssetsList {
 }
 
 .muse-assetslist__bookmark-filter-button {
-    margin-left: var(--appui-alias-control-gap-md);
+    margin-right: var(--appui-alias-control-gap-md);
+}
+
+.muse-assetslist__body {
+    flex-grow: 1;
+    flex-shrink: 1;
 }
 
 .muse-assetslist__gridview {
@@ -74,31 +86,6 @@ AssetsList {
     left: 0;
     bottom: 0;
     right: 0;
-}
-
-.muse-asset-image {
-    background-image: url("./CardSingle.png");
-    padding: 5%;
-    margin: -5%;
-    background-size: 100% 100%;
-}
-
-.muse-artifact--with-refinements {
-    background-image: url("./CardStack.png");
-}
-
-.dark-mode .muse-asset-image {
-    background-image: url("./d_CardSingle.png");
-}
-
-.dark-mode .muse-artifact--with-refinements {
-    background-image: url("./d_CardStack.png");
-}
-
-.muse--refinement-mode .muse-asset-image {
-    padding: 0;
-    margin: 0;
-    background-image: none;
 }
 
 .muse-asset-image > PreviewImage,

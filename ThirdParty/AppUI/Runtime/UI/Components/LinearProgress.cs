@@ -16,11 +16,13 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class LinearProgress : Progress
+    internal partial class LinearProgress : Progress
     {
         static readonly int k_Start = Shader.PropertyToID("_Start");
 
         static readonly int k_End = Shader.PropertyToID("_End");
+        
+        static readonly int k_Rounded = Shader.PropertyToID("_Rounded");
 
         static readonly int k_BufferStart = Shader.PropertyToID("_BufferStart");
 
@@ -41,7 +43,7 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The Progress main styling class.
         /// </summary>
-        public new static readonly string ussClassName = "appui-linear-progress";
+        public new const string ussClassName = "appui-linear-progress";
 
         static readonly int k_Phase = Shader.PropertyToID("_Phase");
 
@@ -70,7 +72,7 @@ namespace Unity.Muse.AppUI.UI
             if (!rect.IsValid())
                 return;
 
-            var dpi = Mathf.Max(Platform.mainScreenScale, 1f);
+            var dpi = Mathf.Max(Platform.scaleFactor, 1f);
             var rectSize = rect.size * dpi;
 
             if (!rectSize.IsValidForTextureSize())
@@ -93,6 +95,7 @@ namespace Unity.Muse.AppUI.UI
             }
 
             s_Material.SetColor(k_Color, colorOverride);
+            s_Material.SetInt(k_Rounded, roundedProgressCorners ? 1 : 0);
             s_Material.SetFloat(k_Start, 0);
             s_Material.SetFloat(k_End, value);
             s_Material.SetFloat(k_BufferStart, 0);
@@ -101,7 +104,7 @@ namespace Unity.Muse.AppUI.UI
             s_Material.SetFloat(k_AA, 2.0f / rectSize.x);
             s_Material.SetVector(k_Phase, TimeUtils.GetCurrentTimeVector());
             s_Material.SetFloat(k_Ratio, rectSize.x / rectSize.y);
-            s_Material.SetFloat(k_Padding, rect.height * 0.5f / rect.width);
+            s_Material.SetFloat(k_Padding, roundedProgressCorners ? rect.height * 0.5f / rect.width : 0);
             if (variant == Variant.Indeterminate)
                 s_Material.EnableKeyword("PROGRESS_INDETERMINATE");
             else
@@ -117,12 +120,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Factory class to instantiate a <see cref="LinearProgress"/> using the data read from a UXML file.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<LinearProgress, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<LinearProgress, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="LinearProgress"/>.
         /// </summary>
-        public new class UxmlTraits : Progress.UxmlTraits { }
+        internal new class UxmlTraits : Progress.UxmlTraits { }
         
 #endif
     }

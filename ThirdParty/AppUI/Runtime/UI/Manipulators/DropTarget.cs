@@ -10,7 +10,7 @@ namespace Unity.Muse.AppUI.UI
     /// A droppable is a container that can be used to drop content into.
     /// </summary>
     /// <typeparam name="T"> The type of the object that can be dropped on the target. </typeparam>
-    public class DropTarget<T> : Manipulator
+    internal class DropTarget<T> : Manipulator
     {
         bool m_Entered;
         

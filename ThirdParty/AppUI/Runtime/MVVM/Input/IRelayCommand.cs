@@ -10,7 +10,7 @@ namespace Unity.AppUI.MVVM
     /// An interface expanding ICommand with the ability to raise
     /// the ICommand.CanExecuteChanged event externally.
     /// </summary>
-    public interface IRelayCommand : ICommand
+    internal interface IRelayCommand : ICommand
     {
         /// <summary>
         /// Notifies that the ICommand.CanExecute property has changed.
@@ -22,7 +22,7 @@ namespace Unity.AppUI.MVVM
     /// A generic interface representing a more specific version of <see cref="IRelayCommand"/>.
     /// </summary>
     /// <typeparam name="T">The type used as argument for the interface methods.</typeparam>
-    public interface IRelayCommand<in T> : IRelayCommand
+    internal interface IRelayCommand<in T> : IRelayCommand
     {
         /// <summary>
         /// Provides a strongly-typed variant of ICommand.Execute(object).

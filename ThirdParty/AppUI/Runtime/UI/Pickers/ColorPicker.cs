@@ -17,7 +17,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class ColorPicker : VisualElement, INotifyValueChanged<Color>
+    internal partial class ColorPicker : VisualElement, INotifyValueChanged<Color>
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
         
@@ -31,12 +31,14 @@ namespace Unity.Muse.AppUI.UI
         
         internal static readonly BindingId showHexProperty = new BindingId(nameof(showHex));
         
+        internal static readonly BindingId hdrProperty = new BindingId(nameof(hdr));
+        
 #endif
         
         /// <summary>
         /// The type of channels sliders to display in the ColorPicker.
         /// </summary>
-        public enum SliderMode
+        internal enum SliderMode
         {
             /// <summary>
             /// Display the RGB sliders as integers.
@@ -126,6 +128,11 @@ namespace Unity.Muse.AppUI.UI
         /// The hex field styling class.
         /// </summary>
         public const string hexFieldUssClassName = ussClassName + "__hex-field";
+        
+        /// <summary>
+        /// The HDR styling class.
+        /// </summary>
+        public const string hdrUssClassName = ussClassName + "--hdr";
 
         readonly ColorSlider m_AlphaSlider;
 
@@ -250,7 +257,25 @@ namespace Unity.Muse.AppUI.UI
                 if (changed)
                     NotifyPropertyChanged(in showAlphaProperty);
 #endif
+                
+                if (!showAlpha)
+                    TryNotifyValueChanged(this.value);
             }
+        }
+        
+        /// <summary>
+        /// Determines if the ColorPicker should display colors in HDR.
+        /// </summary>
+#if ENABLE_RUNTIME_DATA_BINDINGS
+        [CreateProperty]
+#endif
+#if ENABLE_UXML_SERIALIZED_DATA
+        [UxmlAttribute]
+#endif
+        public bool hdr
+        {
+            get => ClassListContains(hdrUssClassName);
+            set => EnableInClassList(hdrUssClassName, value);
         }
 
         /// <summary>
@@ -986,6 +1011,7 @@ namespace Unity.Muse.AppUI.UI
 
         void TryNotifyValueChanged(Color current)
         {
+            current = !showAlpha ? new Color(current.r, current.g, current.b, 1) : current;
             if (current != m_Value)
             {
                 var prev = m_Value;
@@ -1002,12 +1028,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Class used to create a <see cref="ColorPicker"/> using UXML.
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<ColorPicker, UxmlTraits> { }
+        internal new class UxmlFactory : UxmlFactory<ColorPicker, UxmlTraits> { }
 
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="ColorPicker"/>.
         /// </summary>
-        public new class UxmlTraits : VisualElement.UxmlTraits
+        internal new class UxmlTraits : VisualElement.UxmlTraits
         {
             readonly UxmlBoolAttributeDescription m_ShowAlpha = new UxmlBoolAttributeDescription
             {

@@ -6,7 +6,7 @@ namespace Unity.AppUI.MVVM
     /// <summary>
     /// Interface for the host of the application interface using UI Toolkit.
     /// </summary>
-    public interface IUIToolkitHost : IHost
+    internal interface IUIToolkitHost : IHost
     {
         /// <summary>
         /// Hosts the application.

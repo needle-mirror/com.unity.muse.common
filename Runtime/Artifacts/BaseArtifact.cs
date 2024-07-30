@@ -9,14 +9,22 @@ namespace Unity.Muse.Common
     internal abstract class Artifact: IEquatable<Artifact>
     {
         public static readonly string k_InvalidGUID = string.Empty;
+
+        [SerializeField]
+        public string mode;
         [SerializeField]
         public string Guid = k_InvalidGUID;
+        // Artifacts with the same BatchRequestIdentifier will be combined into a single batch generation request to Proton.
+        [SerializeField]
+        public string BatchRequestIdentifier = k_InvalidGUID;
         [SerializeField]
         public uint Seed;
         [SerializeReference]
         protected List<IOperator> m_Operators;
         [SerializeReference]
         public List<Artifact> history = new();
+        [SerializeReference]
+        public List<Artifact> children = new();
 
         protected Artifact(string guid, uint seed)
         {
@@ -47,6 +55,8 @@ namespace Unity.Muse.Common
             return view;
         }
 
+        public virtual ArtifactView CreateRefineView() => CreateCanvasView();
+
         public delegate void ArtifactGenerationDelegate(Artifact artifact, string errorMessage);
         public ArtifactGenerationDelegate OnGenerationDone;
         public List<IOperator> GetOperators()
@@ -56,6 +66,9 @@ namespace Unity.Muse.Common
 
         public void UnregisterFromEvents(Model model)
         {
+            if (m_Operators == null)
+                return;
+
             foreach (var op in m_Operators)
             {
                 op.UnregisterFromEvents(model);
@@ -64,6 +77,9 @@ namespace Unity.Muse.Common
 
         public void RegisterToEvents(Model model)
         {
+            if (m_Operators == null)
+                return;
+
             foreach (var op in m_Operators)
             {
                 op.RegisterToEvents(model);
@@ -134,14 +150,36 @@ namespace Unity.Muse.Common
             return artifact;
         }
 
-        public virtual void Variate(List<IOperator> ops)
+        public void PerformAction(IEnumerable<IOperator> operators, Model model, bool isVariation, bool isShape)
         {
-            return;
+            SetOperators(operators);
+
+            if (isVariation)
+                Variate(operators.ToList());
+            else if (isShape)
+                Shape(operators.ToList());
+            else
+                Generate(model);
         }
 
-        public virtual void Shape(List<IOperator> ops)
+        public virtual void ProcessArtifactOperations(string modeType, IEnumerable<IOperator> operators, Model model, bool isVariation, bool isShape)
         {
-            return;
+            SetOperators(operators);
+            StartGenerate(model);
+
+            var generateOperator = operators.GetOperator<GenerateOperator>();
+            var count = generateOperator?.GetCount();
+
+            for (var i = 0; i < count; i++)
+            {
+                var artifact = ArtifactFactory.CreateArtifact(modeType);
+                artifact.PerformAction(operators, model, isVariation, isShape);
+                model.AddAsset(artifact);
+            }
         }
+
+        public virtual void Variate(List<IOperator> ops) { }
+
+        public virtual void Shape(List<IOperator> ops) { }
     }
 }

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using UnityEditor;
 
@@ -17,3 +18,4 @@ namespace Unity.Muse.Common.Account
             privacy_policy_gen_ai;
     }
 }
+#endif

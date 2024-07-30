@@ -16,13 +16,13 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public partial class GridView : BaseGridView
+    internal partial class GridView : BaseGridView
     {
         /// <summary>
         /// Available Operations.
         /// </summary>
         [Flags]
-        public enum GridOperations
+        internal enum GridOperations
         {
             /// <summary>
             /// No operation.
@@ -112,8 +112,8 @@ namespace Unity.Muse.AppUI.UI
         float m_LastPadding;
 
         /// <summary>
-        /// Creates a <see cref="GridView"/> with all default properties. The <see cref="GridView.itemsSource"/>,
-        /// <see cref="GridView.itemHeight"/>, <see cref="GridView.makeItem"/> and <see cref="GridView.bindItem"/> properties
+        /// Creates a <see cref="GridView"/> with all default properties. The <see cref="BaseGridView.itemsSource"/>,
+        /// <see cref="GridView.itemHeight"/>, <see cref="BaseGridView.makeItem"/> and <see cref="BaseGridView.bindItem"/> properties
         /// must all be set for the GridView to function properly.
         /// </summary>
         public GridView()
@@ -578,7 +578,7 @@ namespace Unity.Muse.AppUI.UI
         /// <remarks>
         /// This class is added to every <see cref="VisualElement"/> created from UXML.
         /// </remarks>
-        public new class UxmlFactory : UxmlFactory<GridView, UxmlTraits> {}
+        internal new class UxmlFactory : UxmlFactory<GridView, UxmlTraits> {}
 
         /// <summary>
         /// Defines <see cref="UxmlTraits"/> for the <see cref="GridView"/>.
@@ -586,7 +586,7 @@ namespace Unity.Muse.AppUI.UI
         /// <remarks>
         /// This class defines the GridView element properties that you can use in a UI document asset (UXML file).
         /// </remarks>
-        public new class UxmlTraits : BaseGridView.UxmlTraits
+        internal new class UxmlTraits : BaseGridView.UxmlTraits
         {
             readonly UxmlIntAttributeDescription m_ItemHeight = new UxmlIntAttributeDescription
             {

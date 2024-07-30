@@ -5,7 +5,7 @@ namespace Unity.Muse.AppUI.UI
     /// <summary>
     /// The DPI has changed.
     /// </summary>
-    public class DpiChangedEvent : EventBase<DpiChangedEvent>
+    internal class DpiChangedEvent : EventBase<DpiChangedEvent>
     {
         /// <summary>
         /// The previous value.

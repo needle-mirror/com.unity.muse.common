@@ -6,14 +6,20 @@ using AppUI = Unity.Muse.AppUI.UI;
 
 namespace Unity.Muse.Common
 {
-    internal class GenericLoader : VisualElement
+#if ENABLE_UXML_SERIALIZED_DATA
+    [UxmlElement]
+#endif
+    partial class GenericLoader : VisualElement
     {
+#if ENABLE_UXML_TRAITS
+        public new class UxmlFactory : UxmlFactory<GenericLoader, UxmlTraits> { }
+#endif
         const string k_GradientLoaderClass = "genai-loader-gradient";
         const string k_HiddenStateClass = "genai-loader-state-none";
 
         readonly AppUI.UI.CircularProgress m_Progress;
         readonly AppUI.UI.Text m_ProgressLabel;
-        readonly ErrorView m_ErrorView;
+        internal ErrorView m_ErrorView;
 
         internal State LoadingState { get; private set; }
         internal event Action<State> OnLoadingStateChanged;
@@ -25,7 +31,7 @@ namespace Unity.Muse.Common
         {
         }
 
-        public GenericLoader(State state, bool withProgress = false)
+        public GenericLoader(State state, bool withProgress = false, ErrorView errorView = null)
         {
             m_Progress = new AppUI.UI.CircularProgress
             {
@@ -45,7 +51,7 @@ namespace Unity.Muse.Common
 
             Add(m_Progress);
 
-            m_ErrorView = new ErrorView();
+            m_ErrorView = (errorView == null) ? new ErrorView() : errorView;
             Add(m_ErrorView);
 
             m_ErrorView.OnDelete += OnDeleteClicked;

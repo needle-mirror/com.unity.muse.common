@@ -5,11 +5,11 @@ namespace Unity.Muse.Common.Api
     record MuseUrl
     {
 #if UNITY_MUSE_CLOUD_STAGING
-        static public string origin = "https://musetools-stg-hbasf8cec2dxb0dh.a01.azurefd.net";
+        public const string origin = "https://musetools-stg-hbasf8cec2dxb0dh.a01.azurefd.net";
 #elif UNITY_MUSE_CLOUD_TEST
-        static public string origin = "https://musetools-test-auamdbc0faeda7f4.z01.azurefd.net";
+        public const string origin = "https://musetools-test-auamdbc0faeda7f4.z01.azurefd.net";
 #else
-        static public string origin = "https://musetools-prd-fndabjhyf7dscuby.z01.azurefd.net";
+        public const string origin = "https://musetools-prd-fndabjhyf7dscuby.z01.azurefd.net";
 #endif
 
         public string version = "v2";

@@ -1,45 +1,32 @@
 
 using System.Collections.Generic;
+using System.Threading;
 using Unity.Muse.Common;
 using UnityEditor;
 using UnityEngine;
 
 namespace Unity.GenerativeAI.Editor
 {
-
-    internal class EditorCloudContext : ICloudContext
+    class EditorCloudContext : ICloudContext
     {
         [InitializeOnLoadMethod]
         static void InjectEditorContext()
         {
+            s_UnitySynchronizationContext = SynchronizationContext.Current;
             CloudContextFactory.InjectCloudContextType<EditorCloudContext>();
         }
 
-        public double TimeSinceStartup => EditorApplication.timeSinceStartup;
-
         static Dictionary<ICloudContext.Callback, EditorApplication.CallbackFunction> s_CallbackDelegateTrackingTable = new();
+        static SynchronizationContext s_UnitySynchronizationContext;
 
         void ICloudContext.RegisterNextFrameCallback(ICloudContext.Callback cb)
         {
-            EditorApplication.delayCall += () => cb();
+            s_UnitySynchronizationContext.Post(SynchronizationContextPostCallback, cb);
         }
 
-        public void RegisterForTickCallback(ICloudContext.Callback cb)
+        static void SynchronizationContextPostCallback(object cb)
         {
-            void CallbackFunction() => cb();
-            if (s_CallbackDelegateTrackingTable.TryAdd(cb, CallbackFunction))
-            {
-                EditorApplication.update += CallbackFunction;
-            }
-        }
-
-        public void UnregisterForTickCallback(ICloudContext.Callback cb)
-        {
-            if (s_CallbackDelegateTrackingTable.TryGetValue(cb, out var editorCallbackDelegate))
-            {
-                EditorApplication.update -= editorCallbackDelegate;
-                s_CallbackDelegateTrackingTable.Remove(cb);
-            }
+            ((ICloudContext.Callback)cb)();
         }
     }
 }

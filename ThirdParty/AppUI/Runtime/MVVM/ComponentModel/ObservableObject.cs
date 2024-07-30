@@ -11,7 +11,7 @@ namespace Unity.AppUI.MVVM
     /// <summary>
     /// A base class for objects of which the properties must be observable.
     /// </summary>
-    public abstract class ObservableObject : System.ComponentModel.INotifyPropertyChanged, System.ComponentModel.INotifyPropertyChanging
+    internal abstract class ObservableObject : System.ComponentModel.INotifyPropertyChanged, System.ComponentModel.INotifyPropertyChanging
     {
         /// <summary>
         /// Occurs when a property value is changing.

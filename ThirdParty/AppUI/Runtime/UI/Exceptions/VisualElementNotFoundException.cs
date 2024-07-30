@@ -7,7 +7,7 @@ namespace Unity.Muse.AppUI.UI
     /// Exception thrown when a Visual Element hasn't been found.
     /// </summary>
     [Serializable]
-    public sealed class VisualElementNotFoundException : Exception
+    internal sealed class VisualElementNotFoundException : Exception
     {
         /// <summary>
         /// Default constructor.

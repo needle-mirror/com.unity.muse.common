@@ -5,7 +5,7 @@ namespace Unity.AppUI.Redux
     /// <summary>
     /// A Slice is a collection of reducers and actions for a specific part of the application state.
     /// </summary>
-    public class Slice
+    internal class Slice
     {
         /// <summary>
         /// The name of the slice.
@@ -23,7 +23,7 @@ namespace Unity.AppUI.Redux
     /// It is a convenient way to bundle them together for use in a Redux store.
     /// </summary>
     /// <typeparam name="TState"> The type of the state associated with this slice. </typeparam>
-    public sealed class Slice<TState> : Slice
+    internal sealed class Slice<TState> : Slice
     {
         /// <summary>
         /// Creates a new slice.

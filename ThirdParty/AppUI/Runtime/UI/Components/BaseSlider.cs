@@ -19,7 +19,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    public abstract partial class BaseSlider<TValueType, THandleValueType> : ExVisualElement, IInputElement<TValueType>, INotifyValueChanging<TValueType>
+    internal abstract partial class BaseSlider<TValueType, THandleValueType> : ExVisualElement, IInputElement<TValueType>, INotifyValueChanging<TValueType>
         where TValueType : IEquatable<TValueType>
         where THandleValueType : struct, IComparable, IEquatable<THandleValueType>
     {
@@ -485,7 +485,7 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="BaseSlider{TValueType,THandleValueType}"/>.
         /// </summary>
-        public new class UxmlTraits : ExVisualElement.UxmlTraits {}
+        internal new class UxmlTraits : ExVisualElement.UxmlTraits {}
         
 #endif
 
