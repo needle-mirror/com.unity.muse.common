@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;
@@ -92,8 +93,11 @@ namespace Unity.Muse.Common.Editor
                 ? promptOperator.GetPrompt()
                 : defaultName;
 
+            var invalidCharsPattern = $"[{Regex.Escape(new string(Path.GetInvalidFileNameChars()))}]";
+            var sanitizedFileName = Regex.Replace(fileName, invalidCharsPattern, "_");
+
             var directory = GlobalPreferences.GetMuseAssetGeneratedFolderPathFromMode(currentModel.CurrentMode);
-            var path = ExporterHelpers.GetUniquePath(directory, fileName, "asset");
+            var path = ExporterHelpers.GetUniquePath(directory, sanitizedFileName, "asset");
 
             return showDialog ? EditorUtility.SaveFilePanelInProject(TextContent.savePanelTitle, Path.GetFileNameWithoutExtension(path), "asset", TextContent.savePanelMessage) : path;
         }

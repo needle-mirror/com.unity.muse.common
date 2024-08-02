@@ -39,7 +39,6 @@
 
 .muse-subscription-message Button.appui-dialog__primary-action,
 .muse-subscription-message Button.appui-button--accent {
-    color: var(--appui-primary-1300);
     padding: var(--appui-sizing-125) var(--appui-sizing-200);
     margin-right: var(--appui-spacing-200);
 }
@@ -132,11 +131,16 @@
     height: var(--appui-sizing-300);
 }
 
+.dropdown-editor-window {
+    border-width: var(--appui-border-width-sm);
+    border-color: var(--appui-primary-400);
+}
+
 .muse-account-settings {
     padding: var(--appui-spacing-300);
     border-radius: var(--appui-alias-control-border-radius);
     border-width: var(--appui-border-width-sm);
-    border-color: var(--appui-base-200);
+    border-color: var(--appui-primary-400);
     flex-shrink: 0;
 }
 
@@ -214,13 +218,9 @@ UsageView UsageProgressBar {
     height: auto;
     border-radius: var(--appui-spacing-100);
     border-width: 1px;
-    border-color: rgba(255, 255, 255, 0.10);
-    background-color: rgba(255, 255, 255, 0.04);
 }
 
 .muse-trial-organization-dropdown:hover {
-    border-color: rgba(255, 255, 255, 0.30);
-    background-color: rgba(255, 255, 255, 0.15);
 }
 
 .muse-dialog-secondary-action-container {
