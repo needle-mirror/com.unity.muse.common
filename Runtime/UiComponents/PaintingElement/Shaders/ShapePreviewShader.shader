@@ -32,7 +32,9 @@ Shader "Hidden/Muse/ShapePreview"
                 float4 vertex : SV_POSITION;
             };
 
-            sampler2D _MainTex;
+            Texture2D _MainTex;
+            SamplerState my_linear_repeat_sampler;
+
             fixed4 _ReferenceColor;
             float4 _MainTex_ST;
             float4 _MainTex_TexelSize;
@@ -48,8 +50,10 @@ Shader "Hidden/Muse/ShapePreview"
 
             fixed4 frag(v2f i) : SV_Target
             {
-                fixed4 c = tex2D(_MainTex, i.uv);
-                fixed4 color = (c.r < 0.95 || c.g < 0.95 || c.b < 0.95) ? _ReferenceColor : c;
+                fixed4 color = _MainTex.Sample(my_linear_repeat_sampler, i.uv);
+
+                // interpolate between the original color and replacement color
+                color.rgb = 1 - (1 - sqrt(sqrt(color.rgb))) * (1 - _ReferenceColor.rgb);
 
                 #ifdef UNITY_COLORSPACE_GAMMA
 
