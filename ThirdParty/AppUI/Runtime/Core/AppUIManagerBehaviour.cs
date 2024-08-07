@@ -1,3 +1,4 @@
+#define APPUI_PLATFORM_EDITOR_ONLY
 using System;
 using UnityEngine;
 
@@ -13,11 +14,13 @@ namespace Unity.AppUI.Core
     internal class AppUIManagerBehaviour : MonoBehaviour
     {
         internal static AppUIManagerBehaviour instance { get; private set; }
-        
+
         /// <summary>
         /// Creates the AppUIManagerBehaviour instance.
         /// </summary>
+#if !APPUI_PLATFORM_EDITOR_ONLY
         [RuntimeInitializeOnLoadMethod(loadType: RuntimeInitializeLoadType.AfterSceneLoad)]
+#endif
         public static void Create()
         {
             if (!instance)
@@ -52,7 +55,7 @@ namespace Unity.AppUI.Core
                 AppUI.Update();
             }
         }
-        
+
         void OnNativeMessageReceived(string message)
         {
             Platform.HandleNativeMessage(message);

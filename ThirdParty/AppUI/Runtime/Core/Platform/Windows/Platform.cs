@@ -9,6 +9,8 @@ namespace Unity.AppUI.Core
 {
     class WindowsPlatformImpl : PlatformImpl
     {
+        static WindowsPlatformImpl s_Instance;
+
         delegate void DebugLogDelegate(IntPtr messagePtr, uint length);
         delegate void HighContrastChangedDelegate(bool highContrastEnabled);
         delegate void ReduceMotionChangedDelegate(bool reduceMotionEnabled);
@@ -17,7 +19,7 @@ namespace Unity.AppUI.Core
         delegate void ScaleFactorChangedDelegate(float scaleFactor);
         delegate void LayoutDirectionChangedDelegate(byte layoutDirection);
         delegate void SystemColorChangedDelegate();
-        
+
         [StructLayout(LayoutKind.Sequential)]
         struct PluginConfigData
         {
@@ -38,34 +40,34 @@ namespace Unity.AppUI.Core
             [MarshalAs(UnmanagedType.FunctionPtr)]
             public SystemColorChangedDelegate SystemColorChangedCSharpHandler;
         }
-        
+
         [DllImport("AppUIMuseNativePlugin", CallingConvention = CallingConvention.Cdecl)]
         static extern bool NativeAppUI_Initialize(IntPtr configDataPtr);
-        
+
         [DllImport("AppUIMuseNativePlugin", CallingConvention = CallingConvention.Cdecl)]
         static extern bool NativeAppUI_EnsureUnityWindowFound();
-        
+
         [DllImport("AppUIMuseNativePlugin", CallingConvention = CallingConvention.Cdecl)]
         static extern void NativeAppUI_Uninitialize();
-        
+
         [DllImport("AppUIMuseNativePlugin", CallingConvention = CallingConvention.Cdecl)]
         static extern float NativeAppUI_ScaleFactor();
-        
+
         [DllImport("AppUIMuseNativePlugin", CallingConvention = CallingConvention.Cdecl)]
         static extern bool NativeAppUI_DarkMode();
-        
+
         [DllImport("AppUIMuseNativePlugin", CallingConvention = CallingConvention.Cdecl)]
         static extern bool NativeAppUI_HighContrast();
 
         [DllImport("AppUIMuseNativePlugin", CallingConvention = CallingConvention.Cdecl)]
         static extern bool NativeAppUI_ReduceMotion();
-        
+
         [DllImport("AppUIMuseNativePlugin", CallingConvention = CallingConvention.Cdecl)]
         static extern float NativeAppUI_TextScaleFactor();
-        
+
         [DllImport("AppUIMuseNativePlugin", CallingConvention = CallingConvention.Cdecl)]
         static extern int NativeAppUI_LayoutDirection();
-        
+
         [DllImport("AppUIMuseNativePlugin", CallingConvention = CallingConvention.Cdecl)]
         static extern Color NativeAppUI_GetSystemColor(SystemColorType elementType);
 
@@ -75,57 +77,57 @@ namespace Unity.AppUI.Core
             var message = Marshal.PtrToStringAnsi(messagePtr, (int)length);
             Debug.Log(message);
         }
-        
-        [MonoPInvokeCallback(typeof(HighContrastChangedDelegate))]
-        void OnHighContrastChanged(bool highContrastEnabled)
-        {
-            InvokeHighContrastChanged(highContrastEnabled);
-        }
 
         [MonoPInvokeCallback(typeof(HighContrastChangedDelegate))]
-        void OnReduceMotionChanged(bool reduceMotionEnabled)
+        static void OnHighContrastChanged(bool highContrastEnabled)
         {
-            InvokeReduceMotionChanged(reduceMotionEnabled);
+            s_Instance?.InvokeHighContrastChanged(highContrastEnabled);
         }
-        
+
+        [MonoPInvokeCallback(typeof(ReduceMotionChangedDelegate))]
+        static void OnReduceMotionChanged(bool reduceMotionEnabled)
+        {
+            s_Instance?.InvokeReduceMotionChanged(reduceMotionEnabled);
+        }
+
         [MonoPInvokeCallback(typeof(ThemeChangedDelegate))]
-        void OnThemeChanged(bool darkModeEnabled)
+        static void OnThemeChanged(bool darkModeEnabled)
         {
-            InvokeThemeChanged(darkModeEnabled);
+            s_Instance?.InvokeThemeChanged(darkModeEnabled);
         }
-        
+
         [MonoPInvokeCallback(typeof(TextScaleFactorChangedDelegate))]
-        void OnTextScaleFactorChanged(float textScaleFactor)
+        static void OnTextScaleFactorChanged(float textScaleFactor)
         {
-            InvokeTextScaleFactorChanged(textScaleFactor);
-        }
-        
-        [MonoPInvokeCallback(typeof(ScaleFactorChangedDelegate))]
-        void OnScaleFactorChanged(float scaleFactor)
-        {
-            InvokeScaleFactorChanged(scaleFactor);
+            s_Instance?.InvokeTextScaleFactorChanged(textScaleFactor);
         }
 
         [MonoPInvokeCallback(typeof(ScaleFactorChangedDelegate))]
-        void OnLayoutDirectionChanged(byte layoutDirection)
+        static void OnScaleFactorChanged(float scaleFactor)
         {
-            InvokeLayoutDirectionChanged(layoutDirection);
+            s_Instance?.InvokeScaleFactorChanged(scaleFactor);
+        }
+
+        [MonoPInvokeCallback(typeof(LayoutDirectionChangedDelegate))]
+        static void OnLayoutDirectionChanged(byte layoutDirection)
+        {
+            s_Instance?.InvokeLayoutDirectionChanged(layoutDirection);
         }
 
         [MonoPInvokeCallback(typeof(SystemColorChangedDelegate))]
-        void OnSystemColorChanged()
+        static void OnSystemColorChanged()
         {
-            InvokeSystemColorChanged();
+            s_Instance?.InvokeSystemColorChanged();
         }
-        
+
         static IntPtr s_ConfigDataPtr = IntPtr.Zero;
-        
+
         PluginConfigData m_ConfigData;
 
         public WindowsPlatformImpl()
         {
             CleanUp();
-                
+
             m_ConfigData = new PluginConfigData
             {
                 DebugLogCSharpHandler = DebugLog,
@@ -138,22 +140,24 @@ namespace Unity.AppUI.Core
                 SystemColorChangedCSharpHandler = OnSystemColorChanged
             };
             s_ConfigDataPtr = Marshal.AllocHGlobal(Marshal.SizeOf<PluginConfigData>());
-            Assert.AreNotEqual(IntPtr.Zero, s_ConfigDataPtr, 
+            Assert.AreNotEqual(IntPtr.Zero, s_ConfigDataPtr,
                 "Failed to allocate memory for the config data");
             Marshal.StructureToPtr(m_ConfigData, s_ConfigDataPtr, false);
             if (!NativeAppUI_Initialize(s_ConfigDataPtr))
                 Debug.LogError("Failed to initialize the native plugin");
+            s_Instance = this;
         }
-        
+
         ~WindowsPlatformImpl() => CleanUp();
-        
+
         void CleanUp()
         {
             NativeAppUI_Uninitialize();
             if (s_ConfigDataPtr != IntPtr.Zero)
                 Marshal.FreeHGlobal(s_ConfigDataPtr);
+            s_Instance = null;
         }
-        
+
         public override float referenceDpi
         {
             get
@@ -190,7 +194,7 @@ namespace Unity.AppUI.Core
         public override bool highContrast => NativeAppUI_HighContrast();
 
         public override bool reduceMotion => NativeAppUI_ReduceMotion();
-        
+
         public override int layoutDirection => NativeAppUI_LayoutDirection();
 
         public override float textScaleFactor => NativeAppUI_TextScaleFactor();
