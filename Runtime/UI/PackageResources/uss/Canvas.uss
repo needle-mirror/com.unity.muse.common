@@ -70,4 +70,3 @@ Canvas .selection-box {
 .canvas-control__content, .canvas-control__middle{
     flex-grow: 1;
 }
-

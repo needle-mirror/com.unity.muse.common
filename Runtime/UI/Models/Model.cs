@@ -554,6 +554,10 @@ namespace Unity.Muse.Common
             m_PreRefineOperators = m_Operators.ToList();
             refinedArtifact = artifact;
             m_Operators = modeDefaultOperators.ToList();
+            
+            BookmarkManager bookmarkManager = GetData<BookmarkManager>();
+            if (bookmarkManager != null)
+                bookmarkManager.SetFilter(false);
 
             OnRefineArtifact?.Invoke(artifact);
 

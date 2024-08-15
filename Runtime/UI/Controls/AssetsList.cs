@@ -304,9 +304,22 @@ namespace Unity.Muse.Common
             var isBookmarkFilterEnabled = m_BookmarkManager.isFilterEnabled;
             m_BookmarkFilterButton.selected = isBookmarkFilterEnabled;
 
-            m_FilteredItemsList = isBookmarkFilterEnabled ? m_FilteredItemsList.Where(a => m_BookmarkManager.IsBookmarked(a)).ToList() : m_FilteredItemsList;
+            m_FilteredItemsList = ApplyBookmarkFilter(m_FilteredItemsList, isBookmarkFilterEnabled);
 
             m_GridView.itemsSource = m_FilteredItemsList;
+        }
+
+        List<Artifact> ApplyBookmarkFilter(List<Artifact> unfilteredList, bool isBookmarkFilterEnabled)
+        {
+            if (m_CurrentModel != null && m_CurrentModel.isRefineMode)
+            {
+                return isBookmarkFilterEnabled ? unfilteredList
+                    .Where(a => m_BookmarkManager.IsBookmarked(a)).ToList() : unfilteredList;
+            }
+            
+            return isBookmarkFilterEnabled ?
+                unfilteredList.Where(a => a.history.Any(b => m_BookmarkManager.IsBookmarked(b))).ToList() :
+                unfilteredList;
         }
 
         void OnGridViewSelectionChanged(IEnumerable<object> selectedItems)

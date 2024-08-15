@@ -181,5 +181,7 @@ namespace Unity.Muse.Common
         public virtual void Variate(List<IOperator> ops) { }
 
         public virtual void Shape(List<IOperator> ops) { }
+
+        public virtual Vector2 GetVisualDimensions() => Vector2.zero;
     }
 }

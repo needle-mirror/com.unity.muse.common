@@ -4,6 +4,14 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [2.0.4] - 2024-08-15
+
+### Fixed
+
+- Fix "Unity Muse AI" tag not being added on all exported assets.
+- Fix "Open in Muse" option.
+- Fix toolbar exception in batch mode.
+
 ## [2.0.3] - 2024-08-07
 
 ### Added

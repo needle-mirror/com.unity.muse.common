@@ -14,6 +14,7 @@ namespace Unity.Muse.Common
 
         public PreviewImage()
         {
+            AddToClassList("preview-image");
             RegisterCallback<PointerDownEvent>(OnPointerDown);
             GenericLoader.OnRetry += OnRetry;
             GenericLoader.OnDelete += OnDeleteClicked;
@@ -71,7 +72,7 @@ namespace Unity.Muse.Common
                 SetAsset(artifact);
                 return;
             }
-            
+
 
             OnError("Generation failed.");
         }

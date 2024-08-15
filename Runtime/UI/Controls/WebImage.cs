@@ -37,6 +37,7 @@ namespace Unity.Muse.Common
 
         public WebImage(string url)
         {
+            AddToClassList("web-image");
             this.url = url;
         }
 

@@ -44,6 +44,12 @@ namespace Unity.Muse.Common
             if (m_CurrentArtifactView == null)
                 return;
             m_CurrentArtifactView.AddToClassList(k_PreviewUssClassName);
+            var dimensions = m_Artifact.GetVisualDimensions();
+            if (dimensions != Vector2.zero)
+            {
+                style.width = dimensions.x;
+                style.height = dimensions.y;
+            }
             Add(m_CurrentArtifactView);
         }
         

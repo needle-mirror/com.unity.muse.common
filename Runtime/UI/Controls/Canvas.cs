@@ -33,7 +33,7 @@ namespace Unity.Muse.Common
         VisualElement m_LastRightOverlay;
 
         const int k_FrameTopOffset = 42;
-        
+
         ArtifactNode m_CurrentNode;
 
         public Artifact refinedArtifact
@@ -73,9 +73,9 @@ namespace Unity.Muse.Common
                 frameMargin = 24f,
                 controlScheme = GlobalPreferences.canvasControlScheme
             };
-            
+
             GlobalPreferences.preferencesChanged += OnPreferencesChanged;
-            
+
             hierarchy.Add(m_Canvas);
             m_Canvas.StretchToParentSize();
             this.StretchToParentSize();
@@ -96,7 +96,7 @@ namespace Unity.Muse.Common
             {
                 name = "control-top-content",
             };
-            
+
             m_ControlMiddleContent = new VisualElement()
             {
                 name = "control-middle-content",
@@ -106,16 +106,16 @@ namespace Unity.Muse.Common
                     flexGrow = 1f
                 }
             };
-            
+
             m_ControlBottomContent = new VisualElement()
             {
                 name = "control-bottom-content",
             };
-            
+
             m_ControlContent.Add(m_ControlTopContent);
             m_ControlContent.Add(m_ControlMiddleContent);
             m_ControlContent.Add(m_ControlBottomContent);
-            
+
             hierarchy.Add(m_ControlContent);
         }
 
@@ -148,37 +148,37 @@ namespace Unity.Muse.Common
             UnSubscribeToModelEvents();
             m_CurrentModel = model;
             SubscribeToModelEvents();
-            
+
             if (!m_CurrentModel)
                 return;
-            
+
             OnLeftOverlayChanged(m_CurrentModel.LeftOverlay);
             OnRightOverlayChanged(m_CurrentModel.RightOverlay);
-            
+
             OnArtifactSelected(m_CurrentModel.SelectedArtifact);
         }
-        
+
         public void UpdateCanvasFrameContainer()
         {
             if (!m_CurrentModel)
                 return;
-            
+
             var leftOverlay = m_CurrentModel.LeftOverlay.resolvedStyle;
             var rightOverlay = m_CurrentModel.RightOverlay.resolvedStyle;
-            
-            var width = resolvedStyle.width - 
-                        leftOverlay.width - 
+
+            var width = resolvedStyle.width -
+                        leftOverlay.width -
                         leftOverlay.marginLeft -
                         leftOverlay.marginRight -
                         rightOverlay.width -
                         rightOverlay.marginLeft -
                         rightOverlay.marginRight - 20;
-            var x = leftOverlay.width + 
-                    leftOverlay.marginLeft + 
+            var x = leftOverlay.width +
+                    leftOverlay.marginLeft +
                     leftOverlay.marginRight + 5;
             const int y = k_FrameTopOffset;
             var height = resolvedStyle.height - y;
-            
+
             SetFrameContainer(new Rect(x, y, width, height));
         }
 
@@ -206,7 +206,7 @@ namespace Unity.Muse.Common
             m_LastLeftOverlay?.RegisterCallback<GeometryChangedEvent>(OnOverlayGeometryChanged);
             UpdateCanvasFrameContainer();
         }
-        
+
         void OnRightOverlayChanged(VisualElement overlay)
         {
             m_LastRightOverlay?.UnregisterCallback<GeometryChangedEvent>(OnOverlayGeometryChanged);
@@ -214,7 +214,7 @@ namespace Unity.Muse.Common
             m_LastRightOverlay?.RegisterCallback<GeometryChangedEvent>(OnOverlayGeometryChanged);
             UpdateCanvasFrameContainer();
         }
-        
+
         void OnOverlayGeometryChanged(GeometryChangedEvent _)
         {
             UpdateCanvasFrameContainer();
@@ -234,7 +234,7 @@ namespace Unity.Muse.Common
             OnActiveToolChanged(m_CurrentModel.ActiveTool);
             OnRefineArtifact(artifact);
         }
-        
+
         void OnRefineArtifact(Artifact artifact)
         {
             if (!m_CurrentModel)
@@ -272,7 +272,7 @@ namespace Unity.Muse.Common
                 item.pickingMode = panEnabled ? PickingMode.Ignore : PickingMode.Position;
                 item.EnableInClassList("cursor--grab", panEnabled);
             }
-            
+
             primaryManipulator = panEnabled ? AppUI.UI.CanvasManipulator.Pan : AppUI.UI.CanvasManipulator.None;
         }
 
@@ -283,11 +283,11 @@ namespace Unity.Muse.Common
 
         void UpdateManipulators()
         {
-            if (m_CurrentToolManipulator != null) 
+            if (m_CurrentToolManipulator != null)
                 m_Canvas.RemoveManipulator(m_CurrentToolManipulator);
-            
+
             OnPanChanged(m_CurrentModel?.ActiveTool is PanTool);
-            
+
             if (m_CurrentModel?.ActiveTool == null)
                 return;
 
@@ -300,7 +300,7 @@ namespace Unity.Muse.Common
         {
             m_CurrentNode?.Dispose();
             m_CurrentNode = null;
-            
+
             Clear();
             if (!m_CurrentModel || refinedArtifact is null)
                 return;

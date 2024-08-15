@@ -215,6 +215,7 @@ namespace Unity.Muse.Common
                     CurrentModel.Branch(m_Artifact);
                     break;
                 case Actions.CreateVariations:
+                    CurrentModel.GetData<BookmarkManager>().SetFilter(false);
                     var numVariations = CurrentModel.CurrentOperators.GetOperator<GenerateOperator>()?.GetCount() ?? 4;
                     (m_Artifact as IVariateArtifact)?.Variate(CurrentModel, numVariations);
                     break;
@@ -222,12 +223,14 @@ namespace Unity.Muse.Common
                     CurrentModel.SetAsThumbnail(m_Artifact);
                     break;
                 case Actions.Upscale:
+                    CurrentModel.GetData<BookmarkManager>().SetFilter(false);
                     (m_Artifact as IUpscaleArtifact)?.Upscale(CurrentModel);
                     break;
                 case Actions.SetAsReference:
                     CurrentModel.SetReferenceOperator(m_Artifact);
                     break;
                 case Actions.RemoveBackground:
+                    CurrentModel.GetData<BookmarkManager>().SetFilter(false);
                     (m_Artifact as IRemoveBackgroundArtifact)?.RemoveBackground(CurrentModel);
                     break;
                 case Actions.UsePrompt:

@@ -101,13 +101,13 @@ namespace Unity.Muse.Common
                 CheckPackageVersion();
             }
 
-            private static void CheckPackageVersion()
+            private static async void CheckPackageVersion()
             {
                 var request = Client.List(true, true);
 
                 while (request.Status == StatusCode.InProgress)
                 {
-                    System.Threading.Tasks.Task.Delay(100).Wait();
+                    await System.Threading.Tasks.Task.Delay(100);
                 }
 
                 if (request.Status == StatusCode.Success && request.Result != null)

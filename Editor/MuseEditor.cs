@@ -300,6 +300,7 @@ namespace Unity.Muse.Common.Editor
             if (!TryGetProjectRelativePath(exportedPath, out var relativePath))
                 return;
 
+            AssetDatabase.Refresh();
             var unityGuid = AssetDatabase.AssetPathToGUID(relativePath);
             if (!string.IsNullOrEmpty(unityGuid) && !string.IsNullOrEmpty(artifactGuid))
             {
@@ -323,14 +324,14 @@ namespace Unity.Muse.Common.Editor
 
         static bool TryGetProjectRelativePath(string path, out string relativePath)
         {
-            if (!path.Contains(Application.dataPath))
+            relativePath = Path.GetRelativePath(Application.dataPath[..Application.dataPath.LastIndexOf("/")], path);
+
+            if (!relativePath.StartsWith("Assets"))
             {
                 relativePath = path;
                 return false;
             }
 
-            var projectFolderPath = Application.dataPath[..Application.dataPath.LastIndexOf("/")];
-            relativePath = path[(projectFolderPath.Length + 1)..];
             return true;
         }
 

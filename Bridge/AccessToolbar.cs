@@ -21,11 +21,13 @@ namespace Unity.Muse.Common.Bridge
 
         static AccessToolbar()
         {
+            if (Application.isBatchMode)
+                return;
+
             if (UseNativeToolbarInterface)
                 ShowNative();
             else
                 ShowCustom();
-
         }
 
         static void ShowCustom()
@@ -51,6 +53,12 @@ namespace Unity.Muse.Common.Bridge
                     }
 
                     object toolbarInstance = getField.GetValue(null);
+                    if (toolbarInstance == null)
+                    {
+                        Debug.LogError("Could not find the Toolbar instance. Muse will not be available");
+                        return;
+                    }
+
                     if (rootField.GetValue(toolbarInstance) is VisualElement root)
                     {
                         var toolbarZoneLeftAlign = root.Q<VisualElement>("ToolbarZoneLeftAlign");
