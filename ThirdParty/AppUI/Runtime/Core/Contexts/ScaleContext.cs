@@ -6,6 +6,7 @@ namespace Unity.AppUI.Core
     /// <summary>
     /// The Scale context of the application.
     /// </summary>
+    /// <param name="scale"> The scale. </param>
     internal record ScaleContext(string scale) : IContext
     {
         /// <summary>

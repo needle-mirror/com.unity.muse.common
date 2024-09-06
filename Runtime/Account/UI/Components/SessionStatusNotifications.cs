@@ -8,7 +8,7 @@ namespace Unity.Muse.Common.Account
     class SessionStatusNotifications : VisualElement
     {
         static readonly HashSet<string> k_DisabledEntitlementNotifications = new();
-        
+
         VisualElement m_View;
 
         Model m_Model;
@@ -17,7 +17,7 @@ namespace Unity.Muse.Common.Account
         {
             AddToClassList("notifications-area");
             this.AddManipulator(new SessionChangesTracker(Refresh));
-            
+
             this.RegisterContextChangedCallback<Model>(OnModelChanged);
         }
 
@@ -57,7 +57,7 @@ namespace Unity.Muse.Common.Account
             {
                 if (model && k_DisabledEntitlementNotifications.Contains(model.CurrentMode))
                     return new();
-                
+
                 if (AccountInfo.Instance.Organization is {Status: SubscriptionStatus.SubscriptionExpired})
                     return new SubscriptionExpiredNotificationView(true);
                 if (AccountInfo.Instance.Organization is {Status: SubscriptionStatus.TrialExpired})
@@ -73,9 +73,8 @@ namespace Unity.Muse.Common.Account
             return new();
         }
 
-        internal static void DisableEntitlementsNotificationsForMode(string mode)
-        {
-            k_DisabledEntitlementNotifications.Add(mode);
-        }
+        internal static void DisableEntitlementsNotificationsForMode(string mode) => k_DisabledEntitlementNotifications.Add(mode);
+
+        internal static void EnableEntitlementsNotificationsForMode(string mode) => k_DisabledEntitlementNotifications.Remove(mode);
     }
 }

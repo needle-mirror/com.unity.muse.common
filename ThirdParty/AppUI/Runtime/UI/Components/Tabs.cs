@@ -36,25 +36,27 @@ namespace Unity.Muse.AppUI.UI
     internal partial class Tabs : BaseVisualElement, INotifyValueChanged<int>
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
-        
+
         internal static readonly BindingId sizeProperty = nameof(size);
-        
+
         internal static readonly BindingId directionProperty = nameof(direction);
-        
+
         internal static readonly BindingId emphasizedProperty = nameof(emphasized);
-        
+
+        internal static readonly BindingId justifiedProperty = nameof(justified);
+
         internal static readonly BindingId valueProperty = nameof(value);
-        
+
         internal static readonly BindingId itemsProperty = nameof(items);
-        
+
         internal static readonly BindingId sourceItemsProperty = nameof(sourceItems);
-        
+
         internal static readonly BindingId bindItemProperty = nameof(bindItem);
-        
+
         internal static readonly BindingId unbindItemProperty = nameof(unbindItem);
-        
+
 #endif
-        
+
         /// <summary>
         /// The Tabs main styling class.
         /// </summary>
@@ -78,10 +80,15 @@ namespace Unity.Muse.AppUI.UI
         public const string emphasizedUssClassName = ussClassName + "--emphasized";
 
         /// <summary>
+        /// The Tabs justified mode styling class.
+        /// </summary>
+        public const string justifiedUssClassName = ussClassName + "--justified";
+
+        /// <summary>
         /// The Tabs container styling class.
         /// </summary>
         public const string containerUssClassName = ussClassName + "__container";
-        
+
         /// <summary>
         /// The Tabs ScrollView styling class.
         /// </summary>
@@ -103,7 +110,7 @@ namespace Unity.Muse.AppUI.UI
         readonly VisualElement m_Container;
 
         Action<TabItem, int> m_BindItem;
-        
+
         Action<TabItem, int> m_UnbindItem;
 
         int m_DefaultValue;
@@ -115,7 +122,7 @@ namespace Unity.Muse.AppUI.UI
         IList m_SourceItems;
 
         int m_Value;
-        
+
         IVisualElementScheduledItem m_ScheduledRefreshIndicator;
 
         IVisualElementScheduledItem m_PollHierarchyItem;
@@ -142,7 +149,7 @@ namespace Unity.Muse.AppUI.UI
                 verticalScrollerVisibility = ScrollerVisibility.Hidden,
             };
             m_ScrollView.AddToClassList(scrollViewUssClassName);
-            
+
             m_Container = new VisualElement
             {
                 name = containerUssClassName,
@@ -150,7 +157,7 @@ namespace Unity.Muse.AppUI.UI
             };
             m_Container.AddToClassList(containerUssClassName);
             m_ScrollView.Add(m_Container);
-            
+
             m_Indicator = new VisualElement
             {
                 name = indicatorUssClassName,
@@ -158,7 +165,7 @@ namespace Unity.Muse.AppUI.UI
                 usageHints = UsageHints.DynamicTransform,
             };
             m_Indicator.AddToClassList(indicatorUssClassName);
-            
+
             m_LambdaContainer = new VisualElement
             {
                 name = "lambda-container",
@@ -171,6 +178,7 @@ namespace Unity.Muse.AppUI.UI
 
             size = Size.M;
             emphasized = false;
+            justified = false;
             direction = Direction.Horizontal;
             value = 0;
 
@@ -205,7 +213,7 @@ namespace Unity.Muse.AppUI.UI
                 RemoveFromClassList(GetSizeUssClassName(m_Size));
                 m_Size = value;
                 AddToClassList(GetSizeUssClassName(m_Size));
-                
+
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
                     NotifyPropertyChanged(in sizeProperty);
@@ -236,14 +244,14 @@ namespace Unity.Muse.AppUI.UI
                     Direction.Vertical => ScrollViewMode.Vertical,
                     _ => ScrollViewMode.Horizontal
                 };
-                
+
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
                     NotifyPropertyChanged(in directionProperty);
 #endif
             }
         }
-        
+
         /// <summary>
         /// The current list of items used to populate the Tabs.
         /// </summary>
@@ -268,10 +276,34 @@ namespace Unity.Muse.AppUI.UI
             {
                 var changed = emphasized != value;
                 EnableInClassList(emphasizedUssClassName, value);
-                
+
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
                     NotifyPropertyChanged(in emphasizedProperty);
+#endif
+            }
+        }
+
+        /// <summary>
+        /// The justified mode of the Tabs.
+        /// </summary>
+#if ENABLE_RUNTIME_DATA_BINDINGS
+        [CreateProperty]
+#endif
+#if ENABLE_UXML_SERIALIZED_DATA
+        [UxmlAttribute]
+#endif
+        public bool justified
+        {
+            get => ClassListContains(justifiedUssClassName);
+            set
+            {
+                var changed = justified != value;
+                EnableInClassList(justifiedUssClassName, value);
+
+#if ENABLE_RUNTIME_DATA_BINDINGS
+                if (changed)
+                    NotifyPropertyChanged(in justifiedProperty);
 #endif
             }
         }
@@ -291,7 +323,7 @@ namespace Unity.Muse.AppUI.UI
                 var changed = m_BindItem != value;
                 m_BindItem = value;
                 RefreshItems();
-                
+
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
                     NotifyPropertyChanged(in bindItemProperty);
@@ -313,7 +345,7 @@ namespace Unity.Muse.AppUI.UI
                 var changed = m_UnbindItem != value;
                 m_UnbindItem = value;
                 RefreshItems();
-                
+
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
                     NotifyPropertyChanged(in unbindItemProperty);
@@ -336,11 +368,11 @@ namespace Unity.Muse.AppUI.UI
                     return;
 
                 m_SourceItems = value;
-                
+
                 m_PollHierarchyItem?.Pause();
                 m_PollHierarchyItem = null;
                 RefreshItems();
-                
+
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 NotifyPropertyChanged(in sourceItemsProperty);
                 NotifyPropertyChanged(in itemsProperty);
@@ -352,7 +384,7 @@ namespace Unity.Muse.AppUI.UI
         /// The virtual content container of the Tabs.
         /// </summary>
         public override VisualElement contentContainer => m_LambdaContainer;
-        
+
         /// <summary>
         /// The item container of the Tabs.
         /// </summary>
@@ -365,6 +397,11 @@ namespace Unity.Muse.AppUI.UI
         /// <exception cref="ValueOutOfRangeException"> Throws if the value is out of range.</exception>
         public void SetValueWithoutNotify(int newValue)
         {
+            SetValueWithoutNotifyInternal(newValue);
+        }
+
+        void SetValueWithoutNotifyInternal(int newValue, bool scroll = true)
+        {
             //check the state of the target element
             if (m_Value >= 0 && m_Value < m_Items.Count && !m_Items[m_Value].enabledSelf)
                 return;
@@ -376,18 +413,19 @@ namespace Unity.Muse.AppUI.UI
             if (previousValue >= 0 && previousValue < m_Items.Count && previousValue != m_Value)
                 m_Items[previousValue].selected = false;
 
-            RefreshVisuals();
+            RefreshVisuals(scroll);
         }
 
-        void RefreshVisuals()
+        void RefreshVisuals(bool scroll = true)
         {
             if (panel == null || !paddingRect.IsValid())
                 return;
-            
+
             if (m_Value >= 0 && m_Value < m_Items.Count)
             {
                 m_Items[m_Value].selected = true;
-                m_ScrollView.ScrollTo(m_Items[m_Value]);
+                if (scroll)
+                    m_ScrollView.ScrollTo(m_Items[m_Value]);
                 m_ScheduledRefreshIndicator?.Pause();
                 m_ScheduledRefreshIndicator = schedule.Execute(RefreshIndicator);
             }
@@ -469,7 +507,7 @@ namespace Unity.Muse.AppUI.UI
                     evt.target = this;
                     SendEvent(evt);
                 }
-                
+
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 NotifyPropertyChanged(in valueProperty);
 #endif
@@ -495,7 +533,7 @@ namespace Unity.Muse.AppUI.UI
 
             if (handled)
             {
-                
+
                 evt.StopPropagation();
             }
         }
@@ -531,13 +569,13 @@ namespace Unity.Muse.AppUI.UI
         void OnHorizontalScrollerChanged(float offset)
         {
             if (direction == Direction.Horizontal)
-                SetValueWithoutNotify(value);
+                SetValueWithoutNotifyInternal(value, false);
         }
 
         void OnVerticalScrollerChanged(float offset)
         {
             if (direction == Direction.Vertical)
-                SetValueWithoutNotify(value);
+                SetValueWithoutNotifyInternal(value, false);
         }
 
         void PollHierarchy()
@@ -551,11 +589,11 @@ namespace Unity.Muse.AppUI.UI
                 {
                     m_StaticItems.Add((TabItem)c);
                 }
-                
+
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 NotifyPropertyChanged(in itemsProperty);
 #endif
-                
+
                 RefreshItems();
             }
         }
@@ -593,7 +631,7 @@ namespace Unity.Muse.AppUI.UI
                     m_Items.Add(item);
                 }
             }
-            
+
             if (itemContainer.childCount > 0)
                 SetValueWithoutNotify(Mathf.Clamp(m_Value, 0, itemContainer.childCount - 1));
             else
@@ -614,7 +652,7 @@ namespace Unity.Muse.AppUI.UI
                 evt.StopPropagation();
             }
         }
-        
+
 #if ENABLE_UXML_TRAITS
 
         /// <summary>
@@ -648,6 +686,12 @@ namespace Unity.Muse.AppUI.UI
                 defaultValue = false
             };
 
+            readonly UxmlBoolAttributeDescription m_Justified = new UxmlBoolAttributeDescription
+            {
+                name = "justified",
+                defaultValue = false
+            };
+
             readonly UxmlEnumAttributeDescription<Direction> m_Orientation = new UxmlEnumAttributeDescription<Direction>
             {
                 name = "direction",
@@ -674,10 +718,11 @@ namespace Unity.Muse.AppUI.UI
                 el.size = m_Size.GetValueFromBag(bag, cc);
                 el.direction = m_Orientation.GetValueFromBag(bag, cc);
                 el.emphasized = m_Emphasized.GetValueFromBag(bag, cc);
+                el.justified = m_Justified.GetValueFromBag(bag, cc);
                 el.value = m_DefaultValue.GetValueFromBag(bag, cc);
             }
         }
-        
+
 #endif
     }
 }

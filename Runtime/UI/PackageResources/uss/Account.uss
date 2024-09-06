@@ -3,7 +3,7 @@
     --muse-subscription-dialog-light: #EB417A;
     --muse-subscription-dialog-pressed: #9a2a50;
     --muse-subscription-dialog-border: #851F40;
-    --muse-subscription-dialog-text-magenta: #CE3299;
+    --muse-subscription-dialog-text-magenta: #FF85AB;
     --muse-subscription-callout-border: #E93D82;
     --muse-subscription-callout-warning: #CD9F14;
     --appui-icon-arrow-square-in-regular: url("project:/Packages/com.unity.muse.common/Runtime/UI/PackageResources/Images/arrow-square-in.png");

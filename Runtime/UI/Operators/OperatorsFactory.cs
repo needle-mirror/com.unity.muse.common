@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Scripting;
 #if !UNITY_EDITOR
 using UnityEngine;
@@ -23,7 +24,10 @@ namespace Unity.Muse.Common
         public static IOperator GetOperatorInstance(string operatorName, string key = null)
         {
             if (s_AvailableOperatorTypes == null || !s_AvailableOperatorTypes.TryGetValue(operatorName, out var operatorType))
+            {
+                Debug.LogError($"Operator {operatorName} not found.");
                 return null;
+            }
 
             var instance = (IOperator)Activator.CreateInstance(operatorType);
             if (!string.IsNullOrEmpty(key))
@@ -35,11 +39,11 @@ namespace Unity.Muse.Common
         {
             if (op == null)
                 return null;
-            
+
             var data = op.GetOperatorData();
             return string.IsNullOrEmpty(data.key) ? op.OperatorName : data.key;
         }
-        
+
         public static void SetOperatorKey(this IOperator op, string key)
         {
             var operatorData = op.GetOperatorData();

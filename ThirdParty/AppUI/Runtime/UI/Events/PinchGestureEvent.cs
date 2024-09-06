@@ -14,7 +14,7 @@ namespace Unity.Muse.AppUI.UI
         /// The magnification gesture.
         /// </summary>
         public PinchGesture gesture { get; set; }
-        
+
         /// <summary>
         /// Resets all event members to their initial values.
         /// </summary>

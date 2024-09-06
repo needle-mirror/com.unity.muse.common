@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Unity.Muse.Chat.Editor")]
 [assembly: InternalsVisibleTo("Unity.Muse.Animate.Editor")]
 [assembly: InternalsVisibleTo("Unity.Muse.Sound.Editor")]
+[assembly: InternalsVisibleTo("Unity.Muse.Sound.Editor.Tests")]
 [assembly: InternalsVisibleTo("Unity.Muse.Behavior.Editor")]
 [assembly: InternalsVisibleTo("Unity.Behavior.Editor")]
 [assembly: InternalsVisibleTo("Unity.Muse.Common.Editor.Tests")]
@@ -24,3 +25,4 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Unity.2D.Muse.Runtime")]
 [assembly: InternalsVisibleTo("Unity.2D.Muse.Runtime.Tests")]
 [assembly: InternalsVisibleTo("Unity.Muse.Texture3d.Editor")]
+[assembly: InternalsVisibleTo("Unity.Muse.Texture3d.Editor.Tests")]

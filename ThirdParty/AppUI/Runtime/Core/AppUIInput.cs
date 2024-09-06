@@ -10,9 +10,9 @@ namespace Unity.AppUI.Core
     internal static class AppUIInput
     {
         static readonly Dictionary<Type,IGestureRecognizer> k_Recognizers = new Dictionary<Type, IGestureRecognizer>();
-        
+
         static PinchGestureRecognizer s_PinchGestureRecognizer;
-        
+
         /// <summary>
         /// Initializes AppUI input management.
         /// </summary>
@@ -23,13 +23,13 @@ namespace Unity.AppUI.Core
                 s_PinchGestureRecognizer = new PinchGestureRecognizer();
                 k_Recognizers.Add(typeof(PinchGestureRecognizer), s_PinchGestureRecognizer);
             }
-            
+
 #if ENABLE_INPUT_SYSTEM && UNITY_INPUTSYSTEM_PRESENT
             if (Application.isMobilePlatform)
                 UnityEngine.InputSystem.EnhancedTouch.EnhancedTouchSupport.Enable();
 #endif
         }
-        
+
         /// <summary>
         /// This method is called internally every frame to poll for touch events and recognize gestures.
         /// </summary>
@@ -55,7 +55,7 @@ namespace Unity.AppUI.Core
 #if ENABLE_INPUT_SYSTEM
 #if UNITY_INPUTSYSTEM_PRESENT
             var appUITouches = new List<AppUITouch>();
-            
+
             if (UnityEngine.InputSystem.EnhancedTouch.EnhancedTouchSupport.enabled)
             {
                 foreach (var touch in UnityEngine.InputSystem.EnhancedTouch.Touch.activeTouches)
@@ -64,7 +64,7 @@ namespace Unity.AppUI.Core
                 }
                 return appUITouches.ToArray();
             }
-            
+
             if (UnityEngine.InputSystem.Touchscreen.current != null)
             {
                 foreach (var touch in UnityEngine.InputSystem.Touchscreen.current.touches)
@@ -85,17 +85,17 @@ namespace Unity.AppUI.Core
                 }
                 return appUITouches.ToArray();
             }
-            
+
 #endif
             // no touch support
             return null;
         }
-        
+
         static void Recognize(AppUITouch[] appuiTouches)
         {
             if (appuiTouches == null)
                 return;
-            
+
             foreach (var recognizer in k_Recognizers.Values)
             {
                 recognizer.Recognize(appuiTouches);
@@ -123,7 +123,6 @@ namespace Unity.AppUI.Core
         /// </summary>
         /// <remarks>
         /// This will be set to true for any phase of the pinch gesture.
-        /// <para/>
         /// To know the current pinch gesture, check <see cref="pinchGesture"/>.
         /// </remarks>
         public static bool pinchGestureChangedThisFrame { get; private set; }
@@ -135,7 +134,7 @@ namespace Unity.AppUI.Core
         /// To know if a pinch gesture has been processed this frame, check <see cref="pinchGestureChangedThisFrame"/>.
         /// </remarks>
         public static PinchGesture pinchGesture { get; private set; }
-        
+
         /// <summary>
         /// Registers a gesture recognizer to be used by AppUI.
         /// </summary>
@@ -145,7 +144,7 @@ namespace Unity.AppUI.Core
         {
             k_Recognizers.Add(typeof(TRecognizerType), Activator.CreateInstance<TRecognizerType>());
         }
-        
+
         /// <summary>
         /// Unregisters a gesture recognizer from AppUI.
         /// </summary>

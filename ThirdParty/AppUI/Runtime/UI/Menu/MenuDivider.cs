@@ -38,7 +38,7 @@ namespace Unity.Muse.AppUI.UI
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="MenuDivider"/>.
         /// </summary>
         internal new class UxmlTraits : Divider.UxmlTraits { }
-        
+
 #endif
     }
 }

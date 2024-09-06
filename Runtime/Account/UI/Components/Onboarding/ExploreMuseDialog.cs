@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System;
+using System.Reflection;
 using Unity.Muse.AppUI.UI;
 using UnityEditor;
 using UnityEngine;
@@ -22,6 +23,25 @@ namespace Unity.Muse.Common.Account
             public Action open;
             public string packageName;
 
+            static MethodInfo s_InstallMethod;
+
+            static ClientHandler()
+            {
+                foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    var type = asm.GetType("UnityEditor.PackageManager.UI.PackageManagerWindow");
+                    if (type != null)
+                    {
+                        var method = type.GetMethod("OpenURL", BindingFlags.NonPublic | BindingFlags.Static);
+                        if (method != null)
+                        {
+                            s_InstallMethod = method;
+                            break;
+                        }
+                    }
+                }
+            }
+
             // Consider no package to always be installed
             public bool IsInstalled =>
                 string.IsNullOrEmpty(packageName) ||
@@ -35,7 +55,10 @@ namespace Unity.Muse.Common.Account
                 }
                 catch (Exception exception)
                 {
-                    Debug.LogError($"Package {packageName} is not available in the registry. It is possible you don't have preview packages visible.\n\n{exception.Message}");
+                    if (s_InstallMethod == null)
+                        Debug.LogError($"Package {packageName} is not available in the registry. It is possible you don't have preview packages visible.\n\n{exception.Message}");
+                    else
+                        s_InstallMethod?.Invoke(null, new object[] { $"com.unity3d.kharma:upmpackage/{packageName}" });
                 }
             }
         }

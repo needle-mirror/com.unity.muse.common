@@ -14,7 +14,7 @@ namespace Unity.Muse.AppUI.UI
         /// The event invoked when the element is pressed.
         /// </summary>
         public event Action clicked;
-        
+
         /// <summary>
         /// The event invoked when the element is pressed.
         /// </summary>
@@ -29,16 +29,16 @@ namespace Unity.Muse.AppUI.UI
         /// Check if the element is currently pressed.
         /// </summary>
         public bool active { get; private set; }
-        
+
         /// <summary>
-        /// The duration of a long press in milliseconds.
+        /// <para>The duration of a long press in milliseconds.</para>
         /// <para>
         /// The default value is -1.
         /// </para>
+        /// </summary>
         /// <remarks>
         /// Using a negative value will disable long press.
         /// </remarks>
-        /// </summary>
         public int longPressDuration { get; set; } = -1;
 
         /// <summary>
@@ -55,8 +55,10 @@ namespace Unity.Muse.AppUI.UI
         Touch m_TouchUpEvent;
 
         IVisualElementScheduledItem m_DeferDeactivate;
-        
+
         IVisualElementScheduledItem m_DeferLongPress;
+
+        IVisualElementScheduledItem m_PostProcessDisabledState;
 
         /// <summary>
         /// Constructor.
@@ -67,10 +69,10 @@ namespace Unity.Muse.AppUI.UI
             m_TouchMoveEvent = new Touch { phase = TouchPhase.Moved };
             m_UpEvent = new Event { type = EventType.MouseUp };
             m_TouchUpEvent = new Touch { phase = TouchPhase.Ended };
-            
+
             activators.Add(new ManipulatorActivationFilter { button = MouseButton.LeftMouse });
         }
-        
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -80,7 +82,7 @@ namespace Unity.Muse.AppUI.UI
         {
             clicked += handler;
         }
-        
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -102,8 +104,9 @@ namespace Unity.Muse.AppUI.UI
             clicked?.Invoke();
             clickedWithEventInfo?.Invoke(evt);
             PostProcessDisabledState();
+            m_PostProcessDisabledState?.ExecuteLater(Styles.animationRefreshDelayMs);
         }
-        
+
         /// <summary>
         /// Invoke the LongPressed event.
         /// </summary>
@@ -111,6 +114,7 @@ namespace Unity.Muse.AppUI.UI
         {
             longClicked?.Invoke();
             PostProcessDisabledState();
+            m_PostProcessDisabledState?.ExecuteLater(Styles.animationRefreshDelayMs);
         }
 
         void PostProcessDisabledState()
@@ -163,6 +167,9 @@ namespace Unity.Muse.AppUI.UI
         /// </summary>
         protected override void RegisterCallbacksOnTarget()
         {
+            m_PostProcessDisabledState = target.schedule.Execute(PostProcessDisabledState);
+            m_PostProcessDisabledState.Pause();
+
             target.RegisterCallback<PointerEnterEvent>(OnPointerEnter);
             target.RegisterCallback<PointerLeaveEvent>(OnPointerLeave);
             target.RegisterCallback<PointerDownEvent>(OnPointerDown);
@@ -182,6 +189,9 @@ namespace Unity.Muse.AppUI.UI
         /// </summary>
         protected override void UnregisterCallbacksFromTarget()
         {
+            m_PostProcessDisabledState?.Pause();
+            m_PostProcessDisabledState = null;
+
             target.UnregisterCallback<PointerEnterEvent>(OnPointerEnter);
             target.UnregisterCallback<PointerLeaveEvent>(OnPointerLeave);
             target.UnregisterCallback<PointerDownEvent>(OnPointerDown);
@@ -204,9 +214,9 @@ namespace Unity.Muse.AppUI.UI
         /// <param name="pointerId"> The pointer id.</param>
         protected virtual void ProcessDownEvent(EventBase evt, Vector2 localPos, int pointerId)
         {
-            
+
         }
-        
+
         /// <summary>
         /// Custom handling of pointer leave events.
         /// </summary>
@@ -215,9 +225,9 @@ namespace Unity.Muse.AppUI.UI
         /// <param name="pointerId"> The pointer id.</param>
         protected virtual void ProcessUpEvent(EventBase evt, Vector2 localPos, int pointerId)
         {
-            
+
         }
-        
+
         /// <summary>
         /// Custom handling of pointer move events.
         /// </summary>
@@ -225,9 +235,9 @@ namespace Unity.Muse.AppUI.UI
         /// <param name="localPos"> The local position of the pointer.</param>
         protected virtual void ProcessMoveEvent(EventBase evt, Vector2 localPos)
         {
-            
+
         }
-        
+
         void OnKeyDown(KeyDownEvent evt)
         {
             if (evt.keyCode.IsSubmitType())
@@ -236,7 +246,7 @@ namespace Unity.Muse.AppUI.UI
                 evt.StopPropagation();
             }
         }
-        
+
         void OnKeyUp(KeyUpEvent evt)
         {
             if (evt.keyCode.IsSubmitType())
@@ -246,16 +256,16 @@ namespace Unity.Muse.AppUI.UI
                 evt.StopPropagation();
             }
         }
-        
+
         void OnPointerEnter(PointerEnterEvent evt)
         {
             if (!target.enabledInHierarchy)
                 return;
-            
+
             if (evt.pointerId == PointerId.mousePointerId)
                 AddHoveredState();
         }
-        
+
         void OnPointerLeave(PointerLeaveEvent evt)
         {
             RemoveHoverState();
@@ -267,7 +277,7 @@ namespace Unity.Muse.AppUI.UI
             target.SetPseudoStates(pseudoStates | PseudoStates.Hover);
             target.AddToClassList(Styles.hoveredUssClassName);
         }
-        
+
         void RemoveHoverState()
         {
             var pseudoStates = target.GetPseudoStates();
@@ -279,12 +289,12 @@ namespace Unity.Muse.AppUI.UI
         {
             if (!CanStartManipulation(evt))
                 return;
-            
+
             Activate(evt.pointerId);
             ProcessDownEvent(evt, evt.localPosition, evt.pointerId);
             evt.StopPropagation();
         }
-        
+
         void OnMouseDown(MouseDownEvent evt)
         {
             if (active)
@@ -299,19 +309,19 @@ namespace Unity.Muse.AppUI.UI
         {
             if (!CanStopManipulation(evt))
                 return;
-            
+
             var parent = target?.parent;
             if (parent == null)
                 return;
-            
+
             ProcessMoveEvent(evt, evt.localPosition);
 
             if (!active)
                 return;
-            
+
             if (!keepEventPropagation)
                 return;
-            
+
             m_MoveEvent.mousePosition = evt.originalMousePosition;
             m_MoveEvent.delta = evt.deltaPosition;
             m_MoveEvent.button = evt.button;
@@ -330,24 +340,25 @@ namespace Unity.Muse.AppUI.UI
             m_TouchMoveEvent.radius = evt.radius.x;
             m_TouchMoveEvent.radiusVariance = evt.radiusVariance.x;
 
-            using var e = evt.pointerId == PointerId.mousePointerId ? 
-                PointerMoveEvent.GetPooled(m_MoveEvent) : 
+            using var e = evt.pointerId == PointerId.mousePointerId ?
+                PointerMoveEvent.GetPooled(m_MoveEvent) :
                 PointerMoveEvent.GetPooled(m_TouchMoveEvent, evt.modifiers);
             e.target = parent;
             parent.SendEvent(e);
         }
-    
+
         void OnPointerUp(PointerUpEvent evt)
         {
             if (!CanStopManipulation(evt))
                 return;
-            
+
             ProcessUpEvent(evt, evt.localPosition, evt.pointerId);
-            
+
             if (!active)
                 return;
-            
-            InvokePressed(evt);
+
+            if (target?.ClassListContains(Styles.hoveredUssClassName) == true)
+                InvokePressed(evt);
             Deactivate(evt.pointerId);
 
             var parent = target?.parent;
@@ -372,8 +383,8 @@ namespace Unity.Muse.AppUI.UI
             m_TouchUpEvent.radius = evt.radius.x;
             m_TouchUpEvent.radiusVariance = evt.radiusVariance.x;
 
-            using var e = evt.pointerId == PointerId.mousePointerId ? 
-                PointerUpEvent.GetPooled(m_UpEvent) : 
+            using var e = evt.pointerId == PointerId.mousePointerId ?
+                PointerUpEvent.GetPooled(m_UpEvent) :
                 PointerUpEvent.GetPooled(m_TouchUpEvent, evt.modifiers);
             e.target = parent;
             parent.SendEvent(e);
@@ -399,7 +410,7 @@ namespace Unity.Muse.AppUI.UI
                     target.CaptureMouse();
 #endif
             }
-            
+
             ForceActivePseudoState();
             target.AddToClassList(Styles.activeUssClassName);
             m_PointerId = pointerId;
@@ -418,13 +429,13 @@ namespace Unity.Muse.AppUI.UI
         void Deactivate(int pointerId)
         {
             active = false;
-            
+
             if (target.HasPointerCapture(pointerId))
                 target.ReleasePointer(pointerId);
-            
+
             if (m_DeferDeactivate != null)
                 return;
-            
+
             var pseudoStates = target.GetPseudoStates();
             target.SetPseudoStates(pseudoStates & ~PseudoStates.Active);
             target.RemoveFromClassList(Styles.activeUssClassName);

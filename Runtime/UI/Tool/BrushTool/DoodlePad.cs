@@ -68,7 +68,7 @@ namespace Unity.Muse.Common.Tools
 
         Image m_Image;
 
-        DoodleModifierState m_StartingState;
+        DoodleModifierState m_StartingState = DoodleModifierState.None;
         DoodleModifierState m_ModifierState;
 
         public DoodleModifierState modifierState
@@ -147,7 +147,7 @@ namespace Unity.Muse.Common.Tools
             m_Painter.brushRadius = m_BrushRadius;
             UpdateDoodleCursorStyle();
         }
-        
+
         public void SetBrushColor(Color color)
         {
             m_Painter.paintColor = color;
@@ -163,6 +163,9 @@ namespace Unity.Muse.Common.Tools
         void InitializeWithData(byte[] doodle)
         {
             m_Painter.InitializeWithData(doodle);
+
+            m_DoodleWidth = m_Painter.size.x;
+            m_DoodleHeight = m_Painter.size.y;
 
             m_Image.image = m_Painter.texture;
             m_Image.MarkDirtyRepaint();
@@ -233,7 +236,7 @@ namespace Unity.Muse.Common.Tools
 
         void OnDoodleStop(PointerUpEvent evt)
         {
-            if (m_ModifierState == DoodleModifierState.None)
+            if (m_ModifierState == DoodleModifierState.None || m_StartingState == DoodleModifierState.None)
                 return;
 
             if (evt.button != 0)
@@ -241,6 +244,7 @@ namespace Unity.Muse.Common.Tools
 
             m_IsPainting = false;
             modifierState = m_StartingState;
+            m_StartingState = DoodleModifierState.None;
 
             m_Painter.UpdateTextureData();
             schedule.Execute(SendValueChangedEvent);

@@ -28,7 +28,7 @@ namespace Unity.Muse.AppUI.UI
         /// The direction of the scroll.
         /// </summary>
         public ScrollViewMode direction { get; set; } = ScrollViewMode.Vertical;
-        
+
         /// <summary>
         /// Construct a Scrollable manipulator.
         /// </summary>
@@ -37,9 +37,9 @@ namespace Unity.Muse.AppUI.UI
         /// <param name="downHandler">A callback invoked when a <see cref="PointerDownEvent"/> has been received.</param>
         /// <param name="cancelHandler">A callback invoked when a <see cref="PointerCancelEvent"/> has been received.</param>
         public Scrollable(
-            Action<Scrollable> dragHandler, 
-            Action<Scrollable> upHandler, 
-            Action<Scrollable> downHandler = null, 
+            Action<Scrollable> dragHandler,
+            Action<Scrollable> upHandler,
+            Action<Scrollable> downHandler = null,
             Action<Scrollable> cancelHandler = null)
         {
             m_DragHandler = dragHandler;
@@ -83,6 +83,12 @@ namespace Unity.Muse.AppUI.UI
             target.RegisterCallback<PointerMoveEvent>(OnPointerMove);
             target.RegisterCallback<PointerCancelEvent>(OnPointerCancel);
             target.RegisterCallback<PointerCaptureOutEvent>(OnPointerCaptureOut);
+            target.RegisterCallback<WheelEvent>(OnWheel);
+        }
+
+        void OnWheel(WheelEvent evt)
+        {
+            evt.StopPropagation();
         }
 
         void OnPointerDown(PointerDownEvent evt)
@@ -92,13 +98,15 @@ namespace Unity.Muse.AppUI.UI
             position = evt.position;
             m_LastPos = evt.position;
             m_IsDown = true;
+            m_PointerId = PointerId.invalidPointerId;
             hasMoved = false;
             m_DownHandler?.Invoke(this);
         }
 
         void OnPointerUp(PointerUpEvent evt)
         {
-            m_UpHandler?.Invoke(this);
+            if (m_PointerId == evt.pointerId)
+                m_UpHandler?.Invoke(this);
 
             target.ReleasePointer(evt.pointerId);
             m_PointerId = PointerId.invalidPointerId;
@@ -119,7 +127,7 @@ namespace Unity.Muse.AppUI.UI
         {
             if (!m_IsDown)
                 return;
-            
+
             if (m_PointerId != evt.pointerId && HasMovedEnoughInRightDirection(evt.position))
             {
                 m_PointerId = evt.pointerId;
@@ -194,7 +202,7 @@ namespace Unity.Muse.AppUI.UI
             position = Vector2.zero;
             localPosition = Vector2.zero;
         }
-        
+
         bool HasMovedEnoughInRightDirection(Vector2 pos)
         {
             switch (direction)
@@ -219,6 +227,7 @@ namespace Unity.Muse.AppUI.UI
             target.UnregisterCallback<PointerMoveEvent>(OnPointerMove);
             target.UnregisterCallback<PointerCancelEvent>(OnPointerCancel);
             target.UnregisterCallback<PointerCaptureOutEvent>(OnPointerCaptureOut);
+            target.UnregisterCallback<WheelEvent>(OnWheel);
         }
     }
 }

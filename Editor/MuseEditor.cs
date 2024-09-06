@@ -102,6 +102,7 @@ namespace Unity.Muse.Common.Editor
             CurrentModel.OnModified += OnModelDataModified;
             CurrentModel.OnGenerateButtonClicked += OnGenerateButtonClicked;
             CurrentModel.OnCloseWindowRequested += Close;
+            EditorApplication.quitting += Close;
 
             rootVisualElement.ProvideContext(CurrentModel);
             var mainui = ResourceManager.Load<VisualTreeAsset>(PackageResources.mainUITemplate);
@@ -159,6 +160,7 @@ namespace Unity.Muse.Common.Editor
             CurrentModel.OnModified -= OnModelDataModified;
             CurrentModel.OnGenerateButtonClicked -= OnGenerateButtonClicked;
             CurrentModel.OnCloseWindowRequested -= Close;
+            EditorApplication.quitting -= Close;
         }
 
         void ReleaseTextures()
@@ -324,15 +326,7 @@ namespace Unity.Muse.Common.Editor
 
         static bool TryGetProjectRelativePath(string path, out string relativePath)
         {
-            relativePath = Path.GetRelativePath(Application.dataPath[..Application.dataPath.LastIndexOf("/")], path);
-
-            if (!relativePath.StartsWith("Assets"))
-            {
-                relativePath = path;
-                return false;
-            }
-
-            return true;
+            return Model.TryGetProjectRelativePath(path, out relativePath);
         }
 
         public override void SaveChanges()
@@ -453,6 +447,14 @@ namespace Unity.Muse.Common.Editor
             {
                 rootVisualElement.ProvideContext(CurrentModel);
             }
+        }
+
+        void OnLostFocus()
+        {
+            if (!CurrentModel)
+                return;
+
+            CurrentModel.NotifyWindowLostFocus();
         }
     }
 }

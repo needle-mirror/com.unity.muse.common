@@ -1,8 +1,6 @@
 using System;
-using Unity.AppUI.Core;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEngine.UIElements.Experimental;
 
 namespace Unity.Muse.AppUI.UI
 {
@@ -16,27 +14,14 @@ namespace Unity.Muse.AppUI.UI
         /// </summary>
         public const PopoverPlacement defaultPlacement = PopoverPlacement.Bottom;
 
-        const int k_TooltipFadeInDurationMs = 250;
-
-        readonly ValueAnimation<float> m_Animation;
-
-        IVisualElementScheduledItem m_ScheduledAnimateViewIn;
-
-        IVisualElementScheduledItem m_DeferredAnimateViewIn;
-
-        IVisualElementScheduledItem m_ScheduledAnimationStart;
-
         /// <summary>
         /// Default constructor.
         /// </summary>
-        /// <param name="parentView">The popup container.</param>
+        /// <param name="referenceView"> The element used as context provider for the tooltip. </param>
         /// <param name="contentView">The content to display inside the popup.</param>
-        Tooltip(VisualElement parentView, VisualElement contentView)
-            : base(parentView, contentView)
+        Tooltip(VisualElement referenceView, VisualElement contentView)
+            : base(referenceView, contentView)
         {
-            m_Animation = contentView.experimental.animation.Start(0, 1, k_TooltipFadeInDurationMs, (element, f) => element.style.opacity = f).OnCompleted(InvokeShownEventHandlers).KeepAlive();
-            m_Animation.Stop();
-
             contentView.style.position = Position.Absolute; // force to absolute.
             keyboardDismissEnabled = false;
         }
@@ -60,12 +45,12 @@ namespace Unity.Muse.AppUI.UI
             tooltip.text = value;
             return this;
         }
-        
+
         /// <summary>
         /// The template to display inside the popup.
         /// </summary>
         public VisualElement template => tooltip.contentContainer.childCount > 0 ? tooltip.contentContainer[0] : null;
-        
+
         /// <summary>
         /// The content Visual Element of the tooltip (if any).
         /// </summary>
@@ -83,7 +68,7 @@ namespace Unity.Muse.AppUI.UI
         {
             if (content?.parent == tooltip.contentContainer)
                 return this;
-            
+
             tooltip.contentContainer.Clear();
             tooltip.text = null;
             if (content != null)
@@ -97,44 +82,6 @@ namespace Unity.Muse.AppUI.UI
             return true;
         }
 
-        /// <inheritdoc cref="AnchorPopup{T}.AnimateViewIn"/>
-        protected override void AnimateViewIn()
-        {
-            // delay the animation of the notification to be sure the layout has been updated with UI Toolkit.
-            m_ScheduledAnimateViewIn?.Pause();
-            m_ScheduledAnimateViewIn = view.schedule.Execute(ScheduledAnimateViewIn);
-        }
-
-        void ScheduledAnimateViewIn()
-        {
-            m_DeferredAnimateViewIn?.Pause();
-            m_DeferredAnimateViewIn = view.schedule.Execute(DeferredAnimateViewIn);
-        }
-
-        void DeferredAnimateViewIn()
-        {
-            if (view.parent != null)
-            {
-                m_ScheduledAnimationStart?.Pause();
-                tooltip.visible = true;
-                tooltip.style.opacity = 0.0001f;
-                RefreshPosition();
-                m_ScheduledAnimationStart = view.schedule.Execute(m_Animation.Start);
-            }
-        }
-
-        /// <inheritdoc cref="AnchorPopup{T}.AnimateViewOut"/>
-        protected override void AnimateViewOut(DismissType reason)
-        {
-            m_Animation.Stop();
-            m_ScheduledAnimationStart?.Pause();
-            m_DeferredAnimateViewIn?.Pause();
-            m_ScheduledAnimateViewIn?.Pause();
-            tooltip.visible = false; // no out animation
-            tooltip.style.opacity = 0;
-            InvokeDismissedEventHandlers(reason);
-        }
-
         /// <inheritdoc cref="Popup.FindSuitableParent"/>
         protected override VisualElement FindSuitableParent(VisualElement element)
         {
@@ -143,23 +90,21 @@ namespace Unity.Muse.AppUI.UI
 
         /// <summary>
         /// Build a new Tooltip.
-        /// <remarks>
-        /// In the Application element, only one Tooltip is create and moved at the right place when hovering others UI
-        /// elements. The Tooltip is handled by the <see cref="TooltipManipulator"/>.
-        /// </remarks>
         /// </summary>
         /// <param name="referenceView">An arbitrary UI element used as reference for the application
         /// context to attach to the popup.</param>
         /// <returns>A Tooltip instance.</returns>
+        /// <remarks>
+        /// In the Application element, only one Tooltip is create and moved at the right place when hovering others UI
+        /// elements. The Tooltip is handled by the <see cref="TooltipManipulator"/>.
+        /// </remarks>
+        /// <exception cref="ArgumentNullException">If <paramref name="referenceView"/> is null.</exception>
         public static Tooltip Build(VisualElement referenceView)
         {
-            var panel = referenceView as Panel ?? referenceView.GetFirstAncestorOfType<Panel>();
-            
-            if (panel == null)
-                throw new ArgumentException("The reference view must be attached to a panel.", nameof(referenceView));
-            
-            var parentView = panel.tooltipContainer;
-            var tooltipElement = new Tooltip(parentView, new TooltipVisualElement())
+            if (referenceView == null)
+                throw new ArgumentNullException(nameof(referenceView));
+
+            var tooltipElement = new Tooltip(referenceView, new TooltipVisualElement())
                 .SetPlacement(defaultPlacement);
 
             return tooltipElement;
@@ -221,7 +166,6 @@ namespace Unity.Muse.AppUI.UI
             }
 
             public override VisualElement contentContainer => m_Content;
-
 
             public VisualElement tipElement { get; }
 

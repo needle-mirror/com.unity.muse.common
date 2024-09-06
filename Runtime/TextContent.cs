@@ -61,15 +61,15 @@ namespace Unity.Muse.Common
         public static readonly string subStartJoinSubscription = "Join your organization’s subscription";
         public static readonly string subStartNext = "Next";
         public static readonly string subViewPlan = "Learn more";
-        public static readonly string subConfirmTitle = "Start your 15-day Muse trial";
+        public static readonly string subConfirmTitle = "Start your 30-day Muse trial";
         public static readonly string subConfirmTitleTrial = "Join the Muse trial";
         public static readonly string subConfirmTitleSubscribed = "Start using Muse";
         public static readonly string subConfirmDescription1 = "Explore, generate, learn, and test faster on Unity than ever before. Use natural language prompts to produce usable code, unique art assets, cool textures, and more. Plus, we’re regularly adding new features for all areas of game creation.";
         public static readonly string subConfirmStart = "Start free trial";
         public static readonly string subConfirmJoinTrial = "Join the trial";
         public static readonly string subConfirmStartSubscribed = "Next";
-        public static readonly string subConfirmTermsOfService = "I have read and agree to the <link=terms><color=#CE3299FF>Unity Terms of Service</color></link> and/or the applicable terms found on <link=legal><color=#CE3299FF>Unity's Legal Information page</color></link>.";
-        public static readonly string subConfirmPrivacy = "I have read and I acknowledge the <link=policy><color=#CE3299FF>Unity Privacy Policy</color></link> and the <link=supplemental><color=#CE3299FF>Generative AI Supplemental Privacy Notice</color></link>.";
+        public static readonly string subConfirmTermsOfService = "I have read and agree to the <link=terms><color=#FF85ABFF>Unity Terms of Service</color></link> and/or the applicable terms found on <link=legal><color=#FF85ABFF>Unity's Legal Information page</color></link>.";
+        public static readonly string subConfirmPrivacy = "I have read and I acknowledge the <link=policy><color=#FF85ABFF>Unity Privacy Policy</color></link> and the <link=supplemental><color=#FF85ABFF>Generative AI Supplemental Privacy Notice</color></link>.";
         public static readonly string subConfirmLearnMore = "Learn more";
         public static readonly string subConfirmClose = "Close";
         public static readonly string subConfirmSelectOrganization = "First, tell us which Organization will use Muse";
@@ -100,7 +100,7 @@ namespace Unity.Muse.Common
         public static readonly string clientStatusDeprecatedMessage = "Please update your Muse package to ensure it’s compatible with upcoming system updates.";
         public static readonly string clientStatusWillBeDeprecatedTitle = "Update required soon";
         public static string ClientStatusWillBeDeprecatedMessage(DateTime date) => $"Please update your Muse package by {date:MMMM dd yyyy} to ensure it’s compatible with upcoming system updates.";
-        public static readonly string clientStatusUpdateMessage = "There is a new Muse package version available <link><color=#CE3299FF>for upgrade</color></link>.";
+        public static readonly string clientStatusUpdateMessage = "There is a new Muse package version available <link><color=#FF85ABFF>for upgrade</color></link>.";
         public static readonly string clientStatusNoInternetTitle = "Not connected";
         public static readonly string clientStatusNoInternet = "Please ensure you are connected to the internet to use Muse.";
         public static readonly string generateButtonCooldownTooltip = "Please wait before generating again.";
@@ -127,6 +127,7 @@ namespace Unity.Muse.Common
         public static readonly string spriteSettingsCategory = "Muse Sprite";
         public static readonly string spritePartnersSettingsCategory = "Muse Sprite Partners";
         public static readonly string textureSettingsCategory = "Muse Texture";
+        public static readonly string texture3DSettingsCategory = "Muse Texture3D";
         public static readonly string animateSettingsCategory = "Muse Animate";
         public static readonly string audioSettingsCategory = "Muse Sound";
         public static readonly string accountSettingsCategory = "Account";
@@ -143,7 +144,7 @@ namespace Unity.Muse.Common
         public static readonly string thirdPartyAccept = "Accept";
         public static readonly string thirdPartyLearnMore = "Learn more";
         public static readonly string thirdPartyNotProtectedInCourt = "I understand Unity will not protect me in court when using third party models.";
-        public static readonly string thirdPartyEulaRead = "I have read and I acknowledge the <link><color=#CE3299FF>{0} EULA</color></link>.";
+        public static readonly string thirdPartyEulaRead = "I have read and I acknowledge the <link><color=#FF85ABFF>{0} EULA</color></link>.";
         public static readonly string thirdPartyLegalDisclaimer = "<line-height=24px>Switching to a third party generator will void the protection that Unity offers when generating with Unity trained models. Third party models might be trained with trademarked or copyrighted data.</line-height>";
 		public static readonly string onboardingWindowTitle = "Muse";
         public static readonly string exploreWindowTitle = "Explore Muse";
@@ -163,7 +164,7 @@ namespace Unity.Muse.Common
         public static readonly string exploreCardAnimateDescription = "Bring humanoid characters to life using prompts – no animation skills required.";
         public static readonly string exploreCard2dWorkflowsTitle = "2D";
         public static readonly string exploreCard2dWorkflowsDescription = "Enhance your sprites with AI-powered Upscale, Recolor, and Pixelate.";
-        public static readonly string subNotificationTrialTitle = "Start your 15-day Muse trial";
+        public static readonly string subNotificationTrialTitle = "Start your 30-day Muse trial";
         public static readonly string subNotificationTrialDescription = "Advance your projects faster with AI-powered creativity. And get new Muse capabilities regularly to improve all aspects of your game and app development.";
         public static readonly string subNotificationSubscribeTitle = "Subscribe to start using Muse";
         public static readonly string subNotificationSubscribeDescription = "Subscribe to Muse today to unlock the benefits of automated workflows, enhanced creativity, and faster troubleshooting.";
@@ -180,5 +181,6 @@ namespace Unity.Muse.Common
             "You have exhausted your generations for the Muse 2024 Experimental program. Please see the official Muse product page for all new features.";
         public static readonly string experimentalProgramSignUpAction = "Sign Up";
         public static readonly string experimentalProgramSignUpDescription = "You do not have access to the Muse 2024 Experimental program packages. To get access, please sign up and send an email at ai-beta@unity3d.com.";
+        public static readonly string dragToRotate = "Drag to rotate";
     }
 }

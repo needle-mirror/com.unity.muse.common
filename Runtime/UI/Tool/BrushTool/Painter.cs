@@ -21,6 +21,11 @@ namespace Unity.Muse.Common.Tools
         public bool isClear => m_Clear;
 
         /// <summary>
+        /// The current size of the Painter.
+        /// </summary>
+        public Vector2Int size => m_Size;
+
+        /// <summary>
         /// Sets the clear state.
         /// </summary>
         /// <param name="clear">Is clear.</param>
@@ -59,6 +64,7 @@ namespace Unity.Muse.Common.Tools
             static readonly int k_Color = Shader.PropertyToID("_Color");
             static readonly int k_Pos = Shader.PropertyToID("_Pos");
             static readonly int k_Radius = Shader.PropertyToID("_Radius");
+            static readonly int k_AspectRatio = Shader.PropertyToID("_AspectRatio");
 
             public readonly Material material;
 
@@ -73,6 +79,8 @@ namespace Unity.Muse.Common.Tools
 
             public void SetPositions(Vector2 startPosition, Vector2 endPosition) =>
                 material.SetVector(k_Pos, new Vector4(startPosition.x, startPosition.y, endPosition.x, endPosition.y));
+
+            public void SetAspectRatio(float aspectRatio) => material.SetFloat(k_AspectRatio, aspectRatio);
 
             public void Dispose() => material.SafeDestroy();
         }
@@ -291,10 +299,18 @@ namespace Unity.Muse.Common.Tools
 
             m_Clear = false;
 
+            var aspectRatio = m_Size.x / (float)m_Size.y;
+            startPosition /= m_Size;
+            startPosition.x *= aspectRatio;
+
+            endPosition /= m_Size;
+            endPosition.x *= aspectRatio;
+
             m_PaintMaterial.SetMainTexture(m_RenderTexture);
             m_PaintMaterial.SetRadius(brushRadius / Mathf.Min(m_Size.x, m_Size.y));
             m_PaintMaterial.SetColor(color);
-            m_PaintMaterial.SetPositions(startPosition / m_Size.x, endPosition / m_Size.y);
+            m_PaintMaterial.SetPositions(startPosition, endPosition);
+            m_PaintMaterial.SetAspectRatio(aspectRatio);
 
             var activeRT = RenderTexture.active;
 

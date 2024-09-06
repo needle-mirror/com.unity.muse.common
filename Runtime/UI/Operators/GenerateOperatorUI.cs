@@ -17,7 +17,7 @@ namespace Unity.Muse.Common
     {
         const string museCostSprite = "<sprite=\"MuseIconWhite\" name=\"MuseIconWhite\">";
         const string disabledMuseCostSprite = "<sprite=\"MuseIconWhiteDisabled\" name=\"MuseIconWhiteDisabled\">";
-        Model m_CurrentModel;
+        protected Model m_CurrentModel;
         Button m_CurrentGenerateButton;
         VisualElement m_Content = new() { name = "muse-node-content" };
         protected Text m_NodeTitle;

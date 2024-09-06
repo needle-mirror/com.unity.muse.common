@@ -235,7 +235,7 @@ namespace Unity.Muse.Common
             m_HorizontalDraggable = new Dragger(() => { }, OnResizeBarDrag, _ => { }, _ => { });
             m_DraggableContainer.AddManipulator(m_HorizontalDraggable);
 
-            content.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+            m_GridView.scrollView.contentContainer.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
 
             this.RegisterContextChangedCallback<Model>(context => SetModel(context.context));
 
@@ -297,7 +297,7 @@ namespace Unity.Muse.Common
             foreach (var item in m_ItemsList)
             {
                 var prompt = item.GetOperator<PromptOperator>()?.GetPrompt()?.ToLower();
-                if (prompt != null && (string.IsNullOrEmpty(search) || prompt.Contains(search)))
+                if (prompt == null || (string.IsNullOrEmpty(search) || prompt.Contains(search)))
                     m_FilteredItemsList.Add(item);
             }
 
@@ -316,7 +316,7 @@ namespace Unity.Muse.Common
                 return isBookmarkFilterEnabled ? unfilteredList
                     .Where(a => m_BookmarkManager.IsBookmarked(a)).ToList() : unfilteredList;
             }
-            
+
             return isBookmarkFilterEnabled ?
                 unfilteredList.Where(a => a.history.Any(b => m_BookmarkManager.IsBookmarked(b))).ToList() :
                 unfilteredList;
@@ -344,7 +344,7 @@ namespace Unity.Muse.Common
             m_PreviousSelectedIndices = new List<int>(m_GridView.selectedIndices);
         }
 
-        readonly List<VisualElement> m_ClonedElements = new();
+        protected readonly List<VisualElement> m_ClonedElements = new();
 
         /// <summary>
         /// Get the list of artifact views from the assets list.

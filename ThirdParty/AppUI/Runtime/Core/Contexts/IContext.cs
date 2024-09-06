@@ -5,6 +5,6 @@ namespace Unity.AppUI.Core
     /// </summary>
     internal interface IContext
     {
-        
+
     }
 }

@@ -18,7 +18,7 @@ namespace Unity.Muse.AppUI.UI
         IVisualElementScheduledItem m_ScheduledItem;
 
         Tooltip m_Tooltip;
-        
+
         /// <summary>
         /// If true, this manipulator will force the picked tooltip to be displayed, no matter the context.
         /// </summary>
@@ -27,7 +27,7 @@ namespace Unity.Muse.AppUI.UI
         /// but you still want to display tooltips.
         /// </remarks>
         public bool force { get; set; }
-        
+
         protected override void RegisterCallbacksOnTarget()
         {
             m_Tooltip = Tooltip.Build(target);
@@ -42,12 +42,12 @@ namespace Unity.Muse.AppUI.UI
             target.UnregisterCallback<PointerMoveEvent>(OnPointerMoved);
             target.panel?.visualTree.UnregisterCallback<PointerDownEvent>(OnClick, TrickleDown.TrickleDown);
         }
-        
+
         void OnClick(PointerDownEvent evt)
         {
             HideTooltip();
         }
-        
+
         void OnPointerMoved(PointerMoveEvent evt)
         {
             // 0 - If the pointer has been captured, nothing to do
@@ -56,7 +56,7 @@ namespace Unity.Muse.AppUI.UI
                 HideTooltip();
                 return;
             }
-            
+
             // 1 - pick tooltip below cursor
             var pickedElement = target.panel?.Pick(evt.position);
             if (pickedElement == null)
@@ -73,7 +73,7 @@ namespace Unity.Muse.AppUI.UI
 
             // 3 - New tooltip to display, hide the visual tooltip first
             HideTooltip();
-            
+
             var hasTooltip = false;
             m_Tooltip.SetContent(null);
             m_Tooltip.SetText(null);
@@ -85,9 +85,9 @@ namespace Unity.Muse.AppUI.UI
                 OnTooltipTemplateOrContentChanged();
                 hasTooltip = true;
             }
-            else if (CanDisplayTooltipInCurrentContext(m_AnchorElement) && !string.IsNullOrEmpty(m_AnchorElement?.tooltip))
+            else if (CanDisplayTooltipInCurrentContext(m_AnchorElement) && GetTooltipText(m_AnchorElement) is {} text)
             {
-                m_Tooltip.SetText(m_AnchorElement.tooltip);
+                m_Tooltip.SetText(text);
                 hasTooltip = true;
             }
 
@@ -104,6 +104,14 @@ namespace Unity.Muse.AppUI.UI
                 var callback = m_AnchorElement.GetTooltipContent();
                 callback?.Invoke(template);
             }
+        }
+
+        static string GetTooltipText(VisualElement element)
+        {
+            if (element is TextElement {displayTooltipWhenElided: true, isElided: true} textElement && string.IsNullOrEmpty(textElement.tooltip))
+                return string.IsNullOrEmpty(textElement.text) ? null : textElement.text;
+
+            return string.IsNullOrEmpty(element?.tooltip) ? null : element.tooltip;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

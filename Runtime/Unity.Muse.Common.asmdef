@@ -38,7 +38,7 @@
         {
             "name": "Unity",
             "expression": "2023.2.0a22",
-            "define": "ENABLE_UNITYENGINE_ANALITICS"
+            "define": "ENABLE_UNITYENGINE_ANALYTICS"
         }
     ],
     "noEngineReferences": false

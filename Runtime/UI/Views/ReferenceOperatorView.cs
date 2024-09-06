@@ -171,6 +171,8 @@ namespace Unity.Muse.Common
 
         bool m_IsMultiColorDoodleSupported;
         
+        bool m_IsCopyPasteEnabled = true;
+        
         Texture2D m_DoodleTex;
 
         ActionButton m_ClearButtonInDropZone;
@@ -577,7 +579,7 @@ namespace Unity.Muse.Common
 
         void OnDropZonePointerDown(PointerDownEvent evt)
         {
-            if (evt.button == 1)
+            if (evt.button == 1 && m_IsCopyPasteEnabled)
             {
                 evt.StopImmediatePropagation();
 #if !UNITY_2023_2_OR_NEWER
@@ -624,7 +626,7 @@ namespace Unity.Muse.Common
 
         void OnDropZoneKeyDown(KeyDownEvent evt)
         {
-            if (evt.actionKey)
+            if (evt.actionKey && m_IsCopyPasteEnabled)
             {
                 if (evt.keyCode == KeyCode.C)
                 {
@@ -1275,6 +1277,11 @@ namespace Unity.Muse.Common
                 SetModeWithoutNotify(ReferenceOperator.Mode.Color);
             else 
                 RefreshPreview();
+        }
+
+        public void SetCopyPasteEnabled(bool enabled)
+        {
+            m_IsCopyPasteEnabled = enabled;
         }
     }
 }

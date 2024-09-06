@@ -6,6 +6,7 @@ namespace Unity.AppUI.Core
     /// <summary>
     /// The Theme context of the application.
     /// </summary>
+    /// <param name="theme"> The theme. </param>
     internal record ThemeContext(string theme) : IContext
     {
         /// <summary>

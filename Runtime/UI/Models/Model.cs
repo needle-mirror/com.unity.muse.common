@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Unity.AppUI.Core;
 using Unity.Muse.Common.Account;
 using Unity.Muse.Common.Analytics;
-#if ENABLE_UNITYENGINE_ANALITICS
+#if ENABLE_UNITYENGINE_ANALYTICS
 using UnityEngine.Analytics;
 #endif
 using UnityEngine;
@@ -50,6 +51,7 @@ namespace Unity.Muse.Common
         bool m_SupportCostSimulation;
 
         internal event Action OnCloseWindowRequested;
+        internal event Action OnWindowLostFocus;
         internal event Action OnCostRemoved;
         internal event Action<int?> OnCostChanged;
         internal event Action<bool> OnSupportCostSimulationChanged;
@@ -554,7 +556,7 @@ namespace Unity.Muse.Common
             m_PreRefineOperators = m_Operators.ToList();
             refinedArtifact = artifact;
             m_Operators = modeDefaultOperators.ToList();
-            
+
             BookmarkManager bookmarkManager = GetData<BookmarkManager>();
             if (bookmarkManager != null)
                 bookmarkManager.SetFilter(false);
@@ -610,7 +612,7 @@ namespace Unity.Muse.Common
             foreach (var staticOperator in m_StaticOperators ?? Array.Empty<IOperator>())
             {
                 operators = currentOperators?.Select(o =>
-                    o.GetType() == staticOperator.GetType() ? staticOperator : o).ToList();
+                    o?.GetType() == staticOperator.GetType() ? staticOperator : o).ToList();
             }
 
             operators = OnSetOperatorDefaults?.Invoke(operators) ?? operators;
@@ -844,6 +846,24 @@ namespace Unity.Muse.Common
         internal void CloseWindowRequested()
         {
             OnCloseWindowRequested?.Invoke();
+        }
+
+        internal void NotifyWindowLostFocus()
+        {
+            OnWindowLostFocus?.Invoke();
+        }
+
+        internal static bool TryGetProjectRelativePath(string path, out string relativePath)
+        {
+            relativePath = Path.GetRelativePath(Application.dataPath[..Application.dataPath.LastIndexOf("/")], path);
+
+            if (!relativePath.StartsWith("Assets"))
+            {
+                relativePath = path;
+                return false;
+            }
+
+            return true;
         }
     }
 }

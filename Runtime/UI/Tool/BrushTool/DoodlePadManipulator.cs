@@ -15,7 +15,7 @@ namespace Unity.Muse.Common.Tools
         public event Action onDoodleUpdate;
         public event Action<byte[]> onValueChanged;
 
-        public DoodleModifierState currentState => m_DoodlePad.modifierState;
+        public DoodleModifierState currentState => m_DoodlePad?.modifierState ?? DoodleModifierState.None;
 
         public DoodlePadManipulator(Vector2Int size, float opacity = 1.0f, DoodleModifierState state = DoodleModifierState.Brush)
         {

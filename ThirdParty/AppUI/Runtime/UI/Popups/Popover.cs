@@ -120,52 +120,52 @@ namespace Unity.Muse.AppUI.UI
         /// The Popover will be placed at the end-bottom of the target.
         /// </summary>
         EndBottom,
-        
+
         /// <summary>
         /// The Popover will be placed inside the target, at the top left.
         /// </summary>
         InsideTopStart,
-        
+
         /// <summary>
         /// The Popover will be placed inside the target, at the top left.
         /// </summary>
         InsideTopLeft,
-        
+
         /// <summary>
         /// The Popover will be placed inside the target, at the top center.
         /// </summary>
         InsideTop,
-        
+
         /// <summary>
         /// The Popover will be placed inside the target, at the top right.
         /// </summary>
         InsideTopEnd,
-        
+
         /// <summary>
         /// The Popover will be placed inside the target, at the bottom left.
         /// </summary>
         InsideBottomStart,
-        
+
         /// <summary>
         /// The Popover will be placed inside the target, at the bottom center.
         /// </summary>
         InsideBottom,
-        
+
         /// <summary>
         /// The Popover will be placed inside the target, at the bottom right.
         /// </summary>
         InsideBottomEnd,
-        
+
         /// <summary>
         /// The Popover will be placed inside the target, at the center left.
         /// </summary>
         InsideStart,
-        
+
         /// <summary>
         /// The Popover will be placed inside the target, at the center right.
         /// </summary>
         InsideEnd,
-        
+
         /// <summary>
         /// The Popover will be placed inside the target, at the center.
         /// </summary>
@@ -249,22 +249,22 @@ namespace Unity.Muse.AppUI.UI
         /// The preferred placement for the popover.
         /// </summary>
         public PopoverPlacement favoritePlacement { get; set; }
-        
+
         /// <summary>
         /// The offset from the anchor element.
         /// </summary>
         public int offset { get; set; }
-        
+
         /// <summary>
         /// The cross offset from the anchor element.
         /// </summary>
         public int crossOffset { get; set; }
-        
+
         /// <summary>
         /// Whether the popover should flip if it doesn't fit in the viewport.
         /// </summary>
         public bool shouldFlip { get; set; }
-        
+
         /// <summary>
         /// Whether the popover should snap not to go outside the viewport.
         /// </summary>
@@ -288,15 +288,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Default constructor.
         /// </summary>
-        /// <param name="parentView">The popup container.</param>
+        /// <param name="referenceView">The view used as context provider for the Popover.</param>
         /// <param name="popover">The popup visual element itself.</param>
         /// <param name="contentView">The content that will appear inside this popup.</param>
-        Popover(VisualElement parentView, PopoverVisualElement popover, VisualElement contentView)
-            : base(parentView, popover, contentView)
-        {
-            parentView.panel.visualTree.RegisterCallback<PointerDownEvent>(OnTreeDown, TrickleDown.TrickleDown);
-            parentView.panel.visualTree.RegisterCallback<WheelEvent>(OnWheel, TrickleDown.TrickleDown);
-        }
+        Popover(VisualElement referenceView, PopoverVisualElement popover, VisualElement contentView)
+            : base(referenceView, popover, contentView)
+        { }
 
         PopoverVisualElement popover => (PopoverVisualElement)view;
 
@@ -306,16 +303,14 @@ namespace Unity.Muse.AppUI.UI
         /// <param name="referenceView">An arbitrary UI element in the current panel.</param>
         /// <param name="contentView">The content that will appear inside this popup.</param>
         /// <returns>The <see cref="Popover"/> instance.</returns>
+        /// <exception cref="ArgumentNullException">If the referenceView is null.</exception>
         public static Popover Build(VisualElement referenceView, VisualElement contentView)
         {
-            var panel = referenceView as Panel ?? referenceView.GetFirstAncestorOfType<Panel>();
-            
-            if (panel == null)
-                throw new ArgumentException("The reference view must be attached to a panel.", nameof(referenceView));
-            
-            var parentView = panel.popupContainer;
+            if (referenceView == null)
+                throw new ArgumentNullException(nameof(referenceView));
+
             var popoverVisualElement = new PopoverVisualElement(contentView);
-            var popoverElement = new Popover(parentView, popoverVisualElement, contentView)
+            var popoverElement = new Popover(referenceView, popoverVisualElement, contentView)
                 .SetAnchor(referenceView)
                 .SetLastFocusedElement(referenceView);
             return popoverElement;
@@ -325,7 +320,7 @@ namespace Unity.Muse.AppUI.UI
         {
             if (outsideScrollEnabled)
                 return;
-            
+
             var inside = GetMovableElement().worldBound.Contains((Vector2)evt.mousePosition);
             if (!inside)
                 evt.StopImmediatePropagation();
@@ -333,7 +328,7 @@ namespace Unity.Muse.AppUI.UI
 
         void OnTreeDown(PointerDownEvent evt)
         {
-            if (!outsideClickDismissEnabled || outsideClickStrategy == 0)
+            if (!outsideClickDismissEnabled || outsideClickStrategy == 0 || view.parent == null)
                 return;
 
             var index = view.parent.IndexOf(view);
@@ -342,9 +337,7 @@ namespace Unity.Muse.AppUI.UI
 
             var shouldDismiss = true;
             if ((outsideClickStrategy & OutsideClickStrategy.Bounds) != 0)
-            {
                 shouldDismiss = !GetMovableElement().worldBound.Contains((Vector2)evt.position);
-            }
 
             if (shouldDismiss && (outsideClickStrategy & OutsideClickStrategy.Pick) != 0)
             {
@@ -356,13 +349,12 @@ namespace Unity.Muse.AppUI.UI
 
             if (!shouldDismiss)
                 return;
-            
+
             var insideAnchor = anchor?.worldBound.Contains((Vector2)evt.position) ?? false;
             var insideLastFocusedElement = (m_LastFocusedElement as VisualElement)?.worldBound.Contains((Vector2)evt.position) ?? false;
             if (insideAnchor || insideLastFocusedElement)
             {
                 // prevent reopening the same popover again...
-                
                 evt.StopImmediatePropagation();
             }
             Dismiss(DismissType.OutOfBounds);
@@ -392,17 +384,25 @@ namespace Unity.Muse.AppUI.UI
         }
 
         /// <inheritdoc cref="AnchorPopup{T}.GetMovableElement"/>
-        protected override VisualElement GetMovableElement()
+        public override VisualElement GetMovableElement()
         {
             return popover.popoverElement;
         }
 
-        /// <inheritdoc cref="Popup{T}.InvokeDismissedEventHandlers"/>
-        protected override void InvokeDismissedEventHandlers(DismissType reason)
+        /// <inheritdoc />
+        protected override void InvokeShownEventHandlers()
         {
-            base.InvokeDismissedEventHandlers(reason);
-            targetParent?.panel?.visualTree.UnregisterCallback<PointerDownEvent>(OnTreeDown, TrickleDown.TrickleDown);
-            targetParent?.panel?.visualTree.UnregisterCallback<WheelEvent>(OnWheel, TrickleDown.TrickleDown);
+            base.InvokeShownEventHandlers();
+            containerView?.panel?.visualTree?.RegisterCallback<PointerDownEvent>(OnTreeDown, TrickleDown.TrickleDown);
+            containerView?.panel?.visualTree?.RegisterCallback<WheelEvent>(OnWheel, TrickleDown.TrickleDown);
+        }
+
+        /// <inheritdoc />
+        protected override void HideView(DismissType reason)
+        {
+            containerView?.panel?.visualTree?.UnregisterCallback<PointerDownEvent>(OnTreeDown, TrickleDown.TrickleDown);
+            containerView?.panel?.visualTree?.UnregisterCallback<WheelEvent>(OnWheel, TrickleDown.TrickleDown);
+            base.HideView(reason);
         }
 
         /// <summary>
@@ -557,7 +557,7 @@ namespace Unity.Muse.AppUI.UI
                     case PopoverPlacement.EndTop:
                     case PopoverPlacement.EndBottom:
                     case PopoverPlacement.InsideStart:
-                        left = true; 
+                        left = true;
                         break;
                     case PopoverPlacement.InsideCenter:
                         break;

@@ -1,4 +1,4 @@
-#if !ENABLE_UNITYENGINE_ANALITICS
+#if !ENABLE_UNITYENGINE_ANALYTICS
 using System;
 
 namespace Unity.Muse.Common.Analytics

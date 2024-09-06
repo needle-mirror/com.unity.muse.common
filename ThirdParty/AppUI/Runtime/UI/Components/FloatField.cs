@@ -37,7 +37,7 @@ namespace Unity.Muse.AppUI.UI
         {
             return val.ToString(formatString, CultureInfo.InvariantCulture.NumberFormat);
         }
-        
+
         /// <inheritdoc cref="NumericalField{T}.ParseRawValueToString"/>
         protected override string ParseRawValueToString(float val)
         {
@@ -85,7 +85,7 @@ namespace Unity.Muse.AppUI.UI
         /// Class containing the <see cref="UxmlTraits"/> for the <see cref="FloatField"/>.
         /// </summary>
         internal new class UxmlTraits : NumericalField<float>.UxmlTraits { }
-        
+
 #endif
     }
 }

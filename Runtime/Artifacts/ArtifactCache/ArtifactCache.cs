@@ -68,5 +68,13 @@ namespace Unity.Muse.Common
         /// </summary>
         /// <param name="artifacts">The artifacts to delete.</param>
         public static void Delete(IEnumerable<Artifact> artifacts) => Delete(artifacts?.ToArray());
+
+        internal static bool ReadAsTexture2D( Artifact artifact, out Texture2D texture)
+        {
+            var data = s_ArtifactCache.ReadRawData(artifact);
+            texture = new Texture2D(2, 2);
+
+            return data != null && texture.LoadImage(data);
+        }
     }
 }

@@ -213,6 +213,8 @@ namespace Unity.Muse.Common
         {
             // Replace operator if it exists
             RemoveOperator(op, out var index, out var insertAtIndex);
+            if (op == null)
+                return;
             if (index >= 0)
                 m_Operators.Insert(index, op);
             else
@@ -266,32 +268,6 @@ namespace Unity.Muse.Common
 
             m_CurrentMode = modeIndex;
             SetView();
-        }
-
-        private void GenerateArtifacts(string modeType, List<IOperator> operators, bool isVariation, bool isShape, Model model, List<Artifact> targetList, GenerateOperator generateOperator)
-        {
-            var batchRequestIdentifier = Guid.NewGuid().ToString();
-            for (var i = 0; i < generateOperator?.GetCount(); i++)
-            {
-                var artifact = ArtifactFactory.CreateArtifact(modeType);
-                artifact.SetOperators(operators);
-                artifact.BatchRequestIdentifier = batchRequestIdentifier;
-
-                if (isVariation)
-                {
-                    artifact.Variate(operators);
-                }
-                else if (isShape)
-                {
-                    artifact.Shape(operators);
-                }
-                else
-                {
-                    artifact.Generate(model);
-                }
-
-                targetList.Add(artifact);
-            }
         }
 
         void OnGenerateButtonClicked()

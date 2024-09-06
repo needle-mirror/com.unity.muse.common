@@ -4,6 +4,85 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [2.0.0-pre.9] - 2024-08-29
+
+### Changed
+
+- Scrollable manipulator now stops the propagation of WheelEvent. This affects only the Drawer and SwipeView elements.
+- Refactored the SwipeView element logic, without impacting the public API.
+- The Canvas now uses `Experimental.Animation` system from UI-Toolkit for its damping effect when releasing the mouse with some velocity. That replaces the previous implementation that was using the `VisualElementScheduledItem`.
+- Changed fade in animation in Tooltip to use USS transitions.
+
+### Fixed
+
+- Fixed the wrap system of the SwipeView element when swiping between elements quickly.
+- Fixed Daisy chaining window procedures on Windows platform.
+- Fixed an edge case when popovers are dismissed as OutOfBounds as soon as Show() is called.
+- Invoke click event only if Pressable is still hovered.
+- Fixed styling of emphasized checkboxes.
+- Fixed a bug where tooltips stop being shown when the window is docked/undocked.
+
+### Added
+
+- Added `justified` property on Tabs component to jusitfy tabs layout in horizontal direction.
+- Added `damping-effect-duration` property in Canvas element. The default value is 750ms.
+- Added `IsContextClick()` extension method for PointerEvent.
+- Added support of graceful fallback to lambda `Plafform` implementation if native plugins can not be loaded by the current plaftorm.
+
+## [2.0.0-pre.8] - 2024-08-12
+
+### Changed
+
+- Refactored completely the DropZone UI element. Now the DropZone doesn't embed any logic, but uses a `DropZoneController` instead. You can access this controller via `DropZone.controller` property and attaches a callback method to accept dragged objects and listens to drop events.
+- Defer checking Popup's container candidate when the Popup is about to be shown, instead of during Popup creation.
+- Refactored the styling of Chip UI element.
+- Upgraded the old Drag And Drop Sample to use the refactored DropZone and the new Drag And Drop system.
+- Changed the way MarkDirtyRepaint is scheduled on elements containing animated textures (check properly for visibility).
+- Refactored the styling of DropZone UI element.
+
+### Added
+
+- Added the `Unity.AppUI.UI.DropZoneController` Manipulator for a lower level approach to create your own "drop zones".
+- Added `--appui-splitview-splitter-anchor-size` design token.
+- `Added Unity.AppUI.Core.DragAndDrop` class to handle drag and drop (in-panel and/or with the Editor). The support of external drag and drop at runtime is planned for future releases.
+- Added `Unity.AppUI.UI.Chip.deletedWithEventInfo` and `Unity.AppUI.UI.Chip.clickedWithEventInfo` events.
+- Added new Story in the Drag And Drop sample.
+- Added support of `TextElement.displayTooltipWhenElided` to show elided text as a tooltip using the App UI tooltip system.
+
+### Fixed
+
+- Fixed compilation errors when the Unity project's Input Handling is set to `Both` or `New Input System` and the package `com.unity.inputsystem` is not installed.
+- Fixed IL2CPP Compilation errors on Windows Platform due to non-static MonoPInvokeCallback.
+- Fixed PInvoke delegate types on Windows platform.
+- Fixed styling of SplitView's Splitter Anchor size.
+- Fixed styling of BaseGridView when containing a single column.
+- Popovers and Modals now correctly start checking for PointerDown events in the visual tree when they become visible.
+- Removed console message when trying to add an Editor MonoBehaviour in the scene during PlayMode.
+
+## [2.0.0-pre.7] - 2024-07-30
+
+### Changed
+
+- Changed DialogTrigger.keyboardDismissDisabled to DialogTrigger.keyboardDismissEnabled for consistency.
+- Renamed Popup.parentView to Popup.containerView for more clarity.
+
+### Added
+
+- Added Modal.outsideClickDismissEnabled and Modal.outsideClickStrategy properties to support dismissing Modals by clicking outside of them.
+- Added Popup<T>.SetContainerView method to set a custom container which will be the parent of the popup's view.
+- Made `AnchorPopup.GetMovableElement` method public for easier access and increase customization possibilities.
+
+### Fixed
+
+- Fixed "Shape" icon.
+- Fixed border color variable for AccordionItem.
+- Fixed CultureInfo used during source code generation.
+
+### Removed
+
+- Removed intrusive Debug.Log calls from Platform class on Windows platform.
+- Removed warning message when using Single selection type in an overflown ActionGroup.
+
 ## [2.0.0-pre.6] - 2024-07-07
 
 ### Added
@@ -561,7 +640,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the previous value sent in `ChangeEvent` of `NumericalField`, `VectorField` and `Picker` (Dropdown) components.
 - Improved the synchronization of the `AnchorPopup` components to refresh their position in the layout faster.
 
-### Changed 
+### Changed
 
 - Changed the USS selector for component-level aliases to use directly `:root` selector instead of `<component_main_uss_class>` selector.
 
@@ -579,11 +658,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 
-- Fixed items selection persistence between refreshes in `GridView` component. 
+- Fixed items selection persistence between refreshes in `GridView` component.
 
 ## [0.6.2] - 2023-10-27
 
-### Added 
+### Added
 
 - Added `closeOnSelection` property to the `MenuTrigger` component.
 - Added `closeOnSelection` property to the `ActionGroup` component to close the popover menu (if any) when an item is selected.
@@ -601,7 +680,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
-- Added `allowNoSelection` property to the `GridView` component to enable or disable the selection of no items. 
+- Added `allowNoSelection` property to the `GridView` component to enable or disable the selection of no items.
 
 ### Fixed
 
@@ -629,13 +708,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The `InputLabel` component uses the `FieldLabel` and `HelpText` components to display the label and the help text.
 - The `Avatar` component now listens to `AvatarVarianContext` and `SizeContext` changes to update the variant and size of the avatar.
 
-### Removed 
+### Removed
 
 - Removed the `size` property from the `InputLabel` component.
 
 ## [0.5.5] - 2023-10-27
 
-### Added 
+### Added
 
 - [Backport] Added `closeOnSelection` property to the `MenuTrigger` component.
 - [Backport] Added `closeOnSelection` property to the `ActionGroup` component to close the popover menu (if any) when an item is selected.
@@ -652,7 +731,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
-- Added `allowNoSelection` property to the `GridView` component to enable or disable the selection of no items. 
+- Added `allowNoSelection` property to the `GridView` component to enable or disable the selection of no items.
 
 ### Fixed
 
@@ -730,7 +809,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The `Pressable` manipulator nows inherits from `PointerManipulator` instead of `Manipulator`.
 - Changed the `GridView.GetIndexByPosition` method to use a world-space position instead of a local-space position and renamed it to `GetIndexByWorldPosition`.
 - TouchSlider component will now loose focus when a slide interaction has ended.
-- When calling `GridView.Reset()` method, the selection won't be restored if no custom `GridView.getItemId` function has been provided. 
+- When calling `GridView.Reset()` method, the selection won't be restored if no custom `GridView.getItemId` function has been provided.
 - When using `--box-shadow-type: 1` (inset box-shadow), the `--box-shadow-spread` value was interpreted with the same direction as outset box-shadow. This has been fixed so you can use a positive spread value to go inside the element and a negative spread value to go outside the element.
 - The `Dropdown` component inherits from `Picker` component. Users will be able to create custom dropdown-like components by inheriting from `Picker` component.
 - The `Dropdown` component now has a selection mode property to choose between single and multiple selection modes.
@@ -777,7 +856,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [0.3.9] - 2023-08-17
 
-### Added 
+### Added
 
 - Added Context API which is accessible through any `VisualElement` instance.
 - Added `preventScrollWithModifiers` property to the `GridView` component.
@@ -794,7 +873,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added `tooltip-delay-ms` property to the `ContextProvider` component to customize the tooltip delay.
 - Added more shortcuts to the `Canvas` component.
 
-### Fixed 
+### Fixed
 
 - Fixed Editor crash when updating packages from UPM window.
 
@@ -848,7 +927,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [0.3.3] - 2023-07-06
 
-### Added 
+### Added
 
 - Added Magic Trackpad gesture support for MacOS.
 - Added `PanGesture` and `MagnificationGesture` events for UITK dispatcher.
@@ -861,7 +940,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [0.3.2] - 2023-06-01
 
-### Fixed 
+### Fixed
 
 - Fixed NavAction being added twice in NavGraph when deleting a linked NavDestination.
 
@@ -953,7 +1032,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [0.2.9] - 2023-05-04
 
-### Changed 
+### Changed
 
 - Removed `Replica` word from the documentation.
 

@@ -14,28 +14,28 @@ namespace Unity.Muse.AppUI.UI
     [UxmlElement]
 #endif
     internal abstract partial class Progress : BaseVisualElement, ISizeableElement
-    {       
+    {
 #if ENABLE_RUNTIME_DATA_BINDINGS
 
         internal static readonly BindingId valueProperty = new BindingId(nameof(value));
-   
+
         internal static readonly BindingId roundedProgressCornersProperty = new BindingId(nameof(roundedProgressCorners));
-        
+
         internal static readonly BindingId bufferValueProperty = new BindingId(nameof(bufferValue));
-        
+
         internal static readonly BindingId bufferOpacityProperty = new BindingId(nameof(bufferOpacity));
-        
+
         internal static readonly BindingId colorOverrideProperty = new BindingId(nameof(colorOverride));
-        
+
         internal static readonly BindingId sizeProperty = new BindingId(nameof(size));
-        
+
         internal static readonly BindingId variantProperty = new BindingId(nameof(variant));
-        
+
 #endif
-        
+
         static readonly Vertex[] k_Vertices = new Vertex[4];
         static readonly ushort[] k_Indices = { 0, 1, 2, 2, 3, 0 };
-        
+
         static Progress()
         {
             k_Vertices[0].tint = Color.white;
@@ -70,12 +70,12 @@ namespace Unity.Muse.AppUI.UI
         /// The Progress image styling class.
         /// </summary>
         public const string imageUssClassName = ussClassName + "__image";
-        
+
         /// <summary>
         /// The Progress container styling class.
         /// </summary>
         public const string containerUssClassName = ussClassName + "__container";
-        
+
         /// <summary>
         /// The Progress rounded corners styling class.
         /// </summary>
@@ -148,7 +148,7 @@ namespace Unity.Muse.AppUI.UI
             m_Image = new Image { name = imageUssClassName, pickingMode = PickingMode.Ignore };
             m_Image.AddToClassList(imageUssClassName);
             hierarchy.Add(m_Image);
-            
+
             m_Container = new VisualElement { name = containerUssClassName, pickingMode = PickingMode.Ignore };
             m_Container.AddToClassList(containerUssClassName);
             hierarchy.Add(m_Container);
@@ -161,19 +161,10 @@ namespace Unity.Muse.AppUI.UI
             roundedProgressCorners = true;
 
             m_Image.generateVisualContent += OnGenerateVisualContent;
-            RegisterCallback<AttachToPanelEvent>(OnAttachedToPanel);
+            generateVisualContent = OnGenerateVisualMainContent;
             RegisterCallback<DetachFromPanelEvent>(OnDetachedFromPanel);
             RegisterCallback<CustomStyleResolvedEvent>(OnStylesResolved);
-        }
-        
-        void OnAttachedToPanel(AttachToPanelEvent evt)
-        {
-            if (evt.destinationPanel != null)
-            {
-                m_Update?.Pause();
-                m_Update = null;
-                m_Update = schedule.Execute(MarkContentDirtyRepaint).Every(8L);
-            }
+            RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
         }
 
         void MarkContentDirtyRepaint()
@@ -189,7 +180,7 @@ namespace Unity.Muse.AppUI.UI
             {
                 if (s_Handler == null)
                     s_Handler = new Handler(global::Unity.AppUI.Core.AppUI.mainLooper, HandleMessage);
-                
+
                 return s_Handler;
             }
         }
@@ -205,13 +196,38 @@ namespace Unity.Muse.AppUI.UI
             return false;
         }
 
+        // When the element goes to Display.None, GeometryChangedEvent will be called.
+        void OnGeometryChanged(GeometryChangedEvent _)
+        {
+            UpdateScheduledItem();
+        }
+
+        // When the element MarkDirtyRepaint is called, GenerateVisualMainContent will be called.
+        void OnGenerateVisualMainContent(MeshGenerationContext _)
+        {
+            UpdateScheduledItem();
+        }
+
+        void UpdateScheduledItem()
+        {
+            if (this.IsInvisible())
+            {
+                m_Update?.Pause();
+                m_Update = null;
+                return;
+            }
+
+            if (variant == Variant.Indeterminate)
+                m_Update ??= schedule.Execute(MarkContentDirtyRepaint).Every(Styles.animationRefreshDelayMs);
+        }
+
         void OnGenerateVisualContent(MeshGenerationContext mgc)
         {
             // handler.SendMessage(Message.Obtain(handler, k_ProgressGenerateTexturesMsgId, this));
             var msg = Message.Obtain(null, k_ProgressGenerateTexturesMsgId, this);
             HandleMessage(msg);
             msg.Recycle();
-            
+
             var left = paddingRect.xMin;
             var right = paddingRect.xMax;
             var top = paddingRect.yMin;
@@ -221,7 +237,7 @@ namespace Unity.Muse.AppUI.UI
             k_Vertices[1].position = new Vector3(left, top, Vertex.nearZ);
             k_Vertices[2].position = new Vector3(right, top, Vertex.nearZ);
             k_Vertices[3].position = new Vector3(right, bottom, Vertex.nearZ);
-            
+
             var mwd = mgc.Allocate(k_Vertices.Length, k_Indices.Length, m_RT);
 
 #if !UNITY_2023_1_OR_NEWER
@@ -239,7 +255,7 @@ namespace Unity.Muse.AppUI.UI
             mwd.SetAllVertices(k_Vertices);
             mwd.SetAllIndices(k_Indices);
         }
-        
+
         /// <summary>
         /// Whether to use rounded corners for the progress.
         /// </summary>
@@ -257,7 +273,7 @@ namespace Unity.Muse.AppUI.UI
                 var changed = roundedProgressCorners != value;
                 EnableInClassList(roundedProgressCornersUssClassName, value);
                 MarkContentDirtyRepaint();
-                
+
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
                     NotifyPropertyChanged(in roundedProgressCornersProperty);
@@ -283,7 +299,7 @@ namespace Unity.Muse.AppUI.UI
                 RemoveFromClassList(GetSizeUssClassName(m_Size));
                 m_Size = value;
                 AddToClassList(GetSizeUssClassName(m_Size));
-                
+
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
                     NotifyPropertyChanged(in sizeProperty);
@@ -309,7 +325,7 @@ namespace Unity.Muse.AppUI.UI
                 RemoveFromClassList(GetVariantUssClassName(m_Variant));
                 m_Variant = value;
                 AddToClassList(GetVariantUssClassName(m_Variant));
-                
+
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
                     NotifyPropertyChanged(in variantProperty);
@@ -334,7 +350,7 @@ namespace Unity.Muse.AppUI.UI
                 var changed = !Mathf.Approximately(m_BufferOpacity, value);
                 m_BufferOpacity = value;
                 MarkContentDirtyRepaint();
-                
+
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
                     NotifyPropertyChanged(in bufferOpacityProperty);
@@ -359,7 +375,7 @@ namespace Unity.Muse.AppUI.UI
                 var changed = colorOverride != value;
                 m_ColorFromCode = value;
                 MarkContentDirtyRepaint();
-                
+
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (changed)
                     NotifyPropertyChanged(in colorOverrideProperty);
@@ -385,7 +401,7 @@ namespace Unity.Muse.AppUI.UI
                     return;
                 m_Value = value;
                 MarkContentDirtyRepaint();
-                
+
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 NotifyPropertyChanged(in valueProperty);
 #endif
@@ -410,7 +426,7 @@ namespace Unity.Muse.AppUI.UI
                     return;
                 m_BufferValue = value;
                 MarkContentDirtyRepaint();
-                
+
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 NotifyPropertyChanged(in bufferValueProperty);
 #endif
@@ -426,7 +442,7 @@ namespace Unity.Muse.AppUI.UI
             }
 
             m_RT = null;
-            
+
             m_Update?.Pause();
             m_Update = null;
         }
@@ -445,7 +461,7 @@ namespace Unity.Muse.AppUI.UI
         /// Generates the textures for the progress.
         /// </summary>
         protected virtual void GenerateTextures() { }
-        
+
 #if ENABLE_UXML_TRAITS
 
         /// <summary>
@@ -488,7 +504,7 @@ namespace Unity.Muse.AppUI.UI
                 name = "variant",
                 defaultValue = Variant.Indeterminate,
             };
-            
+
             readonly UxmlBoolAttributeDescription m_RoundedCorners = new UxmlBoolAttributeDescription()
             {
                 name = "rounded-progress-corners",
@@ -518,7 +534,7 @@ namespace Unity.Muse.AppUI.UI
                     element.colorOverride = color;
             }
         }
-        
+
 #endif
     }
 }

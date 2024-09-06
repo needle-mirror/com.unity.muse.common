@@ -12,6 +12,9 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The threshold in pixels after which a drag will start.
         /// </summary>
+        /// <remarks>
+        /// The default value is 8 pixels.
+        /// </remarks>
         public float dragThreshold { get; set; } = 8f;
 
         Action<PointerMoveEvent> m_DragStarted;
@@ -23,12 +26,12 @@ namespace Unity.Muse.AppUI.UI
         Action m_DragCanceled;
 
         Vector3 m_StartPosition;
-        
+
         /// <summary>
         /// Whether the drag is currently active.
         /// </summary>
         public bool isActive { get; private set; }
-        
+
         /// <summary>
         /// Delegate that will be called when a drag should be accepted during <see cref="PointerDownEvent"/>.
         /// </summary>
@@ -36,7 +39,7 @@ namespace Unity.Muse.AppUI.UI
         /// If this delegate is not set (or set to null), the drag will be accepted by default.
         /// </remarks>
         public Func<Vector2, bool> acceptStartDrag { get; set; }
-        
+
         /// <summary>
         /// Delegate that will be called when a drag should be accepted when the dragger wants to become
         /// active during <see cref="PointerMoveEvent"/>.
@@ -47,8 +50,6 @@ namespace Unity.Muse.AppUI.UI
         public Func<bool> acceptDrag { get; set; }
 
         int m_PointerId = -1;
-
-        static VisualElement s_VisualElement;
 
         /// <summary>
         /// Creates a new <see cref="Dragger"/> instance.
@@ -64,9 +65,6 @@ namespace Unity.Muse.AppUI.UI
             m_Dragging = dragging;
             m_DragEnded = dragEnded;
             m_DragCanceled = dragCanceled;
-            
-            if (s_VisualElement == null)
-                CreateVisualElement();
         }
 
         /// <summary>
@@ -82,7 +80,7 @@ namespace Unity.Muse.AppUI.UI
             target.RegisterCallback<PointerCaptureOutEvent>(OnPointerCaptureOut);
             target.RegisterCallback<KeyDownEvent>(OnKeyDown);
         }
-        
+
         /// <summary>
         /// Called to unregister event callbacks from the target element.
         /// </summary>
@@ -113,7 +111,7 @@ namespace Unity.Muse.AppUI.UI
         {
             if (m_PointerId != evt.pointerId)
                 return;
-            
+
             if (m_PointerId != -1)
             {
                 if (!isActive)
@@ -129,13 +127,9 @@ namespace Unity.Muse.AppUI.UI
                                 target.CaptureMouse();
 #endif
                         }
-                        
+
                         isActive = true;
                         m_DragStarted?.Invoke(evt);
-                        
-                        var panel = target.GetFirstAncestorOfType<Panel>();
-                        if (panel != null && s_VisualElement.parent != panel.tooltipContainer)
-                            panel.tooltipContainer.Add(s_VisualElement);
                     }
                 }
                 else
@@ -148,11 +142,8 @@ namespace Unity.Muse.AppUI.UI
                             target.CaptureMouse();
 #endif
                     }
-                    
+
                     m_Dragging?.Invoke(evt);
-                    var elementPosition = s_VisualElement.parent.WorldToLocal(evt.position);
-                    s_VisualElement.style.left = elementPosition.x;
-                    s_VisualElement.style.top = elementPosition.y;
                 }
             }
         }
@@ -161,10 +152,7 @@ namespace Unity.Muse.AppUI.UI
         {
             if (m_PointerId != evt.pointerId)
                 return;
-            
-            if (s_VisualElement.parent != null)
-                s_VisualElement.RemoveFromHierarchy();
-            
+
             if (target.HasPointerCapture(evt.pointerId))
                 target.ReleasePointer(evt.pointerId);
 
@@ -191,10 +179,9 @@ namespace Unity.Muse.AppUI.UI
         {
             if (m_PointerId == -1)
                 return;
-            
+
             if (evt.keyCode == KeyCode.Escape)
             {
-                
                 evt.StopImmediatePropagation();
                 Cancel();
             }
@@ -207,29 +194,14 @@ namespace Unity.Muse.AppUI.UI
         {
             if (target.HasPointerCapture(m_PointerId))
                 target.ReleasePointer(m_PointerId);
-            
+
             if (isActive)
             {
                 isActive = false;
                 m_DragCanceled?.Invoke();
             }
-            
-            m_PointerId = -1;
-        }
 
-        static void CreateVisualElement()
-        {
-            s_VisualElement = new Icon
-            {
-                pickingMode = PickingMode.Ignore,
-                iconName = "plus",
-                style =
-                {
-                    position = Position.Absolute,
-                    marginLeft = 16,
-                    marginTop = 16
-                }
-            };
+            m_PointerId = -1;
         }
     }
 }

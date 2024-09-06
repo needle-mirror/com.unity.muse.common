@@ -34,7 +34,7 @@ namespace Unity.Muse.Common
         /// <returns></returns>
         public static T GetOperator<T>(this IEnumerable<IOperator> operators) where T: class, IOperator
         {
-            return operators?.FirstOrDefault(x => x.GetType() == typeof(T) || x.GetType().IsSubclassOf(typeof(T))) as T;
+            return operators?.FirstOrDefault(x => x != null && (x.GetType() == typeof(T) || x.GetType().IsSubclassOf(typeof(T)))) as T;
         }
 
         /// <summary>

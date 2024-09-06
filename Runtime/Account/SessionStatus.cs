@@ -47,17 +47,19 @@ namespace Unity.Muse.Common.Account
         {
             if (string.IsNullOrEmpty(mode) || !GlobalPreferences.IsReady)
                 return IsSessionUsable;
-            
+
             var entitled = k_ModesWithoutEntitlements.Contains(mode) || AccountInfo.Instance.IsEntitled;
             var isSessionUsable =
                 entitled &&
                 ClientStatus.Instance.Status.IsValid &&
                 NetworkState.IsAvailable &&
                 SignInUtility.IsLikelySignedIn;
-            
+
             return isSessionUsable;
         }
-        
+
         internal static void RegisterModeWithoutEntitlements(string mode) => k_ModesWithoutEntitlements.Add(mode);
+
+        internal static void UnregisterModeWithoutEntitlements(string mode) => k_ModesWithoutEntitlements.Remove(mode);
     }
-}   
+}

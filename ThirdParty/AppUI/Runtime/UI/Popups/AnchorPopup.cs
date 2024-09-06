@@ -2,7 +2,6 @@ using System;
 using Unity.AppUI.Core;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEngine.UIElements.Experimental;
 
 namespace Unity.Muse.AppUI.UI
 {
@@ -32,7 +31,7 @@ namespace Unity.Muse.AppUI.UI
         /// A click is considered outside if the cursor position is outside of the popup's bounds.
         /// </summary>
         Bounds = 1,
-        
+
         /// <summary>
         /// A click is considered outside if the picked element at the cursor position is not a child of the popup.
         /// </summary>
@@ -45,15 +44,9 @@ namespace Unity.Muse.AppUI.UI
     /// <typeparam name="T">The sealed anchor popup class type.</typeparam>
     internal abstract class AnchorPopup<T> : Popup<T> where T : AnchorPopup<T>
     {
-        const long k_AnchorUpdateInterval = 8L;
-        
-        const int k_AnchorPopUpFadeInDurationMs = 150;
-
         VisualElement m_Anchor;
 
         Rect m_AnchorBounds;
-
-        IVisualElementScheduledItem m_AnchorUpdate;
 
         int m_CrossOffset;
 
@@ -66,36 +59,51 @@ namespace Unity.Muse.AppUI.UI
         bool m_ShouldFlip = true;
 
         Rect m_ContentBounds;
-        
-        Panel panel { get; }
+
+        /// <summary>
+        /// Callback for Event triggered when the popup has been shown.
+        /// </summary>
+        protected readonly EventCallback<ITransitionEvent> m_OnAnimatedInAction;
+
+        /// <summary>
+        /// Callback for Event triggered when the content geometry has changed.
+        /// </summary>
+        protected readonly EventCallback<GeometryChangedEvent> m_OnContentGeometryChangedAction;
+
+        /// <summary>
+        /// Callback for Event triggered when the anchor geometry has changed.
+        /// </summary>
+        protected readonly EventCallback<GeometryChangedEvent> m_OnAnchorGeometryChangedAction;
 
         /// <summary>
         /// Default constructor.
         /// </summary>
-        /// <param name="parentView">The popup container.</param>
+        /// <param name="referenceView"> The visual element used as context provider for the popup.</param>
         /// <param name="view">The popup visual element itself.</param>
         /// <param name="contentView">The content that will appear inside this popup.</param>
-        protected AnchorPopup(VisualElement parentView, VisualElement view, VisualElement contentView = null)
-            : base(parentView, view, contentView)
+        protected AnchorPopup(VisualElement referenceView, VisualElement view, VisualElement contentView = null)
+            : base(referenceView, view, contentView)
         {
-            panel = parentView.GetFirstAncestorOfType<Panel>();
+            m_OnAnimatedInAction = new EventCallback<ITransitionEvent>(OnAnimatedIn);
+            m_OnContentGeometryChangedAction = new EventCallback<GeometryChangedEvent>(OnContentGeometryChanged);
+            m_OnAnchorGeometryChangedAction = new EventCallback<GeometryChangedEvent>(OnAnchorGeometryChanged);
         }
 
         /// <summary>
         /// The desired placement.
+        /// </summary>
         /// <remarks>
         /// You can set the desired placement using <see cref="SetPlacement"/>.
         /// </remarks>
-        /// </summary>
         public PopoverPlacement placement => m_Placement;
 
         /// <summary>
         /// The current placement.
+        /// </summary>
         /// <remarks>
         /// The current placement can be different from the placement set with <see cref="SetPlacement"/>, based
         /// on the current position of the anchor on the screen and the ability to flip placement.
         /// </remarks>
-        /// </summary>
         public PopoverPlacement currentPlacement => m_CurrentPlacement;
 
         /// <summary>
@@ -125,17 +133,17 @@ namespace Unity.Muse.AppUI.UI
         public bool arrowVisible { get; private set; } = true;
 
         /// <summary>
-        /// `True` if the the popup can be dismissed by clicking outside of it, `False` otherwise.
+        /// `True` if the popup can be dismissed by clicking outside of it, `False` otherwise.
         /// </summary>
         public bool outsideClickDismissEnabled { get; protected set; } = true;
-        
+
         /// <summary>
-        /// `True` if the the popup let the user to be able to scroll outside of it, `False` otherwise.
+        /// `True` if the popup let the user scroll outside of it, `False` otherwise.
         /// </summary>
         public bool outsideScrollEnabled { get; protected set; } = false;
-        
+
         /// <summary>
-        /// The strategy used to determine if the click is outside of the popup.
+        /// The strategy used to determine if the click is outside the popup.
         /// </summary>
         public OutsideClickStrategy outsideClickStrategy { get; protected set; } = OutsideClickStrategy.Bounds;
 
@@ -146,8 +154,8 @@ namespace Unity.Muse.AppUI.UI
 
         /// <summary>
         /// Set the preferred <see cref="placement"/> value.
-        /// <remarks>This will trigger a refresh of the current popup position automatically.</remarks>
         /// </summary>
+        /// <remarks>This will trigger a refresh of the current popup position automatically.</remarks>
         /// <param name="popoverPlacement">The new value.</param>
         /// <returns>The popup.</returns>
         public T SetPlacement(PopoverPlacement popoverPlacement)
@@ -181,8 +189,8 @@ namespace Unity.Muse.AppUI.UI
 
         /// <summary>
         /// Set a new value for the <see cref="containerPadding"/> property.
-        /// <remarks>This will trigger a refresh of the current popup position automatically.</remarks>
         /// </summary>
+        /// <remarks>This will trigger a refresh of the current popup position automatically.</remarks>
         /// <param name="value">The new value.</param>
         /// <returns>The popup.</returns>
         public T SetContainerPadding(int value)
@@ -198,8 +206,8 @@ namespace Unity.Muse.AppUI.UI
 
         /// <summary>
         /// Set a new value for the <see cref="shouldFlip"/> property.
-        /// <remarks>This will trigger a refresh of the current popup position automatically.</remarks>
         /// </summary>
+        /// <remarks>This will trigger a refresh of the current popup position automatically.</remarks>
         /// <param name="value">The new value.</param>
         /// <returns>The popup.</returns>
         public T SetShouldFlip(bool value)
@@ -211,8 +219,8 @@ namespace Unity.Muse.AppUI.UI
 
         /// <summary>
         /// Set a new value for the <see cref="arrowVisible"/> property.
-        /// <remarks>This will trigger a refresh of the current popup position automatically.</remarks>
         /// </summary>
+        /// <remarks>This will trigger a refresh of the current popup position automatically.</remarks>
         /// <param name="visible">The new value.</param>
         /// <returns>The popup.</returns>
         public T SetArrowVisible(bool visible)
@@ -225,20 +233,19 @@ namespace Unity.Muse.AppUI.UI
 
         /// <summary>
         /// Set a new value for the <see cref="anchor"/> property.
-        /// <remarks>This will trigger a refresh of the current popup position automatically.</remarks>
         /// </summary>
+        /// <remarks>This will trigger a refresh of the current popup position automatically.</remarks>
         /// <param name="value">The new value.</param>
         /// <returns>The popup.</returns>
         public T SetAnchor(VisualElement value)
         {
-            m_AnchorUpdate?.Pause();
-            m_AnchorUpdate = null;
+            m_Anchor?.UnregisterCallback(m_OnAnchorGeometryChangedAction);
             m_Anchor = value;
-            m_AnchorUpdate = m_Anchor?.schedule.Execute(AnchorUpdate).Every(k_AnchorUpdateInterval);
+            m_Anchor?.RegisterCallback(m_OnAnchorGeometryChangedAction);
             RefreshPosition();
             return (T)this;
         }
-        
+
         /// <summary>
         /// Activate the possibility to dismiss the popup by clicking outside of it.
         /// </summary>
@@ -249,7 +256,7 @@ namespace Unity.Muse.AppUI.UI
             outsideClickDismissEnabled = dismissEnabled;
             return (T)this;
         }
-        
+
         /// <summary>
         /// Activate the possibility to scroll outside of the popup.
         /// </summary>
@@ -260,7 +267,7 @@ namespace Unity.Muse.AppUI.UI
             outsideScrollEnabled = scrollEnabled;
             return (T)this;
         }
-        
+
         /// <summary>
         /// Set the strategy used to determine if the click is outside of the popup.
         /// </summary>
@@ -272,16 +279,12 @@ namespace Unity.Muse.AppUI.UI
             return (T)this;
         }
 
-        /// <summary>
-        /// Called when the popup's <see cref="Handler"/> has received a <see cref="Popup.k_PopupShow"/> message.
-        /// <remarks>
-        /// In this method the view should become visible at some point (directly or via an animation).
-        /// </remarks>
-        /// </summary>
-        protected override void ShowView()
+        /// <inheritdoc />
+        protected override void OnLayoutReadyToAnimateIn()
         {
-            base.ShowView();
-            panel.RegisterPopup(this);
+            base.OnLayoutReadyToAnimateIn();
+            RefreshPosition();
+            contentView?.RegisterCallback(m_OnContentGeometryChangedAction);
         }
 
         /// <summary>
@@ -289,28 +292,20 @@ namespace Unity.Muse.AppUI.UI
         /// </summary>
         protected override void AnimateViewIn()
         {
-            view.style.opacity = 0.0001f;
-            view.schedule.Execute(() =>
-            {
-                if (view.parent != null)
-                {
-                    view.visible = true;
-                    RefreshPosition();
-                    contentView?.RegisterCallback<GeometryChangedEvent>(OnContentGeometryChanged);
-                    view.schedule.Execute(() =>
-                    {
-                        view.experimental.animation.Start(0, 1f, k_AnchorPopUpFadeInDurationMs, (element, f) =>
-                        {
-                            var y = Mathf.Lerp(-8f, 0f, f);
-                            var scale = Mathf.Lerp(0.98f, 1f, f);
-                            var opacity = Mathf.Lerp(0.0001f, 1f, f);
-                            element.style.translate = new Translate(0, y, 0);
-                            element.style.scale = new UnityEngine.UIElements.Scale(new Vector3(scale, scale, 1.0f));
-                            element.style.opacity = opacity;
-                        }).Ease(Easing.OutQuad).OnCompleted(InvokeShownEventHandlers);
-                    });
-                }
-            });
+            base.AnimateViewIn();
+            view.RegisterCallback<TransitionEndEvent>(m_OnAnimatedInAction);
+            view.RegisterCallback<TransitionCancelEvent>(m_OnAnimatedInAction);
+        }
+
+        /// <summary>
+        /// Called when the popup has been animated in.
+        /// </summary>
+        /// <param name="evt"> The transition event.</param>
+        protected virtual void OnAnimatedIn(ITransitionEvent evt)
+        {
+            view.UnregisterCallback<TransitionEndEvent>(m_OnAnimatedInAction);
+            view.UnregisterCallback<TransitionCancelEvent>(m_OnAnimatedInAction);
+            m_InvokeShownAction();
         }
 
         /// <summary>
@@ -318,12 +313,7 @@ namespace Unity.Muse.AppUI.UI
         /// </summary>
         /// <param name="reason"> The reason for the dismissal.</param>
         /// <returns> `True` if the popup should be dismissed, `False` otherwise.</returns>
-        protected override bool ShouldDismiss(DismissType reason)
-        {
-            if (reason == DismissType.OutOfBounds && !outsideClickDismissEnabled)
-                return false;
-            return true;
-        }
+        protected override bool ShouldDismiss(DismissType reason) => outsideClickDismissEnabled || base.ShouldDismiss(reason);
 
         /// <summary>
         /// Called when the popup's <see cref="Handler"/> has received a <see cref="Popup.k_PopupDismiss"/> message.
@@ -331,9 +321,17 @@ namespace Unity.Muse.AppUI.UI
         /// <param name="reason">The reason why the popup should be dismissed.</param>
         protected override void HideView(DismissType reason)
         {
-            base.HideView(reason);
+            if (containerView?.panel != null)
+                global::Unity.AppUI.Core.AppUI.UnregisterPopup(containerView.panel, this);
             contentView?.UnregisterCallback<GeometryChangedEvent>(OnContentGeometryChanged);
-            panel.UnregisterPopup(this);
+            base.HideView(reason);
+        }
+
+        /// <inheritdoc />
+        protected override void InvokeShownEventHandlers()
+        {
+            global::Unity.AppUI.Core.AppUI.RegisterPopup(containerView.panel, this);
+            base.InvokeShownEventHandlers();
         }
 
         /// <summary>
@@ -342,33 +340,31 @@ namespace Unity.Muse.AppUI.UI
         /// <param name="reason"> The reason for the dismissal.</param>
         protected override void InvokeDismissedEventHandlers(DismissType reason)
         {
+            m_Anchor?.UnregisterCallback(m_OnAnchorGeometryChangedAction);
             base.InvokeDismissedEventHandlers(reason);
-            m_AnchorUpdate?.Pause();
-            m_AnchorUpdate = null;
         }
 
         /// <summary>
         /// Start the hide animation for this popup.
         /// </summary>
-        /// <param name="reason"></param>
+        /// <param name="reason"> The reason for the dismissal.</param>
         protected override void AnimateViewOut(DismissType reason)
         {
             view.visible = false;
             InvokeDismissedEventHandlers(reason);
         }
-        
+
         void OnContentGeometryChanged(GeometryChangedEvent evt)
         {
             if (!Mathf.Approximately(evt.newRect.width, evt.oldRect.width) || !Mathf.Approximately(evt.newRect.height, evt.oldRect.height))
                 RefreshPosition();
         }
 
-        void AnchorUpdate(TimerState timerState)
+        void OnAnchorGeometryChanged(GeometryChangedEvent evt)
         {
-            if (m_Anchor == null || contentView == null)
+            if (contentView == null)
             {
-                m_AnchorUpdate?.Pause();
-                m_AnchorUpdate = null;
+                m_Anchor.UnregisterCallback(m_OnAnchorGeometryChangedAction);
                 return;
             }
 
@@ -394,7 +390,7 @@ namespace Unity.Muse.AppUI.UI
                 return;
 
             var movableElement = GetMovableElement();
-            var result = AnchorPopupUtils.ComputePosition(movableElement, m_Anchor, panel, new PositionOptions(placement, offset, crossOffset, shouldFlip));
+            var result = AnchorPopupUtils.ComputePosition(movableElement, m_Anchor, containerView, new PositionOptions(placement, offset, crossOffset, shouldFlip));
             movableElement.style.left = result.left;
             movableElement.style.top = result.top;
             movableElement.style.marginLeft = result.marginLeft;
@@ -417,7 +413,7 @@ namespace Unity.Muse.AppUI.UI
         /// Method which must return the visual element that needs to be moved, based on the anchor position and size.
         /// </summary>
         /// <returns>The visual element which will be moved. The default value is <see cref="Popup.view"/>.</returns>
-        protected virtual VisualElement GetMovableElement()
+        public virtual VisualElement GetMovableElement()
         {
             return view;
         }

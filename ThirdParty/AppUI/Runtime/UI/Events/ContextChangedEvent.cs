@@ -9,14 +9,14 @@ namespace Unity.Muse.AppUI.UI
     /// Event raised when the context has changed.
     /// </summary>
     /// <typeparam name="T"> The type of the context. </typeparam>
-    internal class ContextChangedEvent<T> : EventBase<ContextChangedEvent<T>> 
+    internal class ContextChangedEvent<T> : EventBase<ContextChangedEvent<T>>
         where T : IContext
     {
         /// <summary>
         /// The new context.
         /// </summary>
         public T context { get; private set; }
-        
+
         /// <summary>
         /// Resets all event members to their initial values.
         /// </summary>
@@ -35,7 +35,7 @@ namespace Unity.Muse.AppUI.UI
             );
             context = default;
         }
-        
+
         /// <summary>
         /// Gets a pooled event instance.
         /// </summary>
@@ -51,6 +51,6 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Default constructor.
         /// </summary>
-        public ContextChangedEvent() => LocalInit();        
+        public ContextChangedEvent() => LocalInit();
     }
 }

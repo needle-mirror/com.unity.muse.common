@@ -5,14 +5,14 @@ Shader "Hidden/DoodlePaint"
         // Declare "_Color" as Property to support implicit color space conversions
         _Color("Color", Color) = (1,1,1,1)
     }
-    
+
     SubShader
     {
         Lighting Off
         Blend One Zero
         ZWrite Off
         Cull Off
-        
+
         Pass
         {
             CGPROGRAM
@@ -35,27 +35,11 @@ Shader "Hidden/DoodlePaint"
 
             sampler2D _MainTex;
             float4 _MainTex_ST;
-            float4 _MainTex_TexelSize;
 
             float4 _Pos;
             float  _Radius;
             float4 _Color;
-
-            float squareDist(float2 a, float2 b, float2 c)
-            {
-                float2 ab = b - a;
-                float2 ac = c - a;
-                float2 bc = c - b;
-
-                float e = dot(ac, ab);
-                if (e <= 0.0)
-                    return dot(ac, ac);
-
-                float f = dot(ab, ab);
-                if (e >= f)
-                    return dot(bc, bc);
-                return dot(ac, ac) - e * e / f;
-            }
+            float _AspectRatio;
 
             v2f vert(appdata v)
             {
@@ -65,17 +49,29 @@ Shader "Hidden/DoodlePaint"
                 return o;
             }
 
+            float distToSegment(float2 p, float2 a, float2 b) {
+                float2 ba = b - a;
+                float2 pa = p - a;
+                float2 h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0) * ba;
+                return length(pa - h);
+            }
+
+            float drawLine(float2 uv, float2 a, float2 b, float thickness) {
+                float dist = distToSegment(uv, a, b);
+                return smoothstep(thickness, thickness - fwidth(dist), dist);
+            }
+
             float4 frag(v2f i) : SV_Target
             {
-                float2 coord = i.uv;
-                float2 a = float2(_Pos.x, _Pos.y);
-                float2 b = float2(_Pos.z, _Pos.w);
-                float2 c = float2(coord.x, coord.y);
-                float sqDist = squareDist(a, b, c);
-                float sqRadius = _Radius * _Radius;
-                if(sqDist < sqRadius)
-                    return _Color;
-                return tex2D(_MainTex, i.uv);
+                // Adjust UV coordinates for aspect ratio
+                float2 uv = i.uv;
+                uv.x *= _AspectRatio;
+
+                // Draw line
+                float aLine = drawLine(uv, _Pos.xy, _Pos.zw, _Radius);
+                float4 color = tex2D(_MainTex, i.uv);
+                color = lerp(color, _Color, aLine);
+                return color;
             }
             ENDCG
         }

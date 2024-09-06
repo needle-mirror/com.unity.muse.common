@@ -16,11 +16,11 @@ namespace Unity.Muse.AppUI.UI
     internal partial class Quote : BaseVisualElement
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
-        
+
         internal static readonly BindingId colorProperty = nameof(color);
-        
+
 #endif
-        
+
         /// <summary>
         /// The Quote main styling class.
         /// </summary>
@@ -59,14 +59,14 @@ namespace Unity.Muse.AppUI.UI
                 var previousBorderColor = resolvedStyle.borderLeftColor;
                 style.borderLeftColor = borderColor;
                 style.borderRightColor = borderColor;
-                
+
 #if ENABLE_RUNTIME_DATA_BINDINGS
                 if (borderColor != previousBorderColor)
                     NotifyPropertyChanged(in colorProperty);
 #endif
             }
         }
-        
+
         /// <summary>
         /// Default constructor.
         /// </summary>
@@ -82,7 +82,7 @@ namespace Unity.Muse.AppUI.UI
 
             color = Optional<Color>.none;
         }
-        
+
 #if ENABLE_UXML_TRAITS
 
         /// <summary>
@@ -95,7 +95,7 @@ namespace Unity.Muse.AppUI.UI
         /// </summary>
         internal new class UxmlTraits : BaseVisualElement.UxmlTraits
         {
-            
+
             readonly UxmlColorAttributeDescription m_Color = new UxmlColorAttributeDescription
             {
                 name = "color",
@@ -113,15 +113,15 @@ namespace Unity.Muse.AppUI.UI
                 base.Init(ve, bag, cc);
 
                 var element = (Quote)ve;
-                
+
                 var color = Color.gray;
                 if (m_Color.TryGetValueFromBag(bag, cc, ref color))
                     element.color = color;
-                
+
 
             }
         }
-        
+
 #endif
     }
 }

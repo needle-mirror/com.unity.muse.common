@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-#if ENABLE_UNITYENGINE_ANALITICS
+#if ENABLE_UNITYENGINE_ANALYTICS
 using UnityEngine.Analytics;
 #endif
 

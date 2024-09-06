@@ -1,4 +1,5 @@
 #define APPUI_PLATFORM_EDITOR_ONLY
+#define APPUI_PLATFORM_SILENT_EXCEPTIONS
 using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
@@ -14,45 +15,59 @@ namespace Unity.AppUI.Core
     internal static class Platform
     {
         static IPlatformImpl s_Impl;
-        
+
         static Platform()
         {
             Initialize();
         }
-        
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void Initialize()
         {
             if (s_Impl != null)
                 return;
-            
+
+            try
+            {
+
 #if APPUI_PLATFORM_EDITOR_ONLY
-            
+
 #if UNITY_EDITOR_OSX
-            s_Impl = new OSXPlatformImpl();
+                s_Impl = new OSXPlatformImpl();
 #elif UNITY_EDITOR_WIN
-            s_Impl = new WindowsPlatformImpl();
-#else 
-            s_Impl = new PlatformImpl();
+                s_Impl = new WindowsPlatformImpl();
+#else
+                s_Impl = new PlatformImpl();
 #endif
-            
+
 #else // APPUI_PLATFORM_EDITOR_ONLY
 
 #if UNITY_IOS && !UNITY_EDITOR
-            s_Impl = new IOSPlatformImpl();
-#elif UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX                                                                                                                                                                                                                                                                                                                                                                            
-            s_Impl = new OSXPlatformImpl();
+                s_Impl = new IOSPlatformImpl();
+#elif UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
+                s_Impl = new OSXPlatformImpl();
 #elif UNITY_ANDROID && !UNITY_EDITOR
-            s_Impl = new AndroidPlatformImpl();
+                s_Impl = new AndroidPlatformImpl();
 #elif UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
-            s_Impl = new WindowsPlatformImpl();
-#else 
-            s_Impl = new PlatformImpl();
+                s_Impl = new WindowsPlatformImpl();
+#else
+                s_Impl = new PlatformImpl();
 #endif
-            
+
 #endif // APPUI_PLATFORM_EDITOR_ONLY
+
+            }
+#pragma warning disable 0168
+            catch (Exception e)
+#pragma warning restore 0168
+            {
+#if !APPUI_PLATFORM_SILENT_EXCEPTIONS
+                Debug.LogException(e);
+#endif
+                s_Impl = new PlatformImpl();
+            }
         }
-        
+
 #if UNITY_EDITOR
         [UnityEditor.InitializeOnEnterPlayMode]
 #endif
@@ -61,7 +76,7 @@ namespace Unity.AppUI.Core
             if (s_Impl == null)
                 Initialize();
         }
-        
+
         /// <summary>
         /// The base DPI value used in <see cref="UnityEngine.UIElements.PanelSettings"/>.
         /// </summary>
@@ -84,7 +99,7 @@ namespace Unity.AppUI.Core
             add => s_Impl.highContrastChanged += value;
             remove => s_Impl.highContrastChanged -= value;
         }
-        
+
         /// <summary>
         /// Event triggered when the reduce motion accessibility setting changes.
         /// </summary>
@@ -93,7 +108,7 @@ namespace Unity.AppUI.Core
             add => s_Impl.reduceMotionChanged += value;
             remove => s_Impl.reduceMotionChanged -= value;
         }
-        
+
         /// <summary>
         /// Event triggered when the layout direction of the platform changes.
         /// </summary>
@@ -102,7 +117,7 @@ namespace Unity.AppUI.Core
             add => s_Impl.layoutDirectionChanged += value;
             remove => s_Impl.layoutDirectionChanged -= value;
         }
-        
+
         /// <summary>
         /// Event that is triggered when the scale factor of the Game view's window changes.
         /// </summary>
@@ -115,7 +130,7 @@ namespace Unity.AppUI.Core
             add => s_Impl.scaleFactorChanged += value;
             remove => s_Impl.scaleFactorChanged -= value;
         }
-        
+
         /// <summary>
         /// Event that is triggered when the text scale factor of system changes.
         /// </summary>
@@ -128,10 +143,12 @@ namespace Unity.AppUI.Core
             add => s_Impl.textScaleFactorChanged += value;
             remove => s_Impl.textScaleFactorChanged -= value;
         }
-        
+
         /// <summary>
+        /// <para>
         /// The DPI value that should be used in UI-Toolkit PanelSettings
         /// <see cref="UnityEngine.UIElements.PanelSettings.referenceDpi"/>.
+        /// </para>
         /// <para>
         /// This value is the value of <see cref="Screen.dpi"/> divided by the main screen scale factor.
         /// </para>
@@ -146,7 +163,7 @@ namespace Unity.AppUI.Core
         /// Multiple game views are not supported.
         /// </remarks>
         public static float scaleFactor => s_Impl.scaleFactor;
-        
+
         /// <summary>
         /// The current system-wide text scale factor.
         /// </summary>
@@ -165,22 +182,22 @@ namespace Unity.AppUI.Core
         /// Whether the current system is in dark mode.
         /// </summary>
         public static bool darkMode => s_Impl.darkMode;
-        
+
         /// <summary>
         /// Whether the current system is in high contrast mode.
         /// </summary>
         public static bool highContrast => s_Impl.highContrast;
-        
+
         /// <summary>
         /// Whether the current system uses the "Reduce Motion" accessibility setting.
         /// </summary>
         public static bool reduceMotion => s_Impl.reduceMotion;
-        
+
         /// <summary>
         /// Whether the current platform supports haptic feedback.
         /// </summary>
         public static bool isHapticFeedbackSupported => s_Impl.isHapticFeedbackSupported;
-        
+
         /// <summary>
         /// The current touches events for the current platform.
         /// </summary>
@@ -198,7 +215,7 @@ namespace Unity.AppUI.Core
         {
             s_Impl.RunNativeHapticFeedback(feedbackType);
         }
-        
+
         /// <summary>
         /// The current layout direction of the platform.
         /// </summary>
@@ -210,7 +227,7 @@ namespace Unity.AppUI.Core
         /// <param name="colorType"> The type of system color to get.</param>
         /// <returns> The system color for the given color type if any, otherwise Color.clear.</returns>
         public static Color GetSystemColor(SystemColorType colorType) => s_Impl.GetSystemColor(colorType);
-        
+
         /// <summary>
         /// Handle an native message coming from a native App UI plugin.
         /// </summary>
@@ -219,7 +236,7 @@ namespace Unity.AppUI.Core
         {
             s_Impl.HandleNativeMessage(message);
         }
-        
+
         /// <summary>
         /// Update the platform utility.
         /// </summary>

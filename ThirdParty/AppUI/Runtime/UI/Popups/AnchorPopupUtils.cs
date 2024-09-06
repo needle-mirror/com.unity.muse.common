@@ -13,7 +13,7 @@ namespace Unity.Muse.AppUI.UI
         {
             if (!shouldCrossSnap)
                 return;
-            
+
             if (elementRect.width < screenRect.width)
             {
                 if (result.left + result.marginLeft < screenRect.xMin)
@@ -33,7 +33,7 @@ namespace Unity.Muse.AppUI.UI
         {
             if (!shouldCrossSnap)
                 return;
-            
+
             if (elementRect.height < screenRect.height)
             {
                 if (result.top + result.marginTop < screenRect.yMin)
@@ -55,9 +55,9 @@ namespace Unity.Muse.AppUI.UI
             var topSideTop = anchorRect.yMin - elementRect.height;
             var bottomSideSpace = screenRect.height - anchorRect.yMax;
             var topSideSpace = anchorRect.yMin;
-                    
-            if (options.shouldFlip && 
-                bottomSideTop + elementRect.height + options.offset > screenRect.height && 
+
+            if (options.shouldFlip &&
+                bottomSideTop + elementRect.height + options.offset > screenRect.height &&
                 bottomSideSpace < topSideSpace)
             {
                 result.top = topSideTop;
@@ -78,16 +78,16 @@ namespace Unity.Muse.AppUI.UI
                 result.marginTop = options.offset;
             }
         }
-        
+
         static void ComputePositionTop(Rect screenRect, Rect elementRect, Rect anchorRect, PositionOptions options, ref PositionResult result)
         {
             var bottomSideTop = anchorRect.yMax;
             var topSideTop = anchorRect.yMin - elementRect.height;
             var bottomSideSpace = screenRect.height - anchorRect.yMax;
             var topSideSpace = anchorRect.yMin - elementRect.yMin;
-                    
-            if (options.shouldFlip && 
-                topSideTop - options.offset < screenRect.yMin && 
+
+            if (options.shouldFlip &&
+                topSideTop - options.offset < screenRect.yMin &&
                 topSideSpace < bottomSideSpace)
             {
                 result.top = bottomSideTop;
@@ -108,16 +108,16 @@ namespace Unity.Muse.AppUI.UI
                 result.marginTop = -options.offset;
             }
         }
-        
+
         static void ComputePositionLeft(Rect screenRect, Rect elementRect, Rect anchorRect, PositionOptions options, ref PositionResult result)
         {
             var leftSideLeft = anchorRect.xMin - elementRect.width;
             var rightSideLeft = anchorRect.xMax;
             var leftSideSpace = anchorRect.xMin - screenRect.xMin;
             var rightSideSpace = screenRect.width - anchorRect.xMax;
-                    
-            if (options.shouldFlip && 
-                leftSideLeft - options.offset < screenRect.xMin && 
+
+            if (options.shouldFlip &&
+                leftSideLeft - options.offset < screenRect.xMin &&
                 leftSideSpace < rightSideSpace)
             {
                 result.left = rightSideLeft;
@@ -139,16 +139,16 @@ namespace Unity.Muse.AppUI.UI
                 result.marginLeft = -options.offset;
             }
         }
-        
+
         static void ComputePositionRight(Rect screenRect, Rect elementRect, Rect anchorRect, PositionOptions options, ref PositionResult result)
         {
             var leftSideLeft = anchorRect.xMin - elementRect.width;
             var rightSideLeft = anchorRect.xMax;
             var leftSideSpace = anchorRect.xMin - screenRect.xMin;
             var rightSideSpace = screenRect.width - anchorRect.xMax;
-                    
-            if (options.shouldFlip && 
-                rightSideLeft + elementRect.width + options.offset > screenRect.xMax && 
+
+            if (options.shouldFlip &&
+                rightSideLeft + elementRect.width + options.offset > screenRect.xMax &&
                 rightSideSpace < leftSideSpace)
             {
                 result.left = leftSideLeft;
@@ -176,22 +176,25 @@ namespace Unity.Muse.AppUI.UI
         /// </summary>
         /// <param name="element">The element which needs to be positioned</param>
         /// <param name="anchor">The element used as an anchor for the element.</param>
-        /// <param name="panel">The panel containing elements.</param>
+        /// <param name="container">The element used as container.</param>
         /// <param name="options"> The options used to compute the position.</param>
         /// <returns>The computed position.</returns>
         /// <exception cref="ArgumentOutOfRangeException">The provided `favoritePlacement` value is invalid.</exception>
-        public static PositionResult ComputePosition(VisualElement element, VisualElement anchor, Panel panel, PositionOptions options)
+        public static PositionResult ComputePosition(VisualElement element, VisualElement anchor, VisualElement container, PositionOptions options)
         {
+            var result = new PositionResult();
+            result.finalPlacement = options.favoritePlacement;
+
+            if (container == null)
+                return result;
+
             var anchorRect = anchor.worldBound;
-            anchorRect.x -= panel.worldBound.x;
-            anchorRect.y -= panel.worldBound.y;
-            var screenRect = new Rect(Vector2.zero, panel.worldBound.size);
+            anchorRect.x -= container.worldBound.x;
+            anchorRect.y -= container.worldBound.y;
+            var screenRect = new Rect(Vector2.zero, container.worldBound.size);
             var elementRect = element.worldBound;
             var halfHorizontalDeltaWidth = (elementRect.width - anchorRect.width) * 0.5f;
             var halfVerticalDeltaWidth = (elementRect.height - anchorRect.height) * 0.5f;
-
-            var result = new PositionResult();
-            result.finalPlacement = options.favoritePlacement;
 
             if (float.IsNaN(halfHorizontalDeltaWidth) || float.IsNaN(halfVerticalDeltaWidth))
                 return result;
@@ -303,7 +306,7 @@ namespace Unity.Muse.AppUI.UI
                     result.marginTop = -options.offset;
                     result.left = anchorRect.xMin;
                     result.marginLeft = options.crossOffset;
-                    break; 
+                    break;
                 case PopoverPlacement.InsideBottomEnd:
                     result.top = anchorRect.yMax - elementRect.height;
                     result.marginTop = -options.offset;
@@ -390,9 +393,9 @@ namespace Unity.Muse.AppUI.UI
                 default:
                     break;
             }
-            
+
             return result;
         }
-    
+
     }
 }

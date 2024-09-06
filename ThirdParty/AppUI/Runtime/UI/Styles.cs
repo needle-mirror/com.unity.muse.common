@@ -55,6 +55,11 @@ namespace Unity.Muse.AppUI.UI
     internal static class Styles
     {
         /// <summary>
+        /// The delay between Animation Refresh calls.
+        /// </summary>
+        public const uint animationRefreshDelayMs = 16;
+
+        /// <summary>
         /// The styling class used to hide an element completely.
         /// </summary>
         public const string hiddenUssClassName = "unity-hidden";
@@ -80,15 +85,20 @@ namespace Unity.Muse.AppUI.UI
         public const string openUssClassName = "is-open";
 
         /// <summary>
+        /// The styling class used to start animating in an element.
+        /// </summary>
+        public const string animateInUssClassName = "animate-in";
+
+        /// <summary>
         /// The styling class used to set a "selected" pseudo-state on a element.
         /// </summary>
         public const string selectedUssClassName = "is-selected";
-        
+
         /// <summary>
         /// The styling class used to set an "active" pseudo-state on a element.
         /// </summary>
         public const string activeUssClassName = "is-active";
-        
+
         /// <summary>
         /// The styling class used to set a "hover" pseudo-state on a element.
         /// </summary>
@@ -98,12 +108,12 @@ namespace Unity.Muse.AppUI.UI
         /// The styling class used to set an element's elevation.
         /// </summary>
         public const string elevationUssClassName = "appui-elevation-";
-        
+
         /// <summary>
         /// The styling class used to set a ":first-child" pseudo-state on a element.
         /// </summary>
         public const string firstChildUssClassName = "unity-first-child";
-        
+
         /// <summary>
         /// The styling class used to set a ":last-child" pseudo-state on a element.
         /// </summary>
@@ -113,7 +123,7 @@ namespace Unity.Muse.AppUI.UI
         /// The styling class used to set a "focus" pseudo-state on a element.
         /// </summary>
         public const string focusedUssClassName = "is-focused";
-        
+
         /// <summary>
         /// The styling class used to set a "required" pseudo-state on a element.
         /// </summary>
@@ -123,7 +133,7 @@ namespace Unity.Muse.AppUI.UI
         /// Used in popups to hide the arrow/tip.
         /// </summary>
         public const string noArrowUssClassName = "no-arrow";
-        
+
         /// <summary>
         /// The styling class prefix used to set a cursor.
         /// </summary>
@@ -133,7 +143,7 @@ namespace Unity.Muse.AppUI.UI
         /// The styling class used to set a "keyboard-focus" pseudo-state on a element.
         /// </summary>
         public const string keyboardFocusUssClassName = "keyboard-focus";
-        
+
         /// <summary>
         /// Converts a <see cref="Size"/> to a <see cref="IconSize"/>.
         /// </summary>
@@ -154,7 +164,7 @@ namespace Unity.Muse.AppUI.UI
                     throw new ArgumentOutOfRangeException(nameof(size), size, null);
             }
         }
-        
+
         /// <summary>
         /// Converts a <see cref="IconSize"/> to a <see cref="Size"/>.
         /// </summary>

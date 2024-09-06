@@ -7,6 +7,6 @@ namespace Unity.AppUI.MVVM
     /// </summary>
     internal interface IHost : IDisposable
     {
-        
+
     }
 }

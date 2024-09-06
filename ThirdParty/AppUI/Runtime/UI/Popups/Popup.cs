@@ -11,11 +11,6 @@ namespace Unity.Muse.AppUI.UI
     internal abstract class Popup
     {
         /// <summary>
-        /// The average duration of a frame in milliseconds. Used to delay position calculations.
-        /// </summary>
-        protected const int k_NextFrameDurationMs = 16;
-        
-        /// <summary>
         /// The message id used to show the popup.
         /// </summary>
         protected const int k_PopupShow = 1;
@@ -25,23 +20,43 @@ namespace Unity.Muse.AppUI.UI
         /// </summary>
         protected const int k_PopupDismiss = 2;
 
+        /// <summary>
+        /// A pre-allocated Action that calls <see cref="InvokeShownEventHandlers"/>.
+        /// </summary>
+        protected readonly Action m_InvokeShownAction;
+
         Handler m_Handler;
+
+        readonly Action m_PrepareAnimateViewInAction;
+
+        readonly Action m_OnLayoutReadyToAnimateInAction;
+
+        IVisualElementScheduledItem m_ScheduledPrepareAnimateViewIn;
+
+        IVisualElementScheduledItem m_ScheduledAnimateViewIn;
+
+        IVisualElementScheduledItem m_ScheduledLayoutReadyToAnimateIn;
 
         /// <summary>
         /// Default constructor.
         /// </summary>
-        /// <param name="parentView">The popup container.</param>
+        /// <param name="referenceView">The reference view used as context provider for the popup.</param>
         /// <param name="view">The popup visual element itself.</param>
         /// <param name="contentView">The content that will appear inside this popup.</param>
-        /// <exception cref="ArgumentException">The container can't be null.</exception>
-        protected Popup(VisualElement parentView, VisualElement view, VisualElement contentView = null)
+        /// <exception cref="ArgumentNullException">The referenceView can't be null.</exception>
+        /// <exception cref="ArgumentNullException">The view can't be null.</exception>
+        protected Popup(VisualElement referenceView, VisualElement view, VisualElement contentView = null)
         {
             this.contentView = contentView;
-            targetParent = parentView ?? throw new ArgumentException("The parent view can't be null.");
-            this.view = view ?? throw new ArgumentException("The view can't be null.");
+            this.referenceView = referenceView ?? throw new ArgumentNullException(nameof(referenceView));
+            this.view = view ?? throw new ArgumentNullException(nameof(view));
 
             if (contentView is IDismissInvocator invocator)
                 invocator.dismissRequested += Dismiss;
+
+            m_InvokeShownAction = new Action(InvokeShownEventHandlers);
+            m_PrepareAnimateViewInAction = new Action(PrepareAnimateViewInInternal);
+            m_OnLayoutReadyToAnimateInAction = new Action(OnLayoutReadyToAnimateInInternal);
         }
 
         /// <summary>
@@ -72,7 +87,7 @@ namespace Unity.Muse.AppUI.UI
         }
 
         /// <summary>
-        /// `True` if the the popup can be dismissed by pressing the escape key or the return button on mobile, `False` otherwise.
+        /// <para>`True` if the the popup can be dismissed by pressing the escape key or the return button on mobile, `False` otherwise.</para>
         /// <para>
         /// The default value is `True`.
         /// </para>
@@ -87,8 +102,13 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// The parent of the <see cref="view"/> when the popup will be displayed.
         /// </summary>
-        public VisualElement targetParent { get; }
-        
+        public VisualElement containerView { get; protected set; }
+
+        /// <summary>
+        /// The view used as context provider for the popup.
+        /// </summary>
+        public VisualElement referenceView { get; }
+
         /// <summary>
         /// The content of the popup.
         /// </summary>
@@ -135,19 +155,26 @@ namespace Unity.Muse.AppUI.UI
 
         /// <summary>
         /// Called when the popup's <see cref="Handler"/> has received a <see cref="k_PopupShow"/> message.
+        /// </summary>
         /// <remarks>
         /// In this method the view should become visible at some point (directly or via an animation).
         /// </remarks>
-        /// </summary>
+        /// <exception cref="InvalidOperationException">Unable to find a suitable parent for the popup.</exception>
         protected virtual void ShowView()
         {
-            if (view.parent == null)
+            m_ScheduledLayoutReadyToAnimateIn?.Pause();
+
+            if (view.panel == null) // not added into the visual tree yet
             {
-                // not added into the visual tree yet
-                targetParent.Add(view);
+                // find a suitable parent for the popup
+                containerView ??= FindSuitableParent(referenceView);
+                if (containerView == null)
+                    throw new InvalidOperationException("Unable to find a suitable parent for the popup.");
 
                 // set invisible in order to calculate layout before displaying the element (avoid flickering)
                 view.visible = false;
+                // add the view to the container
+                containerView.Add(view);
             }
 
             view.RegisterCallback<DetachFromPanelEvent>(OnDetachedFromPanel);
@@ -155,7 +182,7 @@ namespace Unity.Muse.AppUI.UI
 
             if (ShouldAnimate())
             {
-                AnimateViewIn();
+                m_ScheduledLayoutReadyToAnimateIn = view.schedule.Execute(m_OnLayoutReadyToAnimateInAction);
             }
             else
             {
@@ -166,7 +193,7 @@ namespace Unity.Muse.AppUI.UI
         }
 
         /// <summary>
-        /// Returns the element that will be focused when the view will become visible.
+        /// <para>Returns the element that will be focused when the view will become visible.</para>
         /// <para>
         /// The default value is `null`.
         /// </para>
@@ -206,7 +233,7 @@ namespace Unity.Muse.AppUI.UI
         }
 
         /// <summary>
-        /// Called when the popup has received a <see cref="KeyDownEvent"/>.
+        /// <para>Called when the popup has received a <see cref="KeyDownEvent"/>.</para>
         /// <para>
         /// By default this method handles the dismiss of the popup via the Escape key or a Return button.
         /// </para>
@@ -217,10 +244,42 @@ namespace Unity.Muse.AppUI.UI
             var focusableElement = GetFocusableElement();
             if (keyboardDismissEnabled && focusableElement != null && evt.keyCode == KeyCode.Escape)
             {
-                
+
                 evt.StopPropagation();
                 Dismiss(DismissType.Cancel);
             }
+        }
+
+        void OnLayoutReadyToAnimateInInternal()
+        {
+            m_ScheduledPrepareAnimateViewIn?.Pause();
+            OnLayoutReadyToAnimateIn();
+            // delay the animation preparation to the next frame in case OnLayoutReadyToAnimateIn overrides the layout
+            m_ScheduledPrepareAnimateViewIn = view.schedule.Execute(m_PrepareAnimateViewInAction);
+        }
+
+        void PrepareAnimateViewInInternal()
+        {
+            m_ScheduledAnimateViewIn?.Pause();
+            PrepareAnimateViewIn();
+            // delay the animation to the next frame in case PrepareAnimateViewIn overrides the layout
+            m_ScheduledAnimateViewIn = view.schedule.Execute(AnimateViewIn);
+        }
+
+        /// <summary>
+        /// Called when the layout is ready to be animated in.
+        /// </summary>
+        protected virtual void OnLayoutReadyToAnimateIn()
+        {
+            view.visible = true;
+        }
+
+        /// <summary>
+        /// Called a frame before <see cref="AnimateViewIn"/> to prepare the layout a final time.
+        /// </summary>
+        protected virtual void PrepareAnimateViewIn()
+        {
+            view.AddToClassList(Styles.animateInUssClassName);
         }
 
         /// <summary>
@@ -228,7 +287,8 @@ namespace Unity.Muse.AppUI.UI
         /// </summary>
         protected virtual void AnimateViewIn()
         {
-            // do nothing by default
+            view.RemoveFromClassList(Styles.animateInUssClassName);
+            view.AddToClassList(Styles.openUssClassName);
         }
 
         /// <summary>
@@ -237,6 +297,7 @@ namespace Unity.Muse.AppUI.UI
         /// <param name="reason">The reason why the popup should be dismissed.</param>
         protected virtual void HideView(DismissType reason)
         {
+            m_ScheduledPrepareAnimateViewIn?.Pause();
             view.UnregisterCallback<KeyDownEvent>(OnViewKeyDown);
 
             if (ShouldAnimate())
@@ -255,6 +316,8 @@ namespace Unity.Muse.AppUI.UI
         /// <param name="reason">The reason why the popup has been dismissed.</param>
         protected virtual void InvokeDismissedEventHandlers(DismissType reason)
         {
+            view.RemoveFromClassList(Styles.animateInUssClassName);
+            view.RemoveFromClassList(Styles.openUssClassName);
             view.UnregisterCallback<DetachFromPanelEvent>(OnDetachedFromPanel);
             view.visible = false;
         }
@@ -276,20 +339,21 @@ namespace Unity.Muse.AppUI.UI
         /// <param name="reason">The reason why the popup should be dismissed.</param>
         protected virtual void AnimateViewOut(DismissType reason)
         {
-            // do nothing
+            InvokeDismissedEventHandlers(reason);
         }
 
         /// <summary>
         /// Find the parent <see cref="VisualElement"/> where the popup will be added.
-        /// <remarks>
-        /// This is usually one of the layers from the <see cref="Panel"/> root UI element.
-        /// </remarks>
         /// </summary>
         /// <param name="element">An arbitrary UI element inside the panel.</param>
         /// <returns>The popup container <see cref="VisualElement"/> in the current panel.</returns>
+        /// <remarks>
+        /// This is usually one of the layers from the <see cref="Panel"/> root UI element.
+        /// If no <see cref="Panel"/> is found, the method will return the visual tree root of the given element.
+        /// </remarks>
         protected virtual VisualElement FindSuitableParent(VisualElement element)
         {
-            return Panel.FindPopupLayer(element);
+            return Panel.FindPopupLayer(element) ?? element?.panel?.visualTree;
         }
     }
 
@@ -307,11 +371,11 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Default constructor.
         /// </summary>
-        /// <param name="parentView">The popup container.</param>
+        /// <param name="referenceView">The reference view used as context provider for the popup.</param>
         /// <param name="view">The popup visual element itself.</param>
         /// <param name="contentView">The content that will appear inside this popup.</param>
-        protected Popup(VisualElement parentView, VisualElement view, VisualElement contentView = null)
-            : base(parentView, view, contentView) { }
+        protected Popup(VisualElement referenceView, VisualElement view, VisualElement contentView = null)
+            : base(referenceView, view, contentView) { }
 
         /// <summary>
         /// Event triggered when the popup has become visible.
@@ -322,6 +386,31 @@ namespace Unity.Muse.AppUI.UI
         /// Event triggered when the popup has been dismissed.
         /// </summary>
         public event Action<T, DismissType> dismissed;
+
+        /// <summary>
+        /// Set the container view where the popup will be displayed.
+        /// </summary>
+        /// <param name="element"> The container view.</param>
+        /// <returns> The popup of type <typeparamref name="T"/>.</returns>
+        /// <remarks>
+        /// By default, the popup will be added to popup container of the first <see cref="Panel"/>
+        /// ancestor of the given reference view during construction.
+        /// </remarks>
+        public T SetContainerView(VisualElement element)
+        {
+            if (contentView == element)
+                return (T)this;
+
+            var isAlreadyInVisualTree = view.panel != null;
+            containerView = element;
+            if (isAlreadyInVisualTree)
+            {
+                Debug.LogWarning("Changing the container view of a popup that is already " +
+                    "part of the visual tree can lead to unexpected behavior.");
+                containerView.Add(view);
+            }
+            return (T)this;
+        }
 
         /// <summary>
         /// Activate the possibility to dismiss the popup via Escape key or Return button.
@@ -359,14 +448,14 @@ namespace Unity.Muse.AppUI.UI
         /// Called when the popup has been dismissed.
         /// This method will invoke any handlers attached to the <see cref="dismissed"/> event.
         /// </summary>
-        /// <param name="reason"></param>
+        /// <param name="reason">The reason for the dismissal.</param>
         protected override void InvokeDismissedEventHandlers(DismissType reason)
         {
             base.InvokeDismissedEventHandlers(reason);
             dismissed?.Invoke((T)this, reason);
 
             // we can safely remove the notification element from the visual tree now.
-            if (view.parent == targetParent) targetParent.Remove(view);
+            view.RemoveFromHierarchy();
 
             // focus last focused element (if any)
             if (reason != DismissType.OutOfBounds)

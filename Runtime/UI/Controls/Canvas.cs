@@ -46,6 +46,7 @@ namespace Unity.Muse.Common
 
                 m_RefinedArtifact = value;
                 UpdateView();
+                FrameAll();
             }
         }
 

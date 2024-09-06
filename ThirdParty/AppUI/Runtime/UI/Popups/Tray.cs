@@ -35,13 +35,12 @@ namespace Unity.Muse.AppUI.UI
         /// <summary>
         /// Default constructor.
         /// </summary>
-        /// <param name="parentView">The popup container.</param>
+        /// <param name="referenceView"> The element used as context provider for the Tray.</param>
         /// <param name="view">The Tray visual element itself.</param>
-        Tray(VisualElement parentView, TrayVisualElement view)
-            : base(parentView, view)
+        Tray(VisualElement referenceView, TrayVisualElement view)
+            : base(referenceView, view)
         {
             keyboardDismissEnabled = true;
-            view.RegisterCallback<ClickEvent>(OnTrayClicked);
         }
 
         TrayVisualElement tray => (TrayVisualElement)view;
@@ -75,60 +74,56 @@ namespace Unity.Muse.AppUI.UI
             return true;
         }
 
+        /// <inheritdoc />
+        protected override void OnLayoutReadyToAnimateIn()
+        {
+            base.OnLayoutReadyToAnimateIn();
+            var fromValue = tray.position switch
+            {
+                TrayPosition.Left => -view.parent.resolvedStyle.width,
+                TrayPosition.Right => -view.parent.resolvedStyle.width,
+                TrayPosition.Bottom => -view.parent.resolvedStyle.height,
+                _ => throw new ArgumentOutOfRangeException(nameof(tray.position), tray.position, "Unknown Tray position")
+            };
+            switch (tray.position)
+            {
+                case TrayPosition.Left:
+                    tray.trayElement.style.left = fromValue;
+                    break;
+                case TrayPosition.Right:
+                    tray.trayElement.style.right = fromValue;
+                    break;
+                case TrayPosition.Bottom:
+                    tray.trayElement.style.bottom = fromValue;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(tray.position), tray.position, "Unknown Tray position");
+            }
+        }
+
         /// <inheritdoc cref="Popup.AnimateViewIn"/>
         protected override void AnimateViewIn()
         {
-            view.schedule.Execute(() =>
+            var fromValue = tray.position switch
             {
-                if (view.parent != null)
-                {
-                    tray.visible = true;
-                    var fromValue = tray.position switch
-                    {
-                        TrayPosition.Left => -view.parent.resolvedStyle.width,
-                        TrayPosition.Right => -view.parent.resolvedStyle.width,
-                        TrayPosition.Bottom => -view.parent.resolvedStyle.height,
-                        _ => throw new ArgumentOutOfRangeException(nameof(tray.position), tray.position, "Unknown Tray position")
-                    };
-                    switch (tray.position)
-                    {
-                        case TrayPosition.Left:
-                            tray.trayElement.style.left = fromValue;
-                            break;
-                        case TrayPosition.Right:
-                            tray.trayElement.style.right = fromValue;
-                            break;
-                        case TrayPosition.Bottom:
-                            tray.trayElement.style.bottom = fromValue;
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException(nameof(tray.position), tray.position, "Unknown Tray position");
-                    }
-                    tray.schedule.Execute(() =>
-                    {
-                        fromValue = tray.position switch
-                        {
-                            TrayPosition.Left => -tray.trayElement.layout.width,
-                            TrayPosition.Right => -tray.trayElement.layout.width,
-                            TrayPosition.Bottom => -tray.trayElement.layout.height,
-                            _ => throw new ArgumentOutOfRangeException(nameof(tray.position), tray.position, "Unknown Tray position")
-                        };
-                        const float toValue = 0f;
-                        Action<VisualElement, float> interpolation = tray.position switch
-                        {
-                            TrayPosition.Left => (element, f) => element.style.left = f,
-                            TrayPosition.Right => (element, f) => element.style.right = f,
-                            TrayPosition.Bottom => (element, f) => element.style.bottom = f,
-                            _ => throw new ArgumentOutOfRangeException(nameof(tray.position), tray.position, "Unknown Tray position")
-                        };
-                        tray.trayElement.experimental.animation
-                            .Start(fromValue, toValue, k_TraySlideInDurationMs, interpolation)
-                            .Ease(Easing.OutQuad)
-                            .OnCompleted(InvokeShownEventHandlers).Start();
-                        tray.draggedOff += OnTrayDraggedOff;
-                    });
-                }
-            });
+                TrayPosition.Left => -tray.trayElement.layout.width,
+                TrayPosition.Right => -tray.trayElement.layout.width,
+                TrayPosition.Bottom => -tray.trayElement.layout.height,
+                _ => throw new ArgumentOutOfRangeException(nameof(tray.position), tray.position, "Unknown Tray position")
+            };
+            const float toValue = 0f;
+            Action<VisualElement, float> interpolation = tray.position switch
+            {
+                TrayPosition.Left => (element, f) => element.style.left = f,
+                TrayPosition.Right => (element, f) => element.style.right = f,
+                TrayPosition.Bottom => (element, f) => element.style.bottom = f,
+                _ => throw new ArgumentOutOfRangeException(nameof(tray.position), tray.position, "Unknown Tray position")
+            };
+            tray.trayElement.experimental.animation
+                .Start(fromValue, toValue, k_TraySlideInDurationMs, interpolation)
+                .Ease(Easing.OutQuad)
+                .OnCompleted(m_InvokeShownAction).Start();
+            tray.draggedOff += OnTrayDraggedOff;
         }
 
         void OnTrayDraggedOff()
@@ -170,11 +165,18 @@ namespace Unity.Muse.AppUI.UI
             }).Ease(Easing.OutQuad).Start();
         }
 
-        /// <inheritdoc cref="Popup{T}.InvokeDismissedEventHandlers"/>
-        protected override void InvokeDismissedEventHandlers(DismissType reason)
+        /// <inheritdoc />
+        protected override void InvokeShownEventHandlers()
         {
-            base.InvokeDismissedEventHandlers(reason);
+            base.InvokeShownEventHandlers();
+            view.RegisterCallback<ClickEvent>(OnTrayClicked);
+        }
+
+        /// <inheritdoc />
+        protected override void HideView(DismissType reason)
+        {
             tray.trayElement.UnregisterCallback<ClickEvent>(OnTrayClicked);
+            base.HideView(reason);
         }
 
         /// <summary>
@@ -183,15 +185,13 @@ namespace Unity.Muse.AppUI.UI
         /// <param name="referenceView">An arbitrary UI element inside the UI panel.</param>
         /// <param name="content">The content to display inside this <see cref="Tray"/>.</param>
         /// <returns>The <see cref="Tray"/> instance.</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="referenceView"/> is null.</exception>
         public static Tray Build(VisualElement referenceView, VisualElement content)
         {
-            var panel = referenceView as Panel ?? referenceView.GetFirstAncestorOfType<Panel>();
-            
-            if (panel == null)
-                throw new ArgumentException("The reference view must be attached to a panel.", nameof(referenceView));
-            
-            var parentView = panel.popupContainer;
-            return new Tray(parentView, new TrayVisualElement(content))
+            if (referenceView == null)
+                throw new ArgumentNullException(nameof(referenceView));
+
+            return new Tray(referenceView, new TrayVisualElement(content))
                 .SetLastFocusedElement(referenceView);
         }
 
@@ -248,7 +248,7 @@ namespace Unity.Muse.AppUI.UI
             public const string trayUssClassName = ussClassName + "__tray";
 
             public const string containerUssClassName = ussClassName + "__container";
-            
+
             /// <summary>
             /// Event triggered when the user has dragged almost completely the tray out of the screen.
             /// </summary>
@@ -261,9 +261,9 @@ namespace Unity.Muse.AppUI.UI
             readonly Draggable m_Draggable;
 
             readonly VisualElement m_HandleZone;
-            
+
             bool m_OnHandleZone;
-            
+
             public bool showHandle
             {
                 get => !m_HandleZone.ClassListContains(Styles.hiddenUssClassName);
@@ -300,9 +300,9 @@ namespace Unity.Muse.AppUI.UI
                 m_HandleZone.Add(handle);
                 trayElement.hierarchy.Add(m_HandleZone);
                 trayElement.hierarchy.Add(m_Container);
-                
+
                 m_Container.hierarchy.Add(content);
-                
+
                 position = TrayPosition.Bottom;
                 showHandle = true;
             }
@@ -316,7 +316,7 @@ namespace Unity.Muse.AppUI.UI
             {
                 if (!m_OnHandleZone)
                     return;
-                
+
                 var minPos = m_Position switch
                 {
                     TrayPosition.Left => -trayElement.layout.width,
@@ -326,7 +326,7 @@ namespace Unity.Muse.AppUI.UI
                 };
 
                 const float maxPos = 0f;
-                
+
                 var currentPos = m_Position switch
                 {
                     TrayPosition.Left => trayElement.layout.xMin,
@@ -334,7 +334,7 @@ namespace Unity.Muse.AppUI.UI
                     TrayPosition.Bottom => layout.height - trayElement.layout.yMax,
                     _ => throw new ArgumentOutOfRangeException()
                 };
-                
+
                 var newPos = m_Position switch
                 {
                     TrayPosition.Left => Mathf.Clamp(currentPos + draggable.deltaPos.x, minPos, maxPos),
@@ -363,7 +363,7 @@ namespace Unity.Muse.AppUI.UI
             {
                 if (!m_OnHandleZone)
                     return;
-                
+
                 var fromValue = m_Position switch
                 {
                     TrayPosition.Left => trayElement.layout.xMin,
@@ -371,7 +371,7 @@ namespace Unity.Muse.AppUI.UI
                     TrayPosition.Bottom => layout.height - trayElement.layout.yMax,
                     _ => throw new ArgumentOutOfRangeException()
                 };
-                
+
                 var shouldCollapse = m_Position switch
                 {
                     TrayPosition.Left => fromValue < -trayElement.layout.width * .25f,
@@ -379,7 +379,7 @@ namespace Unity.Muse.AppUI.UI
                     TrayPosition.Bottom => fromValue < -trayElement.layout.height * .25f,
                     _ => throw new ArgumentOutOfRangeException()
                 };
-                
+
                 var toValue = m_Position switch
                 {
                     TrayPosition.Left when shouldCollapse => -trayElement.layout.width,
@@ -390,7 +390,7 @@ namespace Unity.Muse.AppUI.UI
                     TrayPosition.Bottom => 0,
                     _ => throw new ArgumentOutOfRangeException()
                 };
-                
+
                 Action<VisualElement, float> interpolation = m_Position switch
                 {
                     TrayPosition.Left => (element, f) => element.style.left = f,
@@ -398,7 +398,7 @@ namespace Unity.Muse.AppUI.UI
                     TrayPosition.Bottom => (element, f) => element.style.bottom = f,
                     _ => throw new ArgumentOutOfRangeException()
                 };
-                
+
                 trayElement.experimental.animation.Start(fromValue, toValue, transitionDurationMs, interpolation)
                     .Ease(Easing.OutQuad)
                     .OnCompleted(() =>
@@ -457,7 +457,7 @@ namespace Unity.Muse.AppUI.UI
                         default:
                             throw new ArgumentOutOfRangeException(nameof(position), position, "Unknown Tray position");
                     }
-                    
+
                     m_Draggable.dragDirection = m_Position switch
                     {
                         TrayPosition.Left => Draggable.DragDirection.Horizontal,

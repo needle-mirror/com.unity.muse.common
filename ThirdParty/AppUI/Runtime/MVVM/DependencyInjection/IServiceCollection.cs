@@ -10,6 +10,6 @@ namespace Unity.AppUI.MVVM
     /// </summary>
     internal interface IServiceCollection : IList<ServiceDescriptor>
     {
-        
+
     }
 }
