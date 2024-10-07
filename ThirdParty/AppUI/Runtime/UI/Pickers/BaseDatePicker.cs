@@ -16,7 +16,7 @@ namespace Unity.Muse.AppUI.UI
 #if ENABLE_UXML_SERIALIZED_DATA
     [UxmlElement]
 #endif
-    internal partial class BaseDatePicker : VisualElement
+    internal partial class BaseDatePicker : BaseVisualElement
     {
 #if ENABLE_RUNTIME_DATA_BINDINGS
 

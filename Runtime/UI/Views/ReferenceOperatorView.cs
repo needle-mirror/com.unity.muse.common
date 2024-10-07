@@ -22,10 +22,10 @@ namespace Unity.Muse.Common
         {
             Brush = 0,
             Erase = 1,
-            
+
             None = 255,
         }
-        
+
         // TODO: Replace this base64 images by actual UUIDs when the backend will support it.
 
         static string[] k_ProvidedPatternsBase64Encoded =
@@ -86,7 +86,7 @@ namespace Unity.Muse.Common
         //    k_ProvidedPatternsGuid.Select(guid => new SimpleImageArtifact(guid, 0)).ToArray();
 
         internal event Action dataChanged;
-        
+
         internal event Action closeButtonClicked;
 
         ReferenceOperator.Mode m_Mode = ReferenceOperator.Mode.Color;
@@ -129,7 +129,7 @@ namespace Unity.Muse.Common
 
         ActionButton m_PickColorButton, m_ShapeColorButton;
 
-        private Color?[] m_PickedColor; 
+        private Color?[] m_PickedColor;
 
         Texture2D m_PickingTex;
 
@@ -138,11 +138,11 @@ namespace Unity.Muse.Common
         ColorPicker m_Picker;
 
         VisualElement m_DoodleToolbar;
-        
+
         static Color s_LastPickedColor = Color.black;
-        
+
         const int k_MaxTextureSize = 512;
-        
+
         NullableColorField m_ColorField;
 
         VisualElement m_HeaderToolbar;
@@ -150,11 +150,11 @@ namespace Unity.Muse.Common
         ActionGroup m_DoodleTools;
 
         VisualElement m_BrushTools;
-        
+
         VisualElement m_EraseTools;
-        
+
         ActionButton m_TexturePickerButton;
-        
+
         DoodlePad m_DoodlePad;
 
         TouchSliderInt m_BrushSizeSlider;
@@ -162,17 +162,17 @@ namespace Unity.Muse.Common
         TouchSliderInt m_EraserSizeSlider;
 
         ColorField m_DoodleColorPicker;
-        
+
         DoodleModifierState m_DoodleModifierState = DoodleModifierState.None;
 
         bool m_IsShapeModeSupported = true;
-        
+
         bool m_IsDoodleSupported;
 
         bool m_IsMultiColorDoodleSupported;
-        
+
         bool m_IsCopyPasteEnabled = true;
-        
+
         Texture2D m_DoodleTex;
 
         ActionButton m_ClearButtonInDropZone;
@@ -180,6 +180,8 @@ namespace Unity.Muse.Common
         UnityObjectPicker m_UnityObjectPicker;
 
         ActionButton m_DropzoneImportButton;
+
+        bool m_HasDropzoneCustomString = false;
 
         [Preserve]
         static ReferenceOperatorView()
@@ -212,7 +214,7 @@ namespace Unity.Muse.Common
             AddToClassList("muse-node");
             AddToClassList("appui-elevation-8");
             name = "input-image-node";
-            
+
             var titleRow = new VisualElement();
             titleRow.AddToClassList("row");
             titleRow.AddToClassList("bottom-gap");
@@ -222,7 +224,7 @@ namespace Unity.Muse.Common
             text.text = "Input Image";
             text.AddToClassList("muse-node__title");
             titleRow.Add(text);
-            
+
             m_CloseButton = new ActionButton();
             m_CloseButton.icon = "x";
             m_CloseButton.quiet = true;
@@ -234,7 +236,7 @@ namespace Unity.Muse.Common
             m_HeaderToolbar.AddToClassList("row");
             m_HeaderToolbar.AddToClassList("bottom-gap");
             Add(m_HeaderToolbar);
-            
+
             m_DoodleToolbar = new VisualElement();
             m_DoodleToolbar.AddToClassList("row");
             m_HeaderToolbar.Add(m_DoodleToolbar);
@@ -247,7 +249,7 @@ namespace Unity.Muse.Common
             };
             m_DoodleTools.selectionChanged += OnDoodleToolChanged;
             m_DoodleToolbar.Add(m_DoodleTools);
-            
+
             var doodleBrush = new ActionButton
             {
                 icon = "paint-brush"
@@ -280,9 +282,9 @@ namespace Unity.Muse.Common
             m_ModeGroup.Add(shapeModeButton);
 
             var spacer = new VisualElement();
-            spacer.AddToClassList("muse-spacer"); 
+            spacer.AddToClassList("muse-spacer");
             m_HeaderToolbar.Add(spacer);
-            
+
             m_BrushTools = new VisualElement();
             m_BrushTools.AddToClassList("row");
             m_BrushTools.AddToClassList(Styles.hiddenUssClassName);
@@ -297,7 +299,7 @@ namespace Unity.Muse.Common
             m_DoodleColorPicker.RegisterValueChangingCallback(OnDoodleColorChanging);
             m_DoodleColorPicker.AddToClassList("right-gap");
             m_BrushTools.Add(m_DoodleColorPicker);
-            
+
             m_BrushSizeSlider = new TouchSliderInt
             {
                 label = "Size",
@@ -309,12 +311,12 @@ namespace Unity.Muse.Common
             m_BrushSizeSlider.RegisterValueChangingCallback(OnBrushSliderChanging);
             m_BrushSizeSlider.RegisterValueChangedCallback(OnBrushSliderChanged);
             m_BrushTools.Add(m_BrushSizeSlider);
-            
+
             m_EraseTools = new VisualElement();
             m_EraseTools.AddToClassList("row");
             m_EraseTools.AddToClassList(Styles.hiddenUssClassName);
             m_HeaderToolbar.Add(m_EraseTools);
-            
+
             m_EraserSizeSlider = new TouchSliderInt
             {
                 label = "Size",
@@ -336,7 +338,7 @@ namespace Unity.Muse.Common
 
             m_PatternsButton.clicked += OnPatternsButtonClicked;
             m_HeaderToolbar.Add(m_PatternsButton);
-            
+
             m_PickColorButton = new ActionButton();
             m_PickColorButton.icon = "paint-bucket";
             m_PickColorButton.AddToClassList("right-gap");
@@ -345,7 +347,7 @@ namespace Unity.Muse.Common
             m_PickColorButton.SetEnabled(Application.isEditor);
 #endif
             m_HeaderToolbar.Add(m_PickColorButton);
-            
+
             m_TexturePickerButton = new ActionButton(ToggleEditorTexturePicking)
             {
                 label = "Pick"
@@ -430,7 +432,7 @@ namespace Unity.Muse.Common
                 clickable = new Pressable(OnPickColorButtonClicked)
             };
             m_ColorField.OnClear += () => OnClearColorButtonClicked();
-            
+
             Add(m_ColorField);
 
             m_PatternsView = new AppUI.UI.GridView
@@ -448,7 +450,7 @@ namespace Unity.Muse.Common
             m_PatternsView.selectionChanged += (indices) => OnPatternChosen(indices, false);
             m_PatternsView.columnCount = 3;
             m_PatternsView.itemHeight = 75;
-            
+
             var doodleSize = new Vector2Int(512, 512);
             m_DoodlePad = new DoodlePad(1);
             m_DoodlePad.SetDoodleSize(doodleSize);
@@ -456,7 +458,7 @@ namespace Unity.Muse.Common
             m_DoodlePad.StretchToParentSize();
             m_DoodlePad.RegisterValueChangedCallback(OnDoodleChanged);
             m_DoodleColorPicker.SetValueWithoutNotify(Color.white);
-            
+
             m_ClearButtonInDropZone = new ActionButton();
             m_ClearButtonInDropZone.icon = "x";
             m_ClearButtonInDropZone.clicked += OnClearButtonClicked;
@@ -480,7 +482,7 @@ namespace Unity.Muse.Common
                     }
                 }
             }
-            
+
             return null;
         }
 
@@ -494,17 +496,17 @@ namespace Unity.Muse.Common
                 GameObject go => GetTextureFromGameObject(go),
                 _ => null
             };
-            
+
             ClearData();
             SetGuidWithoutNotify(null);
 
             var img = tex ? (tex.isReadable ? tex : TextureUtils.CopyTexture2D(tex)) : null;
-            
+
             if (m_Mode == ReferenceOperator.Mode.Color)
                 SetColorImageWithoutNotify(img);
             else
                 SetShapeImageWithoutNotify(img);
-            
+
             RefreshPreview();
             dataChanged?.Invoke();
         }
@@ -543,7 +545,7 @@ namespace Unity.Muse.Common
                     UnityObject.Destroy(m_DoodleTex);
                 m_DoodleTex = null;
             }
-            
+
             dataChanged?.Invoke();
         }
 
@@ -567,7 +569,7 @@ namespace Unity.Muse.Common
             using var enumerator = indices.GetEnumerator();
             if (!enumerator.MoveNext())
                 m_DoodleModifierState = DoodleModifierState.None;
-            else 
+            else
                 m_DoodleModifierState = (DoodleModifierState)enumerator.Current;
             if (m_DoodleModifierState != DoodleModifierState.None && GetColorImage())
             {
@@ -723,7 +725,7 @@ namespace Unity.Muse.Common
                 Debug.LogWarning("<b>[Muse]</b> Dropping images in shape mode is not yet supported.");
                 return;
             }
-            
+
             ClearData();
 
             SetGuidWithoutNotify(m_DropManipulator.artifact?.Guid);
@@ -846,15 +848,15 @@ namespace Unity.Muse.Common
         {
             dataChanged?.Invoke();
         }
-        
+
 #if USE_APPUI_COLORPICKER
         void OnPickColorButtonClicked()
         {
             m_PickerPopup?.Dismiss(DismissType.Consecutive);
-            
+
             m_Picker ??= new ColorPicker();
-            
-            var previousValue = m_PickedColor ?? s_LastPickedColor;   
+
+            var previousValue = m_PickedColor ?? s_LastPickedColor;
             m_Picker.previousValue = previousValue;
             m_Picker.SetValueWithoutNotify(previousValue);
 
@@ -863,16 +865,16 @@ namespace Unity.Muse.Common
             m_PickerPopup = Popover.Build(m_PickColorButton, m_Picker);
             m_PickerPopup.dismissed += OnPickerPopupDismissed;
             m_PickerPopup.SetPlacement(PopoverPlacement.EndTop);
-            
+
             m_PickerPopup.Show();
-            
+
             OnPicking(previousValue);
         }
 
         void OnPickerPopupDismissed(Popover popup, DismissType reason)
         {
             popup.dismissed -= OnPickerPopupDismissed;
-            
+
             if (m_Picker != null)
             {
                 s_LastPickedColor = m_Picker.value;
@@ -907,9 +909,9 @@ namespace Unity.Muse.Common
             s_LastPickedColor = color;
             OnPicking(color);
         }
-        
+
 #endif
-        
+
         void OnPicking(Color color)
         {
             m_PickedColor[(int)m_Mode] = color;
@@ -919,7 +921,7 @@ namespace Unity.Muse.Common
                     m_PickingTex = new Texture2D(512, 512);
                 m_PickingTex.SetPixels(Enumerable.Repeat(color, 512 * 512).ToArray());
                 m_PickingTex.Apply();
-            
+
                 SetGuidWithoutNotify(null);
                 SetColorImageWithoutNotify(m_PickingTex);
             }
@@ -927,8 +929,8 @@ namespace Unity.Muse.Common
             {
                 UpdatePreviewImage();
             }
-            
-            dataChanged?.Invoke(); 
+
+            dataChanged?.Invoke();
         }
 
         void OnClearButtonClicked()
@@ -940,7 +942,7 @@ namespace Unity.Muse.Common
         void ClearData()
         {
             OnClearColorButtonClicked(false);
-            
+
             SetGuidWithoutNotify(null);
             if (m_Mode == ReferenceOperator.Mode.Color)
             {
@@ -952,15 +954,15 @@ namespace Unity.Muse.Common
                 SetShapeImageWithoutNotify(null);
                 RefreshPreview();
             }
-            
+
             m_DoodleTools.ClearSelection();
         }
-        
+
         void OnClearColorButtonClicked(bool notify = true)
         {
             m_PickedColor[(int)m_Mode] = null;
             if (!notify) return;
-            
+
             dataChanged?.Invoke();
             RefreshPreview();
         }
@@ -1111,13 +1113,16 @@ namespace Unity.Muse.Common
                     break;
             }
 
-            m_DropzoneMessage.text = m_Mode switch
+            if (!m_HasDropzoneCustomString)
             {
-                ReferenceOperator.Mode.Color => TextContent.dragAndDropColorSquareImageMessage,
-                ReferenceOperator.Mode.Shape => TextContent.dragAndDropShapeImageMessage,
-                _ => ""
-            };
-            
+                m_DropzoneMessage.text = m_Mode switch
+                {
+                    ReferenceOperator.Mode.Color => TextContent.dragAndDropColorSquareImageMessage,
+                    ReferenceOperator.Mode.Shape => TextContent.dragAndDropShapeImageMessage,
+                    _ => ""
+                };
+            }
+
             var hasContent = m_PreviewImage.image || (m_IsDoodleSupported && !m_DoodlePad.isClear);
             m_DropZoneHelper.EnableInClassList(Styles.hiddenUssClassName, hasContent || m_DoodleModifierState != DoodleModifierState.None);
             m_ClearButtonTop.SetDisplay(!m_DoodlePad.isClear);
@@ -1127,14 +1132,14 @@ namespace Unity.Muse.Common
             m_ModeGroup.EnableInClassList(Styles.hiddenUssClassName, !m_IsShapeModeSupported);
             m_PickColorButton.EnableInClassList(Styles.hiddenUssClassName, !m_IsShapeModeSupported || m_Mode == ReferenceOperator.Mode.Shape);
             m_PatternsButton.EnableInClassList(Styles.hiddenUssClassName, m_Mode != ReferenceOperator.Mode.Shape);
-            
+
             // Doodle tools
             m_BrushTools.EnableInClassList(Styles.hiddenUssClassName, m_DoodleModifierState != DoodleModifierState.Brush);
             m_EraseTools.EnableInClassList(Styles.hiddenUssClassName, m_DoodleModifierState != DoodleModifierState.Erase);
             m_DoodlePad.EnableInClassList(Styles.hiddenUssClassName, m_DoodleModifierState == DoodleModifierState.None && m_DoodlePad.isClear);
             m_DoodleToolbar.EnableInClassList(Styles.hiddenUssClassName, !m_IsDoodleSupported);
             m_DoodleColorPicker.EnableInClassList(Styles.hiddenUssClassName, !m_IsDoodleSupported || !m_IsMultiColorDoodleSupported);
-            
+
             switch (m_DoodleModifierState)
             {
                 case DoodleModifierState.Brush:
@@ -1149,7 +1154,7 @@ namespace Unity.Muse.Common
                     m_DoodlePad.SetNone();
                     break;
             }
-            
+
             // Scene Picker
             var isPicking = m_UnityObjectPicker.isPicking;
             m_TexturePickerButton.selected = isPicking;
@@ -1167,7 +1172,7 @@ namespace Unity.Muse.Common
         {
             return m_ColorImage;
         }
-        
+
         internal Texture2D GetDoodleImage()
         {
             return m_DoodleTex;
@@ -1182,7 +1187,7 @@ namespace Unity.Muse.Common
         {
             m_StrengthSlider.SetValueWithoutNotify(strength);
         }
-        
+
         internal void SetColorWithoutNotify(Color? color)
         {
             m_PickedColor[(int)m_Mode] = color;
@@ -1206,14 +1211,14 @@ namespace Unity.Muse.Common
         {
             if (m_Mode == ReferenceOperator.Mode.Color)
             {
-                return m_PickedColor[(int)m_Mode] ?? s_LastPickedColor; 
+                return m_PickedColor[(int)m_Mode] ?? s_LastPickedColor;
             }
             else
             {
                 return m_PickedColor[(int)m_Mode];
             }
         }
-        
+
         public void SetVisibility(bool visible)
         {
             style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
@@ -1225,7 +1230,7 @@ namespace Unity.Muse.Common
                 m_ColorField.value = m_PickedColor[(int)m_Mode].Value;
             else
                 m_ColorField.Clear(false);
-            
+
             var currentImage = m_PreviewImage.image;
 
             if (currentImage != null)
@@ -1233,7 +1238,7 @@ namespace Unity.Muse.Common
                 m_PreviewImage.image = null;
                 RenderTexture.ReleaseTemporary(currentImage as RenderTexture);
             }
-                
+
             var refImage = GetShapeImage();
 
             if (refImage == null)
@@ -1241,7 +1246,7 @@ namespace Unity.Muse.Common
                 m_PreviewImage.image = null;
                 return;
             }
-            
+
             var activeRT = RenderTexture.active;
             var rt = RenderTexture.GetTemporary(refImage.width, refImage.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
             rt.Create();
@@ -1272,16 +1277,38 @@ namespace Unity.Muse.Common
         public void SetShapeModeSupport(bool enabled)
         {
             m_IsShapeModeSupported = enabled;
-            
+
             if (!enabled && m_Mode == ReferenceOperator.Mode.Shape)
                 SetModeWithoutNotify(ReferenceOperator.Mode.Color);
-            else 
+            else
                 RefreshPreview();
         }
 
         public void SetCopyPasteEnabled(bool enabled)
         {
             m_IsCopyPasteEnabled = enabled;
+        }
+
+        /// <summary>
+        /// WARNING: This method was introduced in Muse Common 2.0.6, please use a Conditional compilation like
+        /// USING_MUSE_COMMON_2_0_6_OR_NEWER in your code and assembly definition if you are calling this method to have
+        /// backward compatibility.
+        /// Change the dropzone message
+        /// </summary>
+        /// <param name="message">Message for the dropzone</param>
+        public void SetDropzoneMessage(string message)
+        {
+            m_HasDropzoneCustomString = !string.IsNullOrEmpty(message);
+            m_DropzoneMessage.text = message;
+            if (!m_HasDropzoneCustomString && m_DropzoneMessage != null)
+            {
+                m_DropzoneMessage.text = m_Mode switch
+                {
+                    ReferenceOperator.Mode.Color => TextContent.dragAndDropColorSquareImageMessage,
+                    ReferenceOperator.Mode.Shape => TextContent.dragAndDropShapeImageMessage,
+                    _ => ""
+                };
+            }
         }
     }
 }

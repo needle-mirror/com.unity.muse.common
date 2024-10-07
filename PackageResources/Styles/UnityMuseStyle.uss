@@ -173,7 +173,7 @@
     --appui-accent-100: #eb417a;
     --appui-accent-50: #d13468;
     --appui-accent-25: #aa2652;
-    
+
     --appui-positive-300: var(--appui-accent-300);
     --appui-positive-200: var(--appui-accent-200);
     --appui-positive-100: var(--appui-accent-100);
@@ -198,7 +198,7 @@
     --appui-alias-actions-border-color-hover: var(--appui-backgrounds-200);
     --appui-alias-actions-border-color-active: var(--appui-backgrounds-200);
     --appui-alias-actions-border-color-disabled: var(--appui-backgrounds-200);
-    
+
     border-radius: 20px;
 }
 
@@ -315,4 +315,11 @@
     -unity-font-style: bold;
     color: var(--appui-color-white);
     text-shadow: 0 0 2px rgba(0,0,0,0.5);
+}
+
+.generation-settings-popover,
+.artifact-overlay-popover {
+    width: 380px;
+    max-width: 100%;
+    max-height: 100%;
 }

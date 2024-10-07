@@ -16,7 +16,7 @@ namespace Unity.Muse.Common.Bridge
     {
         static Assembly EditorAssembly => typeof(UnityEditor.Editor).Assembly;
         static Type MuseDropDownType => Type.GetType("UnityEditor.Toolbars.MuseDropdown, UnityEditor");
-
+        static bool s_DomainReloading;
         static bool UseNativeToolbarInterface => MuseDropDownType != null;
 
         static AccessToolbar()
@@ -30,7 +30,9 @@ namespace Unity.Muse.Common.Bridge
                 ShowCustom();
         }
 
-        static void ShowCustom()
+        static void ShowCustom() => EnsureButtonIsPresent();
+
+        static void EnsureButtonIsPresent()
         {
             EditorApplication.delayCall += () =>
             {
@@ -42,61 +44,80 @@ namespace Unity.Muse.Common.Bridge
                 }
 
                 var rootField = toolbarType.GetField("m_Root", BindingFlags.NonPublic | BindingFlags.Instance);
-                if (rootField != null)
+                if (rootField == null)
                 {
-                    // Note: Not using `UnityEditor.Toolbar.get` directly here since 2023.2.20f1 does not expose `Toolbar` publicly
-                    var getField = toolbarType.GetField("get", BindingFlags.Public | BindingFlags.Static);
-                    if (getField == null)
-                    {
-                        Debug.LogError("Could not find the Toolbar instance field. Muse will not be available");
-                        return;
-                    }
+                    Debug.LogError("Could not find toolbar root. Muse will not be available.");
+                    return;
+                }
 
-                    object toolbarInstance = getField.GetValue(null);
-                    if (toolbarInstance == null)
-                    {
-                        Debug.LogError("Could not find the Toolbar instance. Muse will not be available");
-                        return;
-                    }
+                // Note: Not using `UnityEditor.Toolbar.get` directly here since 2023.2.20f1 does not expose `Toolbar` publicly
+                var getField = toolbarType.GetField("get", BindingFlags.Public | BindingFlags.Static);
+                if (getField == null)
+                {
+                    Debug.LogError("Could not find the Toolbar instance field. Muse will not be available.");
+                    return;
+                }
 
-                    if (rootField.GetValue(toolbarInstance) is VisualElement root)
-                    {
-                        var toolbarZoneLeftAlign = root.Q<VisualElement>("ToolbarZoneLeftAlign");
-                        if (toolbarZoneLeftAlign != null)
-                        {
-                            var container = new Panel();
-                            container.AddToClassList("muse-editor-toolbar-container");
+                var toolbarInstance = getField.GetValue(null);
+                if (toolbarInstance == null)
+                {
+                    Debug.LogError("Could not find the Toolbar instance. Muse will not be available.");
+                    return;
+                }
 
-                            // Ensure the position is relative to avoid taking any more space than necessary.
-                            container.contentContainer.style.position = Position.Relative;
-                            container.ProvideContext(new ThemeContext(EditorGUIUtility.isProSkin ? "editor-dark" : "editor-light"));
-                            container.styleSheets.Add(ResourceManager.Load<StyleSheet>(PackageResources.museTheme));
-
-                            Button museButton = new Button {title = "Muse"};
-                            var caretIcon = new VisualElement();
-                            caretIcon.AddToClassList("unity-icon-arrow");
-                            museButton.Add(caretIcon);
-                            museButton.clicked += () =>
-                                AccountDropdownWindow.ShowMuseAccountSettingsAsPopup(museButton?.worldBound ?? Rect.zero);
-                            museButton.AddToClassList("unity-toolbar-button");
-                            AccountDropdownWindow.toolbarButton = museButton;
-
-                            var positionField = toolbarType.GetProperty("screenPosition", BindingFlags.Public | BindingFlags.Instance);
-                            AccountDropdownWindow.toolbarPosition = () =>
-                            {
-                                if (positionField?.GetValue(toolbarInstance) is Rect rect)
-                                    return rect;
-
-                                return Rect.zero;
-                            };
-
-                            container.Add(museButton);
-
-                            toolbarZoneLeftAlign.Add(container);
-                        }
-                    }
+                if (rootField.GetValue(toolbarInstance) is VisualElement toolbarRoot)
+                {
+                    var toolbarZoneLeftAlign = toolbarRoot.Q<VisualElement>("ToolbarZoneLeftAlign");
+                    if (toolbarZoneLeftAlign != null)
+                        AddCustomMuseButton(toolbarZoneLeftAlign, toolbarType, toolbarInstance);
+                    else
+                        Debug.LogError("Could not find toolbar left zone. Muse will not be available.");
                 }
             };
+        }
+
+        static void AddCustomMuseButton(VisualElement toolbarZoneLeftAlign, Type toolbarType, object toolbarInstance)
+        {
+            var museContainerClass = "muse-editor-toolbar-container";
+            if (toolbarZoneLeftAlign.Q<Panel>(classes: museContainerClass) != null)
+                return;
+
+            var container = new Panel();
+            container.AddToClassList(museContainerClass);
+
+            // Ensure the position is relative to avoid taking any more space than necessary.
+            container.contentContainer.style.position = Position.Relative;
+            container.ProvideContext(new ThemeContext(EditorGUIUtility.isProSkin ? "editor-dark" : "editor-light"));
+            container.styleSheets.Add(ResourceManager.Load<StyleSheet>(PackageResources.museTheme));
+
+            Button museButton = new Button {title = "Muse"};
+            var caretIcon = new VisualElement();
+            caretIcon.AddToClassList("unity-icon-arrow");
+            museButton.Add(caretIcon);
+            museButton.clicked += () =>
+                AccountDropdownWindow.ShowMuseAccountSettingsAsPopup(museButton.worldBound);
+            museButton.AddToClassList("unity-toolbar-button");
+            // After long periods, especially when closing and re-opening a laptop, the button gets destroyed,
+            // so we need to make sure it gets added back after being detached.
+            museButton.RegisterCallback<DetachFromPanelEvent>(_ =>
+            {
+                if (!s_DomainReloading)
+                    EnsureButtonIsPresent();
+            });
+            AccountDropdownWindow.toolbarButton = museButton;
+
+            var positionField = toolbarType.GetProperty("screenPosition", BindingFlags.Public | BindingFlags.Instance);
+            AccountDropdownWindow.toolbarPosition = () =>
+            {
+                if (positionField?.GetValue(toolbarInstance) is Rect rect)
+                    return rect;
+
+                return Rect.zero;
+            };
+
+            container.Add(museButton);
+
+            toolbarZoneLeftAlign.Add(container);
         }
 
         static void ShowNative()
@@ -110,6 +131,13 @@ namespace Unity.Muse.Common.Bridge
         }
 
         static void NativeHandler(Rect rect, VisualElement visualElement) => AccountDropdownWindow.ShowMuseAccountSettingsAsPopup(rect);
+
+        [InitializeOnLoadMethod]
+        static void DomainReloadDetector()
+        {
+            AssemblyReloadEvents.beforeAssemblyReload += () => s_DomainReloading = true;
+            AssemblyReloadEvents.afterAssemblyReload += () => s_DomainReloading = false;
+        }
     }
 }
 #endif

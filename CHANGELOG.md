@@ -4,15 +4,32 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [2.0.6] - 2024-10-07
+
+### Added
+
+- Added function to set dropzone message.
+
+### Changed
+
+- Improve Generation data design.
+
+### Fixed
+
+- Fix Muse dropdown layout.
+- Fix App UI localization.
+- Fix Muse dropdown sometimes not visible.
+- Fix Onboarding loop workflow issue.
+
 ## [2.0.5] - 2024-09-06
 
 ### Changed
 
-- Minor change to trial, beta and experimental program
+- Minor change to trial, beta and experimental program.
 
 ### Fixed
 
-- Fix app ui muse plugin conflict
+- Fix app ui muse plugin conflict.
 
 ## [2.0.4] - 2024-08-15
 

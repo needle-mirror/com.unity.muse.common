@@ -21,6 +21,7 @@ namespace Unity.Muse.Common.Account
         class ClientHandler : IClientHandler
         {
             public Action open;
+            public Action installOverride;
             public string packageName;
 
             static MethodInfo s_InstallMethod;
@@ -42,6 +43,12 @@ namespace Unity.Muse.Common.Account
                 }
             }
 
+            // If the package is visible in the package manager window without any project specific settings (such as
+            // "showPreReleasePackages" project setting turned on). If this is false, it means we can't simply open the
+            // package manager window to the package's page as it might not be visible. We instead provide an alternative
+            // path to install the package.
+            public bool IsVisibleInPackageManagerWindow = true;
+
             // Consider no package to always be installed
             public bool IsInstalled =>
                 string.IsNullOrEmpty(packageName) ||
@@ -49,17 +56,42 @@ namespace Unity.Muse.Common.Account
             public void Open() => open();
             public void Install()
             {
+                if (installOverride != null)
+                {
+                    installOverride.Invoke();
+                    return;
+                }
+
                 try
                 {
-                    UnityEditor.PackageManager.UI.Window.Open(packageName);
+                    // `Open` throws an exception in 2022 when a package is not present but not in 6000.
+                    // This means calling `Open` may not result in the package being shown in package manager under
+                    // various conditions. There is no alternative API that lets a client know if a package can be
+                    // seen in the package manager window, as per this slack thread: https://unity.slack.com/archives/C0111GBRLTC/p1726513457204939
+                    // Therefore, we hard-code which package is known to be visible and otherwise will always open the package manager with
+                    // the package name to be installed filled in.
+                    if (IsVisibleInPackageManagerWindow)
+                        UnityEditor.PackageManager.UI.Window.Open(packageName);
+                    else
+                        InstallByOpenURL();
                 }
                 catch (Exception exception)
                 {
                     if (s_InstallMethod == null)
-                        Debug.LogError($"Package {packageName} is not available in the registry. It is possible you don't have preview packages visible.\n\n{exception.Message}");
-                    else
-                        s_InstallMethod?.Invoke(null, new object[] { $"com.unity3d.kharma:upmpackage/{packageName}" });
+                        Debug.LogException(exception);
+                    InstallByOpenURL();
                 }
+            }
+
+            /// <summary>
+            /// Opens the package manager with the "install package by name" dropdown opened and filled in with the package name.
+            /// </summary>
+            void InstallByOpenURL()
+            {
+                if (s_InstallMethod == null)
+                    Debug.LogError($"Package {packageName} is not available in the registry. It is possible you don't have preview packages visible.");
+                else
+                    s_InstallMethod.Invoke(null, new object[] { $"com.unity3d.kharma:upmpackage/{packageName}" });
             }
         }
 
@@ -156,7 +188,8 @@ namespace Unity.Muse.Common.Account
         static ClientHandler Chat => new()
         {
             open = () => EditorApplication.ExecuteMenuItem("Muse/Chat"),
-            packageName = "com.unity.muse.chat"
+            packageName = "com.unity.muse.chat",
+            IsVisibleInPackageManagerWindow = false
         };
 
         static ClientHandler Texture => new()
@@ -174,13 +207,19 @@ namespace Unity.Muse.Common.Account
         static ClientHandler Animate => new()
         {
             open = () => EditorApplication.ExecuteMenuItem("Muse/New Animate Generator"),
-            packageName = "com.unity.muse.animate"
+            packageName = "com.unity.muse.animate",
+            IsVisibleInPackageManagerWindow = false
         };
 
         static ClientHandler SpriteEnhancers => new()
         {
             open = () => EditorApplication.ExecuteMenuItem("Window/2D/Sprite Editor"),
-            packageName = "com.unity.2d.muse"
+
+#if !UNITY_6000_0_OR_NEWER
+            installOverride = () => EditorUtility.DisplayDialog("Package could not be installed", "This package require Unity 6 to be installed and cannot be installed in your current Unity version.", "Ok."),
+#endif
+            packageName = "com.unity.2d.muse",
+            IsVisibleInPackageManagerWindow = false
         };
 
         static ClientHandler Learn => new()

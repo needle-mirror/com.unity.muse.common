@@ -4,15 +4,14 @@
     xmlns:ui="UnityEngine.UIElements"
     xmlns:appui="Unity.Muse.AppUI.UI"
     xsi:noNamespaceSchemaLocation="../../../../../../../UIElementsSchema/UIElements.xsd">
-
     <Style src="../uss/GenerationSettings.uss"/>
     <ui:VisualElement name="__root__">
-        <ui:VisualElement class="titlebar row">
-            <appui:Text class="title" text="Generation Data"/>
-            <appui:ActionButton name="use-all" label="Use All" quiet="true"/>
-        </ui:VisualElement>
-
-        <ui:VisualElement class="operators"/>
+        <ui:ScrollView class="scroll-view">
+            <ui:VisualElement class="titlebar">
+                <appui:Text class="title" text="Generation Data"/>
+                <appui:ActionButton name="use-all" label="Use All" class="use-all-button"/>
+            </ui:VisualElement>
+            <ui:VisualElement class="operators"/>
+        </ui:ScrollView>
     </ui:VisualElement>
-
 </ui:UXML>

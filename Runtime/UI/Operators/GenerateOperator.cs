@@ -25,13 +25,13 @@ namespace Unity.Muse.Common
         internal OperatorData m_OperatorData;
 
         public GenerateOperator(): this(defaultOperation, defaultGenerationCount){}
-        
+
         public GenerateOperator(string initialOperation, string initialGenerationCount)
         {
             m_OperatorData = new OperatorData(
-                OperatorName, 
+                OperatorName,
                 "1.0.0",
-                new[] { initialOperation, initialGenerationCount }, 
+                new[] { initialOperation, initialGenerationCount },
                 true);
         }
 
@@ -94,7 +94,7 @@ namespace Unity.Muse.Common
         /// <param name="isCustomSection">This VisualElement will override the whole operator section used by the generation settings</param>
         /// /// <param name="dismissAction">Action to trigger on dismiss</param>
         /// <returns> UI for the operator. Set to Null if the operator should not be displayed in the settings view. Disable the returned VisualElement if you want it to be displayed but not usable.</returns>
-        public VisualElement GetSettingsView(Model model, ref bool isCustomSection, Action dismissAction)
+        public virtual VisualElement GetSettingsView(Model model, ref bool isCustomSection, Action dismissAction)
         {
             return null;
         }

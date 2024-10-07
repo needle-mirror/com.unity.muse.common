@@ -55,7 +55,7 @@ namespace Unity.Muse.AppUI.UI
 
         BaseVerticalCollectionView m_CollectionView;
 
-        readonly Text m_Label;
+        readonly LocalizedTextElement m_Label;
 
         string m_Message;
 
@@ -73,14 +73,14 @@ namespace Unity.Muse.AppUI.UI
             hierarchy.Add(m_SelectAllCheckbox);
             m_SelectAllCheckbox.RegisterValueChangedCallback(OnCheckboxValueChanged);
 
-            m_Label = new Text
+            m_Label = m_SelectAllCheckbox.Q<LocalizedTextElement>(Checkbox.labelUssClassName);
+            m_Label.variables = new object[]
             {
-                name = labelUssClassName,
-                text = k_DefaultMessage,
-                pickingMode = PickingMode.Ignore
+                new Dictionary<string, object>
+                {
+                    {"itemCount", 0}
+                }
             };
-            m_Label.AddToClassList(labelUssClassName);
-            hierarchy.Add(m_Label);
 
             m_ActionGroup = new ActionGroup { name = actionGroupUssClassName };
             m_ActionGroup.AddToClassList(actionGroupUssClassName);
@@ -165,11 +165,11 @@ namespace Unity.Muse.AppUI.UI
             get => m_Message;
             set
             {
-                var previousValue = m_Message;
+                var changed = m_Message != value;
                 m_Message = value;
                 RefreshUI();
 #if ENABLE_RUNTIME_DATA_BINDINGS
-                if (previousValue != value)
+                if (changed)
                     NotifyPropertyChanged(messageProperty);
 #endif
             }
@@ -228,8 +228,6 @@ namespace Unity.Muse.AppUI.UI
                     : CheckboxState.Intermediate;
             }
             m_SelectAllCheckbox.SetValueWithoutNotify(checkboxValue);
-
-#if UNITY_LOCALIZATION_PRESENT
             m_Label.variables = new object[]
             {
                 new Dictionary<string, object>
@@ -237,13 +235,7 @@ namespace Unity.Muse.AppUI.UI
                     {"itemCount", selectionCount}
                 }
             };
-            m_Label.text = m_Message;
-#else
-            if (string.IsNullOrEmpty(m_Message))
-                m_Label.text = string.Format(k_DefaultMessage, selectionCount);
-            else
-                m_Label.text = string.Format(m_Message, selectionCount);
-#endif
+            m_SelectAllCheckbox.label = string.IsNullOrEmpty(m_Message) ? m_Message : string.Format(m_Message, selectionCount);
         }
 
 #if ENABLE_UXML_TRAITS
@@ -274,7 +266,10 @@ namespace Unity.Muse.AppUI.UI
                 m_PickingMode.defaultValue = PickingMode.Ignore;
                 base.Init(ve, bag, cc);
                 var el = (ActionBar)ve;
-                el.message = m_Message.GetValueFromBag(bag, cc);
+
+                var msg = k_DefaultMessage;
+                if (m_Message.TryGetValueFromBag(bag, cc, ref msg))
+                    el.message = msg;
             }
         }
 #endif

@@ -277,8 +277,6 @@ namespace Unity.Muse.AppUI.UI
         /// <param name="dragger"> The dragger manipulator.</param>
         protected virtual void OnTrackUp(Draggable dragger)
         {
-            Blur();
-
             if (value.Equals(m_PreviousValue))
                 return;
 

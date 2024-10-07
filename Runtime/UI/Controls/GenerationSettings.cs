@@ -1,4 +1,5 @@
 using System;
+using Unity.AppUI.Core;
 using Unity.Muse.AppUI.UI;
 using Unity.Muse.Common.Utils;
 using UnityEngine;
@@ -11,39 +12,43 @@ namespace Unity.Muse.Common
         HideUse
     }
 
-    class GenerationSettings : ExVisualElement
+    class GenerationSettings : BaseVisualElement, IDismissInvocator
     {
         const string k_UseAll = "use-all";
         Model m_CurrentModel;
         Artifact m_Artifact;
-        Action m_Dismiss;
+        readonly Action m_Dismiss;
         private VisualElement m_OperatorContainer;
+        public event Action<DismissType> dismissRequested;
 
         internal static void ShowGenerationSettings(Artifact artifact, VisualElement parent, Model currentModel)
         {
             var settings = new GenerationSettings(artifact);
-            var modal = Popover.Build(parent, settings);
+            var popover = Popover.Build(parent, settings);
+            ((Popover.PopoverVisualElement)popover.view).popoverElement.AddToClassList("generation-settings-popover");
 
-            settings.m_Dismiss += modal.Dismiss;
-
-
-            modal.SetOffset(-34);
-            modal.SetAnchor(parent);
-            modal.SetPlacement(currentModel.isRefineMode ? PopoverPlacement.Left : PopoverPlacement.Right);
-            modal.Show();
+            popover.SetOffset(-34);
+            popover.SetAnchor(parent);
+            popover.SetPlacement(currentModel.isRefineMode ? PopoverPlacement.Left : PopoverPlacement.Right);
+            popover.Show();
         }
 
         public GenerationSettings(Artifact artifact)
         {
             this.ApplyTemplate(PackageResources.generationSettingsTemplate);
-
-            passMask = Passes.Clear | Passes.BackgroundColor;
+            AddToClassList("generation-settings");
 
             m_OperatorContainer = this.Q<VisualElement>(classes: "operators");
             this.Q<ActionButton>(k_UseAll).clicked += UseAll;
             m_Artifact = artifact;
+            m_Dismiss = new Action(RequestDismiss);
 
             this.RegisterContextChangedCallback<Model>(context => SetModel(context.context));
+        }
+
+        void RequestDismiss()
+        {
+            dismissRequested?.Invoke(DismissType.Action);
         }
 
         void Initialize()
@@ -66,25 +71,30 @@ namespace Unity.Muse.Common
             m_OperatorContainer.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
         }
 
-        private void OnGeometryChanged(GeometryChangedEvent evt)
+        void OnGeometryChanged(GeometryChangedEvent evt)
         {
+            if (!evt.newRect.IsValid())
+                return;
+
             var preferredWidth = 0.0f;
             var query = m_OperatorContainer.Query<Text>(name: "label");
 
             var texts = query.ToList();
             foreach (var text in texts)
             {
-                if(text.worldBound.width > preferredWidth)
+                if (text.worldBound.width > preferredWidth)
                     preferredWidth = text.worldBound.width;
             }
 
             foreach (var text in texts)
             {
-               text.style.width =preferredWidth;
+                if (!Mathf.Approximately(text.resolvedStyle.width, preferredWidth))
+                    text.style.width = preferredWidth;
             }
 
             m_OperatorContainer.UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
         }
+
         void SetModel(Model model)
         {
             m_CurrentModel = model;
@@ -103,7 +113,11 @@ namespace Unity.Muse.Common
             row.Add(new Text(label) {name = "label"});
             row.Add(center);
             if (!(view.userData is GenerationSettingsView settingsView && settingsView == GenerationSettingsView.HideUse))
-                row.Add(new ActionButton(useAction) {name = "use", label = "Use"});
+            {
+                var btn = new ActionButton(useAction) {name = "use", label = "Use"};
+                btn.AddToClassList("operator-settings__use-button");
+                row.Add(btn);
+            }
 
             if (!view.enabledSelf)
                 row.SetEnabled(false);
@@ -114,7 +128,7 @@ namespace Unity.Muse.Common
         void Use(IOperator op)
         {
             m_CurrentModel.UpdateOperators(op.Clone());
-            m_Dismiss?.Invoke();
+            RequestDismiss();
         }
 
         void UseAll()
@@ -169,7 +183,7 @@ namespace Unity.Muse.Common
             }
 
             m_CurrentModel.UpdateOperators(operators, true);
-            m_Dismiss?.Invoke();
+            RequestDismiss();
         }
     }
 }

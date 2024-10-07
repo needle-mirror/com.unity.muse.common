@@ -107,18 +107,20 @@ namespace Unity.Muse.Common.Account
             {
                 if (AccountInfo.Instance.LegalConsent.HasConsented)
                     return AccountState.Default;
-                else
-                    return AccountState.TrialConfirm;
-            }
-            else
-            {
-                if (ShouldRequestSeats)
-                    return AccountState.RequestSeat;
-                if (IsFillingForm(trialForm))
-                    return trialForm.state;
 
-                return AccountState.Trial;
+                if (trialForm?.state == AccountState.DataOptIn)
+                    return AccountState.DataOptIn;
+
+                return AccountState.TrialConfirm;
             }
+
+            if (ShouldRequestSeats)
+                return AccountState.RequestSeat;
+            if (IsFillingForm(trialForm))
+                return trialForm.state;
+
+            return AccountState.Trial;
+
         }
 
         /// <summary>

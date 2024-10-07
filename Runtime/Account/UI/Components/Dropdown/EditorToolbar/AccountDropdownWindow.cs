@@ -11,6 +11,7 @@ namespace Unity.Muse.Common.Account.UI
     {
         internal static Func<Rect> toolbarPosition;
         internal static VisualElement toolbarButton;
+        static float s_LastPopupHeight = 1;
 
         /// <summary>
         /// Show the account settings without it being clicked by the user.
@@ -29,13 +30,33 @@ namespace Unity.Muse.Common.Account.UI
         internal static void ShowMuseAccountSettingsAsPopup(Rect rect) =>
             ShowMuseAccountSettingsAsPopupInternal(GUIUtility.GUIToScreenRect(rect));
 
-        static void ShowMuseAccountSettingsAsPopupInternal(Rect rect)
+        static void ShowMuseAccountSettingsAsPopupInternal(Rect buttonRect)
         {
             ClearPreviousWindows();
-
             var popup = CreateInstance<AccountDropdownWindow>();
             popup.hideFlags = HideFlags.DontSave;
-            popup.ShowAsDropDown(rect, new Vector2(300, 260));
+            popup.ShowAsDropDown(buttonRect, Vector2.zero);
+            const int minSizeX = 300;
+
+            if (Mathf.Approximately(popup.minSize.y, 0f))
+            {
+                popup.minSize = new Vector2(minSizeX, s_LastPopupHeight);
+            }
+            var content = popup.rootVisualElement.Q<AccountDropdownContent>();
+            content.RegisterCallback<GeometryChangedEvent>(evt =>
+            {
+                const int heightOffset = 4;
+
+                var height = evt.newRect.height + heightOffset;
+
+                if (!Mathf.Approximately(s_LastPopupHeight, height))
+                {
+                    s_LastPopupHeight = height;
+                    // Can't change the popup.minSize while in a GeometryChangedEvent as it will give an error and the
+                    // popup won't appear the first time it's clicked after a domain reload.
+                    EditorApplication.delayCall += () => ShowMuseAccountSettingsAsPopupInternal(buttonRect);
+                }
+            });
         }
 
         static void ClearPreviousWindows()
@@ -62,8 +83,8 @@ namespace Unity.Muse.Common.Account.UI
 
             AccountController.Register(this);
 
-            var scrollView = new ScrollView();  // Wrap in a scrollview to be certain all content will always be shown.
-            var content = new AccountDropdownContent {OnAction = Close};
+            var scrollView = new ScrollView(); // Wrap in a scrollview to be certain all content will always be shown.
+            var content = new AccountDropdownContent { OnAction = Close };
             scrollView.Add(content);
             panel.Add(scrollView);
         }

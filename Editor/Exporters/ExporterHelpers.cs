@@ -179,7 +179,12 @@ namespace Unity.Muse.Common.Editor
         public static string GetAbsolutePath(string path)
         {
             if (path.StartsWith(assetsRoot))
-                path = path.Replace("Assets", Application.dataPath);
+            {
+                //Only replace the first occurence of Assets
+                path = path.Remove(0, assetsRoot.Length);
+                path = path.Insert(0, Application.dataPath);
+            }
+
             path = path.Replace("\\", "/");
             return path;
         }
@@ -201,7 +206,7 @@ namespace Unity.Muse.Common.Editor
 
             return path.StartsWith(assetsRoot) ? path : FileUtil.GetProjectRelativePath(path);
         }
-        
+
         public static void EnsureDirectoryExists(string directory)
         {
             if (string.IsNullOrEmpty(directory))
@@ -229,7 +234,7 @@ namespace Unity.Muse.Common.Editor
         {
             return NativePlugin.OpenFilePanel(title, directory, extensions, true);
         }
-        
+
         public static void OpenFilesPanelAsync(string title, string directory, IEnumerable<ExtensionFilter> extensions, Action<string[]> cb)
         {
             NativePlugin.OpenFilePanelAsync(title, directory, extensions, true, cb);
