@@ -308,19 +308,7 @@ namespace Unity.Muse.Common.Editor
             {
                 CurrentModel.AddExportedArtifact(unityGuid, artifactGuid);
 
-                SetLabelOnExportedArtifact(relativePath);
-            }
-        }
-
-        static void SetLabelOnExportedArtifact(string relativePath)
-        {
-            const string unityMuseAI = "Unity Muse AI";
-            var asset = AssetDatabase.LoadMainAssetAtPath(relativePath);
-            var labelList = new List<string>(AssetDatabase.GetLabels(asset));
-            if (!labelList.Contains(unityMuseAI))
-            {
-                labelList.Add(unityMuseAI);
-                AssetDatabase.SetLabels(asset, labelList.ToArray());
+                MuseEditorUtils.SetLabelOnExportedArtifact(relativePath);
             }
         }
 

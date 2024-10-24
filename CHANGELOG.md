@@ -4,6 +4,17 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [2.0.7] - 2024-10-24
+
+### Changed
+
+- Changed default path where Muse assets are saved.
+- Changed default texture name to readable save file name.
+
+### Fixed
+
+- Fix Muse dropdown flickering.
+
 ## [2.0.6] - 2024-10-07
 
 ### Added
@@ -30,6 +41,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 
 - Fix app ui muse plugin conflict.
+
+### Removed
+
+- Remove recently added (2.x) .children in favor of .history.
 
 ## [2.0.4] - 2024-08-15
 

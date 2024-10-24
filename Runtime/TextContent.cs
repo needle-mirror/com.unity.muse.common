@@ -132,6 +132,7 @@ namespace Unity.Muse.Common
         public static readonly string audioSettingsCategory = "Muse Sound";
         public static readonly string accountSettingsCategory = "Account";
         public static readonly string browse = "Browse";
+        public static readonly string reset = "Reset";
         public static readonly string selectFolder = "Select Folder";
         public static readonly string deleteWithoutWarning = "Delete Generations Without Warning";
         public static readonly string spriteAssetGeneratedPath = "Default Path for Muse Sprite Assets";

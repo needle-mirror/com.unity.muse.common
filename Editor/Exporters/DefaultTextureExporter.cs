@@ -17,8 +17,22 @@ namespace Unity.Muse.Common.Editor
         }
 
         public string Extension => "png";
+        const int k_FileNameMaxLength = 36;
 
-        public string GetSaveFileName(Artifact artifact) => artifact.Guid;
+        public string GetSaveFileName(Artifact artifact)
+        {
+            var prompt = artifact.GetOperator<PromptOperator>()?.GetPrompt();
+            var fileName = ExporterHelpers.RemoveSpecialCharacters(prompt);
+
+            if (string.IsNullOrWhiteSpace(fileName))
+                return artifact?.Guid;
+
+            if (fileName.Length > k_FileNameMaxLength)
+            {
+                fileName = fileName[..k_FileNameMaxLength];
+            }
+            return fileName;
+        }
 
         public void Export(Artifact artifact, string path, ExportedArtifactDelegate onExport, object optionalData, object metadata)
         {

@@ -13,6 +13,8 @@ namespace Unity.Muse.Common
     static class GlobalPreferences
     {
         const string k_AssetsRoot = "Assets";
+        const string k_MuseGeneratedAssetsFolderName = "Muse";
+
         internal static event Action preferencesChanged;
         internal static event Action OnReady;
 
@@ -111,7 +113,7 @@ namespace Unity.Muse.Common
 
         public static string GetMuseAssetGeneratedFolderPathFromMode(string currentMode)
         {
-            var directory = k_AssetsRoot;
+            var directory = GetMuseAssetsDefaultPath();
 
             if (k_Callbacks.TryGetValue(currentMode, out var callback))
             {
@@ -136,7 +138,14 @@ namespace Unity.Muse.Common
 
         internal static string SanitizeMuseGeneratedPath(string path)
         {
-            return IsValidMuseGeneratedPath(path) ? path : k_AssetsRoot;
+            return IsValidMuseGeneratedPath(path, false) ? path.Replace("\\", "/") : GetMuseAssetsDefaultPath();
+        }
+
+        internal static string GetMuseAssetsDefaultPath()
+        {
+            var defaultMusePath = Path.Join(k_AssetsRoot, k_MuseGeneratedAssetsFolderName);
+
+            return defaultMusePath;
         }
     }
 }

@@ -1290,11 +1290,13 @@ namespace Unity.Muse.Common
         }
 
         /// <summary>
+        /// Change the dropzone message
+        /// </summary>
+        /// <remarks>
         /// WARNING: This method was introduced in Muse Common 2.0.6, please use a Conditional compilation like
         /// USING_MUSE_COMMON_2_0_6_OR_NEWER in your code and assembly definition if you are calling this method to have
         /// backward compatibility.
-        /// Change the dropzone message
-        /// </summary>
+        /// </remarks>
         /// <param name="message">Message for the dropzone</param>
         public void SetDropzoneMessage(string message)
         {
