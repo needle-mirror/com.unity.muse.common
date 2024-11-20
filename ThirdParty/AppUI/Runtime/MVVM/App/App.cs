@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.Muse.AppUI.UI;
 using UnityEngine.UIElements;
 
 namespace Unity.AppUI.MVVM
@@ -14,9 +15,11 @@ namespace Unity.AppUI.MVVM
         /// </summary>
         public static event Action shuttingDown;
 
-        readonly List<IUIToolkitHost> m_Hosts = new List<IUIToolkitHost>();
+        readonly List<UIToolkitHost> m_Hosts = new List<UIToolkitHost>();
 
         bool m_Disposed;
+
+        IServiceProvider m_Services;
 
         /// <summary>
         /// The current App instance.
@@ -32,12 +35,17 @@ namespace Unity.AppUI.MVVM
         /// <summary>
         /// The main page of the application.
         /// </summary>
-        public VisualElement mainPage { get; set; }
+        public VisualElement rootVisualElement { get; set; }
+
+        /// <summary>
+        /// The services of the application.
+        /// </summary>
+        public IServiceProvider services => m_Services;
 
         /// <summary>
         /// The hosts of the application.
         /// </summary>
-        public IEnumerable<IUIToolkitHost> hosts => m_Hosts;
+        public IEnumerable<UIToolkitHost> hosts => m_Hosts;
 
         /// <summary>
         /// Initializes the current App instance.
@@ -45,30 +53,21 @@ namespace Unity.AppUI.MVVM
         /// <param name="serviceProvider"> The service provider to use. </param>
         /// <param name="host"> The host to use. </param>
         /// <exception cref="InvalidOperationException"> Thrown when a current App instance already exists. </exception>
-        /// <exception cref="ArgumentNullException"> Thrown when one or more required arguments are null. </exception>
-        public void Initialize(IServiceProvider serviceProvider, IHost host)
+        /// <exception cref="ArgumentNullException"> Thrown when serviceProvider is null. </exception>
+        public void Initialize(IServiceProvider serviceProvider, UIToolkitHost host = null)
         {
-            var uitkHost = host as IUIToolkitHost;
-
             if (current != null)
                 throw new InvalidOperationException($"An {nameof(App)} has been already initialized.");
 
             if (m_Hosts.Count > 0)
                 throw new InvalidOperationException($"Trying to create the {nameof(App)} main window more than once.");
 
-            if (host == null)
-                throw new ArgumentNullException(nameof(host));
-
-            if (serviceProvider == null)
-                throw new ArgumentNullException(nameof(serviceProvider));
-
-            if (uitkHost == null)
-                throw new ArgumentException($"The host must implement {nameof(IUIToolkitHost)}.", nameof(host));
-
+            m_Services = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             SetCurrentApp(this);
-
-            m_Hosts.Add(uitkHost);
-            uitkHost.HostApplication(this, serviceProvider);
+            if (host != null)
+                m_Hosts.Add(host);
+            InitializeComponent();
+            host?.HostApplication(this, serviceProvider);
         }
 
         /// <summary>
@@ -86,6 +85,12 @@ namespace Unity.AppUI.MVVM
         {
             Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        /// <inheritdoc />
+        public virtual void InitializeComponent()
+        {
+            rootVisualElement = new Panel();
         }
 
         /// <summary>
@@ -107,7 +112,7 @@ namespace Unity.AppUI.MVVM
                 m_Hosts.Clear();
             }
 
-            mainPage = null;
+            rootVisualElement = null;
             SetCurrentApp(null);
             m_Disposed = true;
         }

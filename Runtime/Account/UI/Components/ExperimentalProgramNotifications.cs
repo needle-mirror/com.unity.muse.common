@@ -1,4 +1,3 @@
-using System;
 using Unity.Muse.AppUI.UI;
 using Unity.Muse.Common.Utils;
 using UnityEngine.UIElements;
@@ -10,6 +9,8 @@ namespace Unity.Muse.Common.Account
         readonly ExperimentalProgramLimitReachedNotificationView m_LimitReached;
         
         readonly ExperimentalProgramSignUpNotificationView m_SignUp;
+        
+        NotificationView m_GetBalanceError;
 
         Model m_Model;
 
@@ -106,12 +107,13 @@ namespace Unity.Muse.Common.Account
         {
             if (!string.IsNullOrEmpty(errorMessage))
             {
-                var errorView = new NotificationView(new ()
+                m_GetBalanceError?.RemoveFromHierarchy();
+                m_GetBalanceError = new NotificationView(new ()
                 {
                     titleText = "Experimental Program Error",
                     description = errorMessage,
                 });
-                Add(errorView);
+                Add(m_GetBalanceError);
                 return;
             }
             

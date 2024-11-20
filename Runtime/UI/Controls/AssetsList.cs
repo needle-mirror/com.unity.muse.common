@@ -90,8 +90,13 @@ namespace Unity.Muse.Common
 
         void OnResizeBarDrag(Dragger manipulator)
         {
+            Resize(manipulator.deltaPos.x);
+        }
+
+        void Resize(float delta)
+        {
             var width = content.layout.width;
-            width -= manipulator.deltaPos.x;
+            width -= delta;
             var totalWidth = parent.layout.width;
             width = Mathf.Clamp(width, MainUI.k_AssetListMinWidth, totalWidth - MainUI.k_NodeListMinWidth);
 
@@ -241,6 +246,11 @@ namespace Unity.Muse.Common
 
             RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
             RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
+            RegisterCallback<GeometryChangedEvent>(evt =>
+            {
+                var delta = evt.oldRect.xMax - evt.newRect.xMax;
+                Resize(delta);
+            });
         }
 
         protected virtual BaseGridView InstantiateGridView() =>

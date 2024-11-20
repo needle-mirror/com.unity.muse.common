@@ -7,16 +7,11 @@ namespace Unity.AppUI.MVVM
     /// <summary>
     /// Interface for the application using UI Toolkit.
     /// </summary>
-    internal interface IUIToolkitApp : IApp
+    internal interface IUIToolkitApp : IApp<UIToolkitHost>
     {
         /// <summary>
         /// The main page of the application.
         /// </summary>
-        VisualElement mainPage { get; set; }
-
-        /// <summary>
-        /// The hosts of the application.
-        /// </summary>
-        IEnumerable<IUIToolkitHost> hosts { get; }
+        VisualElement rootVisualElement { get; set; }
     }
 }
