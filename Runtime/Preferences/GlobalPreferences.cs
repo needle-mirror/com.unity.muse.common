@@ -143,7 +143,7 @@ namespace Unity.Muse.Common
 
         internal static string GetMuseAssetsDefaultPath()
         {
-            var defaultMusePath = Path.Join(k_AssetsRoot, k_MuseGeneratedAssetsFolderName);
+            var defaultMusePath = Path.Join(k_AssetsRoot, k_MuseGeneratedAssetsFolderName).Replace("\\", "/");
 
             return defaultMusePath;
         }

@@ -371,7 +371,7 @@ namespace Unity.Muse.Common
             return GetViews.FirstOrDefault(view =>  ReferenceEquals(view.Artifact, artifact));
         }
 
-        void OnGridViewDragStarted(PointerMoveEvent evt)
+        protected virtual void OnGridViewDragStarted(PointerMoveEvent evt)
         {
             if (!m_CurrentModel)
                 return;
