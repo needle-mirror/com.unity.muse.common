@@ -8,7 +8,8 @@ namespace Unity.Muse.Common.Account
             new()
             {
                 titleText = TextContent.clientStatusNoInternetTitle,
-                description = TextContent.clientStatusNoInternet
+                description = TextContent.clientStatusNoInternet,
+                showOrganizations = false
             }
         ) { }
     }

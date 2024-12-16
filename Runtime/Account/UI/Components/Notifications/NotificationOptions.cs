@@ -12,5 +12,7 @@ namespace Unity.Muse.Common.Account
         public string buttonIcon = "arrow-square-out";
         public bool inlineButton = false;
         public MuseNotificationStyle style = MuseNotificationStyle.Alert;
+
+        public bool showOrganizations = true;
     }
 }

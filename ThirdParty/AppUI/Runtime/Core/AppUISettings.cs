@@ -5,7 +5,6 @@ namespace Unity.AppUI.Core
     /// <summary>
     /// The settings for the App UI system.
     /// </summary>
-    [CreateAssetMenu(menuName = "App UI/Settings", fileName = "App UI Settings")]
     internal class AppUISettings : ScriptableObject
     {
         internal const string configName = "com.unity.dt.app-ui";

@@ -16,7 +16,8 @@ namespace Unity.Muse.Common.Account
                 {
                     action?.Invoke();
                     ClientStatus.Instance.OpenInPackageManager();
-                }
+                },
+                showOrganizations = false
             }
         ) { }
     }

@@ -13,7 +13,8 @@ namespace Unity.Muse.Common.Account
                 titleText = TextContent.signinNotificationTitle,
                 description = TextContent.signinNotificationDescription,
                 action = CloudProjectSettings.ShowLogin,
-                inlineButton = inlineButton
+                inlineButton = inlineButton,
+                showOrganizations = false
             }
         ) { }
     }

@@ -417,3 +417,12 @@ SectionCard {
 SectionCard .action-icon {
     align-self: center;
 }
+
+.hidden {
+    display: none;
+}
+
+OrganizationSelection {
+    height: auto;
+    min-height: 20px;
+}

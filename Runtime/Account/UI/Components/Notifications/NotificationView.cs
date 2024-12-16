@@ -33,6 +33,9 @@ namespace Unity.Muse.Common.Account
             Add(m_Callout);
 
             AddButton(options.buttonText, options.buttonIcon, m_OnAction, options.inlineButton);
+
+            if (options.showOrganizations)
+                m_Callout.Add(new OrganizationSelection());
         }
 
         protected void AddButton(string text, string icon, Action action, bool inline)

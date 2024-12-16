@@ -705,7 +705,7 @@ namespace Unity.Muse.Common
             RefreshThumbnailSize();
         }
 
-        protected void RefreshThumbnailSize()
+        protected virtual void RefreshThumbnailSize()
         {
             var size = m_ThumbnailSizeSlider.value * defaultThumbnailSize;
 
